@@ -88,3 +88,30 @@ WITH ranked AS (
 )
 SELECT * FROM ranked WHERE rk = 1 ORDER BY net_wpm DESC LIMIT 10;
 ```
+
+## Addendum (from [13-gate-failure-flow.md](./13-gate-failure-flow.md))
+
+Two changes from the Learn-track gate-failure decision.
+
+**New table `stage_unlocks`** — Stage progression is otherwise *derived* (a Player has cleared Stage *n* if they hold a Score on its Exercise at ≥90% accuracy). The adult-granted override for a stuck Player cannot be derived, because the qualifying Score never happened, so it needs storage:
+- `player_id` TEXT NOT NULL, FK → `players.id`
+- `stage_id` INTEGER NOT NULL, FK → `stages.id`
+- `granted_at` INTEGER NOT NULL
+- PK `(player_id, stage_id)`
+
+A Stage is unlocked if the previous Stage was *either* cleared on accuracy *or* has a `stage_unlocks` row. The table stays empty for every Player who never gets stuck.
+
+**Learn Leaderboard query gains an accuracy predicate.** A sub-gate Attempt produces a valid Score, so without this a Player could top a Stage's Leaderboard having never cleared that Stage:
+```sql
+WITH ranked AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY player_id ORDER BY net_wpm DESC) AS rk
+  FROM scores
+  WHERE exercise_id = ? AND leaderboard_eligible = 1
+    AND accuracy >= 0.90   -- Learn Exercises only; the Speed Test has no gate
+)
+SELECT * FROM ranked WHERE rk = 1 ORDER BY net_wpm DESC LIMIT 10;
+```
+
+Deliberately a query predicate rather than `leaderboard_eligible = 0`: that column means "implausible, possibly tampered" and is the manual moderation lever, so conflating it with "typed sloppily but honestly" would poison both meanings.
+
+Note this query still has no tie-break — [15-leaderboard-display-rules.md](./15-leaderboard-display-rules.md) is open and owns that.

@@ -21,3 +21,9 @@ Prototype: [.scratch/gettyping-spec/prototypes/06-visual-design/](../prototypes/
 - **Leaderboard: hidden during the Attempt, revealed only on completing the Exercise/Stage.** Variant A's always-visible sidebar Leaderboard was rejected as distracting while typing — pulled from Variant B's "trophy shelf" reveal-on-finish behavior instead. Leaderboard is not inline-live during typing; it appears once the Attempt is scored.
 
 Feeds the destination's visual/UX-principles section directly. No data-model impact — this is presentation timing, not a new fact to store (an Attempt's Score is already computed at completion, which is when the Leaderboard read naturally happens).
+
+## Addendum — reveal condition refined by [13-gate-failure-flow.md](./13-gate-failure-flow.md)
+
+"Revealed only on completing the Exercise" is ambiguous for a failed Attempt: every character was typed, so the Exercise *was* completed, and as written this reveals the Leaderboard to a Player who just missed the Learn gate.
+
+**Refined**: the Leaderboard is revealed on **clearing** the Exercise, not merely finishing it. A sub-90% Learn Attempt goes to a distinct failure state with no Leaderboard — the pedagogy research is explicit that young learners should get progress-coupled framing over "competitive/leaderboard mechanics", and a child who scored 62% should not be shown their rank beneath ten strangers. The Score still persists and still counts for personal history. Everything else above is unchanged.
