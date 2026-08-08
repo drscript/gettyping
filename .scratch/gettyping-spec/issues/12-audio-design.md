@@ -16,6 +16,8 @@ If audio is in scope, the flip side needs settling too: mute/volume control, whe
 
 ## Answer
 
+Audible in [prototypes/resolved-design/](../prototypes/resolved-design/) — the error tick and completion sound are synthesised there, with the mute toggle in its specified always-reachable position.
+
 **Audio is in scope, deliberately narrow and always silenceable.** Ruling it out entirely was the tempting simplification but the wrong one: [research/typing-pedagogy.md](../research/typing-pedagogy.md) twice recommends "optional audio/spoken cues… since auditory reinforcement is specifically called out as helpful for younger and struggling learners," and the cost of *specifying* audio is a paragraph while the cost of leaving it undecided is that an implementer either invents it unguided or ships silence by accident. Full multisensory treatment (music, character voices) was rejected as disproportionate for a solo project with no budget — the same test that ruled out the admin surface and behavioural anti-cheat in [10-score-integrity.md](./10-score-integrity.md).
 
 ### Layers: two in, two out

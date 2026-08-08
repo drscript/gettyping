@@ -11,6 +11,8 @@ The UI must be "visually simple to allow users to focus on typing," but the Lear
 
 Prototype: [.scratch/gettyping-spec/prototypes/06-visual-design/](../prototypes/06-visual-design/) — three structurally different variants (A "Playful-Adaptive", B "Split Identity", C "Quiet Focus"), each rendering both Tracks live and typable side by side.
 
+> The winning hybrid described below is rendered on its own in [prototypes/resolved-design/](../prototypes/resolved-design/), together with the later onboarding and audio decisions. The three-variant prototype above is kept as the record of how the choice was made.
+
 **Winner: Variant A's visual language and keyboard, with Variant B's Leaderboard timing** — a hybrid, not a straight pick of one variant:
 
 - **One shared visual language, flexed per Track** (not two distinct modes): one component system — rounded pill feedback, one on-screen keyboard, one Leaderboard treatment — with only type scale/font flexed bigger and rounder for Learn vs. tighter and more compact for Speed Test & Practice.

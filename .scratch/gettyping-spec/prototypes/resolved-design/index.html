@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>GetTyping — resolved design reference</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /*
+    RESOLVED DESIGN REFERENCE — not production, but not a decision tool either.
+
+    The ticket-06 prototype (../06-visual-design/) explored three competing
+    variants; two lost. This renders the design that WON, plus the decisions
+    made after it in tickets 11 (onboarding) and 12 (audio), so an implementer
+    has one place to see the specified app rather than three options and a
+    changelog.
+
+    Sources:
+      06 — one visual language flexed per Track, on-screen keyboard on both,
+           feedback pairs colour with a glyph/shape, Leaderboard hidden during
+           the Attempt and revealed on completion.
+      11 — Track choice -> Nickname -> typing; intent-framed doors; picker on
+           Learn / free text on Speed Test; profanity checked on submit with a
+           neutral redirect; persistent "For grown-ups" route; light home
+           screen; "Not you?" device switch.
+      12 — error-only keystroke ticks + rare event sounds, strictly redundant
+           with the visual channel, default on, single toggle reachable
+           mid-Attempt.
+
+    Vanilla HTML/CSS/JS, no deps, no build. Open directly in a browser.
+    Audio is synthesised via WebAudio — no asset files (those are out of scope).
+  */
+
+  :root {
+    --bg: #f6f5f2;
+    --ink: #1c1b19;
+    --muted: #6b6862;
+    --line: #e3e1db;
+    --card: #fff;
+    --accent: #3457d5;
+    --ok-fill: #d5f2d0;
+    --ok-line: #8fd685;
+    --ok-ink: #2f8a24;
+    --err-line: #d9713f;
+    --err-ink: #b8461f;
+    --gold: #fff3c4;
+    --gold-line: #e6c94d;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  button { font-family: inherit; }
+
+  .dev-banner {
+    position: sticky; top: 0; z-index: 60;
+    background: #111; color: #fff; font: 12px/1.6 ui-monospace, monospace;
+    text-align: center; padding: 4px 8px; letter-spacing: .03em;
+  }
+
+  main { max-width: 940px; margin: 0 auto; padding: 40px 20px 140px; }
+
+  /* ---------- screen router ---------- */
+  .screen { display: none; }
+  body[data-screen="track"]   .screen-track,
+  body[data-screen="nick"]    .screen-nick,
+  body[data-screen="type"]    .screen-type,
+  body[data-screen="home"]    .screen-home,
+  body[data-screen="grownup"] .screen-grownup { display: block; }
+
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 17px; margin: 0 0 10px; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 26px; max-width: 62ch; line-height: 1.55; }
+
+  /* ---------- persistent corner affordances (12: mute reachable mid-Attempt) ---------- */
+  .corner {
+    position: fixed; z-index: 55; display: flex; align-items: center; gap: 8px;
+  }
+  .corner.tl { top: 34px; left: 18px; }
+  .corner.tr { top: 34px; right: 18px; }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--card); cursor: pointer; font-size: 16px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  }
+  .icon-btn:hover { border-color: #c8c5bd; }
+  .icon-btn[aria-pressed="true"] { background: #eeece6; }
+  /* 11: deliberately adult-styled, NOT a kid-facing button */
+  .grownup-link {
+    font-size: 12px; color: var(--muted); text-decoration: underline;
+    text-underline-offset: 3px; background: none; border: none; cursor: pointer;
+    letter-spacing: .01em;
+  }
+  .grownup-link:hover { color: var(--ink); }
+
+  /* ---------- 11: Track choice — two doors framed by INTENT, never age/skill ---------- */
+  .doors { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .doors { grid-template-columns: 1fr; } }
+  .door {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 30px 26px; cursor: pointer; text-align: left; transition: transform .12s, box-shadow .12s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  }
+  .door:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.09); }
+  .door .glyph { font-size: 34px; display: block; margin-bottom: 12px; }
+  .door .title { font-size: 21px; font-weight: 700; display: block; margin-bottom: 6px; }
+  .door .desc { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+
+  /* ---------- 11: Nickname — picker on Learn, free text on Speed Test ---------- */
+  .nick-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 720px) { .nick-cards { grid-template-columns: repeat(2, 1fr); } }
+  .nick-card {
+    background: var(--card); border: 2px solid var(--line); border-radius: 14px;
+    padding: 18px 10px; cursor: pointer; text-align: center;
+    font-family: "Baloo 2", "Comic Sans MS", sans-serif; font-size: 17px; font-weight: 700;
+  }
+  .nick-card:hover { border-color: var(--gold-line); background: #fffdf5; }
+  .nick-card .ic { font-size: 30px; display: block; margin-bottom: 8px; }
+  .row-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .btn {
+    background: var(--ink); color: #fff; border: none; border-radius: 10px;
+    padding: 11px 20px; font-size: 14.5px; font-weight: 600; cursor: pointer;
+  }
+  .btn:hover { background: #000; }
+  .btn.ghost { background: none; color: var(--muted); border: 1px solid var(--line); }
+  .btn.ghost:hover { color: var(--ink); background: #fff; }
+  .text-field {
+    font: 16px ui-monospace, monospace; padding: 11px 13px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--card); min-width: 240px;
+  }
+  /* 11: the no-real-names nudge is INLINE here, where it is actionable */
+  .nudge-inline {
+    font-size: 12.5px; color: var(--muted); margin: 10px 0 18px; line-height: 1.5;
+    border-left: 2px solid var(--line); padding-left: 10px; max-width: 54ch;
+  }
+  /* 11: neutral redirect — never names the offence, never shames */
+  .reject {
+    display: none; background: #fff8f3; border: 1px solid #f0d9c8; border-radius: 10px;
+    padding: 12px 14px; font-size: 14px; margin: 14px 0; color: var(--err-ink);
+  }
+  .reject.show { display: block; }
+
+  /* ---------- 06: the typing interface — ONE language, flexed per Track ---------- */
+  .track-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .track-tabs button {
+    font-size: 12.5px; padding: 6px 13px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
+  }
+  .track-tabs button[aria-selected="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .panel {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 24px; outline: none; box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  }
+  .panel:focus-within { border-color: #cfccc4; }
+  .panel-label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 14px; }
+
+  .prompt { line-height: 1.85; word-spacing: .25em; cursor: text; min-height: 2.6em; }
+  .prompt .ch { padding: 1px 2px; border-radius: 5px; }
+  /* The flex: type scale + family only. Same components either side. */
+  .panel.learn .prompt { font-size: 30px; font-weight: 700; font-family: "Baloo 2", "Comic Sans MS", sans-serif; }
+  .panel.speed .prompt { font-size: 17px; font-family: ui-monospace, "SF Mono", monospace; letter-spacing: .01em; }
+  .panel.learn { border-radius: 18px; }
+
+  /* 06: correct = filled pill + check glyph; incorrect = DASHED outline + x glyph.
+     Shape and glyph each carry the signal independent of hue. */
+  .ch.correct { background: var(--ok-fill); box-shadow: inset 0 0 0 1px var(--ok-line); }
+  .ch.correct::after { content: "✓"; font-size: .5em; vertical-align: super; color: var(--ok-ink); margin-left: 1px; }
+  .ch.incorrect { border: 1px dashed var(--err-line); background: #fff1ea; }
+  .ch.incorrect::after { content: "×"; font-size: .55em; vertical-align: super; color: var(--err-ink); margin-left: 1px; }
+  /* A space carries no letter to affirm, and glyphing it destroys the word
+     boundaries the reader needs. Keep the state legible, drop the decoration. */
+  .ch.space { background: none; box-shadow: none; border: none; }
+  .ch.space::after { content: none; }
+  .ch.space.incorrect { background: #fff1ea; box-shadow: inset 0 0 0 1px var(--err-line); border-radius: 3px; }
+  .ch.current { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+
+  .keyboard { margin-top: 26px; display: grid; gap: 6px; }
+  .keyboard .row { display: flex; justify-content: center; gap: 6px; }
+  .keyboard .key {
+    width: 36px; height: 36px; border-radius: 8px; background: var(--card); border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font: 12px ui-monospace, monospace; box-shadow: 0 1px 1px rgba(0,0,0,.04);
+  }
+  .keyboard .key.next { background: var(--gold); border-color: var(--gold-line); box-shadow: 0 0 0 2px #e6c94d55; font-weight: 700; }
+  .keyboard .key.space { width: 200px; font-size: 10px; letter-spacing: .08em; color: var(--muted); }
+  .panel.learn ~ .keyboard .key { width: 40px; height: 40px; border-radius: 10px; font-size: 13px; }
+
+  .hint-line { font-size: 12.5px; color: var(--muted); margin-top: 16px; text-align: center; }
+
+  /* 06: Leaderboard HIDDEN during the Attempt, revealed only on completion */
+  .result { display: none; margin-top: 20px; border-top: 1px dashed var(--line); padding-top: 18px; }
+  .result.show { display: block; animation: rise .25s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .result-stats { display: flex; gap: 22px; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .result-stats b { color: var(--ink); font-size: 16px; display: block; }
+  .lb-title { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 8px; }
+  .lb-row { display: flex; justify-content: space-between; padding: 4px 8px; border-radius: 7px; font-size: 13.5px; }
+  .lb-row.me { background: var(--gold); font-weight: 700; }
+
+  /* ---------- 11: returning-Player home ---------- */
+  .home-greet { font-size: 15px; color: var(--muted); margin-bottom: 4px; }
+  .home-name { font-size: 30px; font-weight: 700; margin-bottom: 22px; font-family: "Baloo 2", "Comic Sans MS", sans-serif; }
+  .continue-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px;
+    display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05); margin-bottom: 14px;
+  }
+  .progress-track { height: 10px; background: #eeece6; border-radius: 999px; overflow: hidden; margin: 10px 0 6px; max-width: 320px; }
+  .progress-fill { height: 100%; background: var(--gold-line); border-radius: 999px; }
+  .progress-label { font-size: 12.5px; color: var(--muted); }
+  .secondary-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+  /* ---------- 11: grown-ups page — adult voice, stable route ---------- */
+  .prose { max-width: 62ch; font-size: 14.5px; line-height: 1.65; color: #3a3833; }
+  .prose h3 { font-size: 15px; margin: 26px 0 6px; color: var(--ink); }
+  .prose p { margin: 0 0 12px; }
+  .prose .warn { background: #fffbe9; border: 1px solid #ece0b0; border-radius: 10px; padding: 12px 14px; }
+
+  .spec-note {
+    margin-top: 34px; font: 12px/1.6 ui-monospace, monospace; color: #8a867e;
+    border-top: 1px dashed var(--line); padding-top: 12px; max-width: 76ch;
+  }
+  .spec-note b { color: #5f5c56; }
+</style>
+</head>
+<body data-screen="track">
+  <div class="dev-banner">RESOLVED DESIGN REFERENCE — the specified app, not a decision tool. Click a prompt, then type it.</div>
+
+  <!-- 12: mute is reachable on EVERY screen, including mid-Attempt, so silencing
+       never costs a Stage in progress. 11: grown-ups link is permanent + adult-styled. -->
+  <div class="corner tr">
+    <button class="grownup-link" id="go-grownup">For grown-ups</button>
+    <button class="icon-btn" id="mute-btn" aria-pressed="false" title="Sound on — click to mute">🔊</button>
+  </div>
+  <div class="corner tl">
+    <button class="icon-btn" id="back-btn" title="Back" style="display:none">←</button>
+  </div>
+
+  <main>
+
+    <!-- ================= TRACK CHOICE ================= -->
+    <section class="screen screen-track">
+      <h1>What would you like to do?</h1>
+      <p class="sub">Framed by <b>intent</b> — never by age and never by self-assessed skill. An adult beginner
+        belongs in Learn; a nine-year-old who already types belongs in Speed Test. A "for kids" label would push
+        both to the wrong door.</p>
+      <div class="doors">
+        <button class="door" data-track="learn">
+          <span class="glyph">🌱</span>
+          <span class="title">I want to learn to type</span>
+          <span class="desc">Start at the beginning and work through it one step at a time. No typing needed to get going.</span>
+        </button>
+        <button class="door" data-track="speed">
+          <span class="glyph">⚡</span>
+          <span class="title">I want to get faster</span>
+          <span class="desc">Take a speed test, then practise the keys that slow you down.</span>
+        </button>
+      </div>
+      <div class="spec-note">
+        <b>11 — mis-pick recovery over a perfect router.</b> No framing is right every time, so the investment goes
+        into escape hatches: a sub-floor Speed Test result offers "start from the beginning instead?", and Learn
+        always keeps a visible way out. The exact floor is a playtest-tuned number, deliberately left in the map's fog.
+      </div>
+    </section>
+
+    <!-- ================= NICKNAME ================= -->
+    <section class="screen screen-nick">
+      <h1 id="nick-heading">Pick a name</h1>
+      <p class="sub" id="nick-sub"></p>
+
+      <!-- Learn default: tap-to-pick. Safe by construction — the filter never runs here. -->
+      <div id="nick-picker">
+        <div class="nick-cards" id="nick-cards"></div>
+        <div class="row-actions">
+          <button class="btn ghost" id="shuffle">↻ Different ones</button>
+          <button class="grownup-link" id="show-freetext">Type your own instead</button>
+        </div>
+      </div>
+
+      <!-- Speed Test default (and Learn's secondary path): free text. -->
+      <div id="nick-freetext" style="display:none">
+        <input class="text-field" id="nick-input" placeholder="your nickname" autocomplete="off" />
+        <div class="nudge-inline">
+          This shows up on public Leaderboards, so pick something that isn't your real name.
+        </div>
+        <div class="reject" id="nick-reject">
+          Let's use a different name.
+          <div style="margin-top:10px" class="nick-cards" id="reject-cards"></div>
+        </div>
+        <div class="row-actions">
+          <button class="btn" id="nick-submit">Start</button>
+          <button class="grownup-link" id="show-picker" style="display:none">Pick one instead</button>
+        </div>
+      </div>
+
+      <div class="spec-note">
+        <b>11 — the bootstrapping problem.</b> The first thing the app would otherwise ask a Learn Player to do is
+        type, before it has taught them how. Track choice going first is what lets this step differ per Track:
+        tap-to-pick on Learn, free text on Speed Test. Because picked names come from a curated list they are safe
+        by construction, so <b>the profanity filter only ever runs on free text</b> — try typing "damn" above to see
+        the neutral redirect. The list itself is content-authoring, out of scope for the spec.
+      </div>
+    </section>
+
+    <!-- ================= TYPING ================= -->
+    <section class="screen screen-type">
+      <div class="track-tabs">
+        <button data-view="learn" aria-selected="true">Learn</button>
+        <button data-view="speed" aria-selected="false">Speed Test &amp; Practice</button>
+      </div>
+
+      <div class="panel learn" id="panel" tabindex="0">
+        <div class="panel-label" id="panel-label">Learn — Stage 6: Top row R &amp; U</div>
+        <div class="prompt" id="prompt"></div>
+
+        <!-- 06: revealed only on completing the Exercise, never live during the Attempt -->
+        <div class="result" id="result">
+          <div class="result-stats">
+            <span>Net WPM<b id="stat-wpm">—</b></span>
+            <span>Accuracy<b id="stat-acc">—</b></span>
+            <span>Errors<b id="stat-err">—</b></span>
+          </div>
+          <div class="lb-title">Leaderboard — this Exercise</div>
+          <div id="lb-body"></div>
+          <div class="row-actions" style="margin-top:16px">
+            <button class="btn" id="again">Try again</button>
+            <button class="btn ghost" id="to-home">Back to home</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="keyboard" id="keyboard"></div>
+      <div class="hint-line">The keyboard highlights the next key on <b>both</b> Tracks — validated for a beginner
+        learning finger position and for weak-key practice alike.</div>
+
+      <div class="spec-note">
+        <b>06 — one language, flexed.</b> Switch Tracks above: the components are identical (same pill feedback, same
+        keyboard, same Leaderboard treatment) and only type scale and font family flex. <b>Feedback never relies on
+        colour alone</b> — correct is a filled pill plus ✓, incorrect is a <i>dashed</i> outline plus ×, so shape and
+        glyph each carry the signal.<br />
+        <b>12 — audio.</b> A soft tick fires on errors only, never on correct keys, and never escalates on a run of
+        mistakes. It is strictly redundant with the × above, so muting loses nothing.
+      </div>
+    </section>
+
+    <!-- ================= HOME (returning) ================= -->
+    <section class="screen screen-home">
+      <div class="home-greet">Welcome back,</div>
+      <div class="home-name" id="home-name">BraveOtter</div>
+
+      <div class="continue-card">
+        <div>
+          <h2 style="margin-bottom:2px">Stage 6 — Top row R &amp; U</h2>
+          <div class="progress-track"><div class="progress-fill" style="width:24%"></div></div>
+          <div class="progress-label">5 of 21 stages cleared</div>
+        </div>
+        <button class="btn" id="continue-btn">Continue →</button>
+      </div>
+
+      <div class="secondary-row">
+        <button class="btn ghost" id="to-speed">Try the Speed Test instead</button>
+        <button class="btn ghost" id="switch-player">Not BraveOtter?</button>
+      </div>
+
+      <div class="spec-note">
+        <b>11 — the home screen is the app's surface for everything that isn't typing.</b> Deep-linking straight back
+        into the next Stage would save one tap and leave the mis-pick recovery path, the grown-ups affordance, the
+        editable Nickname, visible progress, and the device switch with nowhere to live.<br />
+        <b>"Not BraveOtter?"</b> exists because identity is a cookie on a browser: without it, two siblings on one
+        tablet are the same Player, blending their Weak-key Profiles and quietly breaking the adaptive generation.
+        The cookie carries <code>{ active, players[] }</code> — no schema change.
+      </div>
+    </section>
+
+    <!-- ================= GROWN-UPS ================= -->
+    <section class="screen screen-grownup">
+      <h1>For grown-ups</h1>
+      <div class="prose">
+        <h3>There's no account</h3>
+        <p>GetTyping never asks for an email address, a password, or a date of birth, and stores no personal
+          information. A player is just a nickname.</p>
+
+        <h3>Progress lives in this browser</h3>
+        <p class="warn">Because there's no account, there's also no way to recover progress. If you clear this
+          browser's cookies, or switch to a different browser or device, your child starts over as a brand-new
+          player. Old scores stay on the leaderboards but can't be reclaimed.</p>
+
+        <h3>Nicknames are public</h3>
+        <p>Whatever nickname is chosen appears on public leaderboards alongside scores, which is why the app steers
+          away from real names and offers a list to pick from instead.</p>
+
+        <h3>More than one child?</h3>
+        <p>Use "Not you?" on the home screen to switch between players on this device. Each keeps their own progress
+          and their own practice profile.</p>
+
+        <h3>Sound</h3>
+        <p>The app makes a quiet sound when a key is typed wrongly, and a short one when a stage is cleared. Nothing
+          the sound tells you is missing from the screen, so muting it costs nothing. The speaker icon is on every
+          screen, including mid-exercise.</p>
+      </div>
+      <div class="spec-note">
+        <b>11 — a persistent route, not an interstitial.</b> Information delivered before it means anything is
+        information not delivered, and a pre-flow wall of text is worthless when the child is the one who opened the
+        tab. So this is permanent and findable at Stage 9, while the one <i>actionable</i> fact — the no-real-names
+        nudge — is inlined at the Nickname step instead.
+      </div>
+    </section>
+
+  </main>
+
+<script>
+  // ============================================================
+  // State
+  // ============================================================
+  const state = {
+    track: "learn",     // which Track was chosen at the door
+    view: "learn",      // which Track the typing screen is demonstrating
+    nickname: "BraveOtter",
+    muted: false,       // 12: defaults ON (i.e. not muted)
+  };
+
+  const PROMPTS = {
+    learn: "fur jar dark hug",
+    speed: "quiz queen quick quiet",
+  };
+  const LABELS = {
+    learn: "Learn — Stage 6: Top row R &amp; U",
+    speed: "Speed Test &amp; Practice — generated, targeting Q",
+  };
+
+  // Demo candidates only. The real curated list is content-authoring, out of scope.
+  const NAME_POOL = [
+    ["BraveOtter", "🦦"], ["SunnyKite", "🪁"], ["MintyFox", "🦊"],
+    ["JollyPanda", "🐼"], ["SwiftHeron", "🪶"], ["CozyBadger", "🦡"],
+    ["PlumRocket", "🚀"], ["TinyComet", "☄️"], ["MossyToad", "🐸"],
+  ];
+  // Demo blocklist only — enough to show the rejection behaviour.
+  const BLOCKED = ["damn", "hell", "crap", "butt", "poo"];
+
+  const MOCK_LB = [
+    { name: "pixelfox", wpm: 41 },
+    { name: "keysmash", wpm: 37 },
+    { name: "typo_tamer", wpm: 33 },
+    { name: "slowpoke9", wpm: 12 },
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  function show(screen) {
+    document.body.dataset.screen = screen;
+    $("back-btn").style.display = screen === "track" ? "none" : "flex";
+    window.scrollTo(0, 0);
+  }
+
+  // ============================================================
+  // 12 — Audio. Synthesised, no assets. Error-only + rare events.
+  // Strictly redundant with the visual channel, so muting is lossless.
+  // ============================================================
+  let audioCtx = null;
+  function ctx() {
+    // Browser autoplay policy blocks audio until a user gesture. Under the
+    // redundancy invariant that is a non-event, never withheld information.
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+  }
+
+  function tone({ freq, dur, gain = 0.05, type = "sine", at = 0 }) {
+    const c = ctx();
+    if (!c) return;
+    const t0 = c.currentTime + at;
+    const osc = c.createOscillator();
+    const g = c.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    // Short, soft, no sustain — a tick, not a buzzer.
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(gain, t0 + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(g).connect(c.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+
+  // Informational, not punitive. Fixed volume regardless of consecutive
+  // errors — a run of mistakes must never compound into scolding.
+  function playError() {
+    if (state.muted) return;
+    tone({ freq: 220, dur: 0.07, gain: 0.045, type: "triangle" });
+  }
+
+  // Rare by nature: only fires on completing an Exercise.
+  function playComplete() {
+    if (state.muted) return;
+    tone({ freq: 523.25, dur: 0.12, gain: 0.05, at: 0 });
+    tone({ freq: 783.99, dur: 0.18, gain: 0.05, at: 0.11 });
+  }
+
+  const muteBtn = $("mute-btn");
+  muteBtn.addEventListener("click", () => {
+    state.muted = !state.muted;
+    muteBtn.textContent = state.muted ? "🔇" : "🔊";
+    muteBtn.setAttribute("aria-pressed", String(state.muted));
+    muteBtn.title = state.muted ? "Muted — click for sound" : "Sound on — click to mute";
+    // Real app: persisted device-scoped in the cookie beside { active, players[] },
+    // never per-Player — mute is a property of the room, not the person.
+  });
+
+  // ============================================================
+  // 11 — Track choice
+  // ============================================================
+  document.querySelectorAll(".door").forEach((d) => {
+    d.addEventListener("click", () => {
+      state.track = d.dataset.track;
+      state.view = state.track;
+      setupNickScreen();
+      show("nick");
+    });
+  });
+
+  // ============================================================
+  // 11 — Nickname
+  // ============================================================
+  function sample(n) {
+    return [...NAME_POOL].sort(() => Math.random() - 0.5).slice(0, n);
+  }
+  function renderCards(container, n) {
+    container.innerHTML = "";
+    for (const [name, ic] of sample(n)) {
+      const b = document.createElement("button");
+      b.className = "nick-card";
+      b.innerHTML = `<span class="ic">${ic}</span>${name}`;
+      b.addEventListener("click", () => commitNickname(name));
+      container.appendChild(b);
+    }
+  }
+  function commitNickname(name) {
+    state.nickname = name;
+    $("home-name").textContent = name;
+    $("switch-player").textContent = `Not ${name}?`;
+    startTyping(state.track);
+  }
+
+  function setupNickScreen() {
+    const learn = state.track === "learn";
+    $("nick-heading").textContent = learn ? "Pick a name" : "Choose a nickname";
+    $("nick-sub").innerHTML = learn
+      ? "Tap one you like. These come from a curated list, so there is nothing to type and nothing that can be rejected."
+      : "This is your handle on the Leaderboards. Free text is the default here — choosing your own name is half the point of competing.";
+    // Same underlying field; only the default affordance differs per Track.
+    $("nick-picker").style.display = learn ? "block" : "none";
+    $("nick-freetext").style.display = learn ? "none" : "block";
+    $("show-picker").style.display = learn ? "none" : "inline";
+    $("nick-reject").classList.remove("show");
+    $("nick-input").value = "";
+    renderCards($("nick-cards"), 6);
+  }
+
+  $("shuffle").addEventListener("click", () => renderCards($("nick-cards"), 6));
+  $("show-freetext").addEventListener("click", () => {
+    $("nick-picker").style.display = "none";
+    $("nick-freetext").style.display = "block";
+    $("show-picker").style.display = "inline";
+    $("nick-input").focus();
+  });
+  $("show-picker").addEventListener("click", () => {
+    $("nick-freetext").style.display = "none";
+    $("nick-picker").style.display = "block";
+  });
+
+  // Checked on SUBMIT, never per-keystroke: as-you-type flags innocent
+  // prefixes and flickers accusatorially for a slow typist.
+  $("nick-submit").addEventListener("click", () => {
+    const val = $("nick-input").value.trim();
+    if (!val) return;
+    const dirty = BLOCKED.some((w) => val.toLowerCase().includes(w));
+    if (dirty) {
+      // Neutral redirect: no naming of the offence, picker offered as the
+      // escape so a rejection becomes a choice rather than a dead end.
+      renderCards($("reject-cards"), 3);
+      $("nick-reject").classList.add("show");
+      return;
+    }
+    commitNickname(val);
+  });
+  $("nick-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") $("nick-submit").click();
+  });
+
+  // ============================================================
+  // 06 — The typing interface
+  // ============================================================
+  const ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+  function buildKeyboard() {
+    const kb = $("keyboard");
+    kb.innerHTML = "";
+    for (const row of ROWS) {
+      const r = document.createElement("div");
+      r.className = "row";
+      for (const ch of row) {
+        const k = document.createElement("div");
+        k.className = "key";
+        k.dataset.key = ch;
+        k.textContent = ch;
+        r.appendChild(k);
+      }
+      kb.appendChild(r);
+    }
+    // Space is typed constantly, so it needs a key like any other — otherwise
+    // the next-key highlight goes dark at every word boundary.
+    const r = document.createElement("div");
+    r.className = "row";
+    const sp = document.createElement("div");
+    sp.className = "key space";
+    sp.dataset.key = " ";
+    sp.textContent = "space";
+    r.appendChild(sp);
+    kb.appendChild(r);
+  }
+  function highlightNext(ch) {
+    document.querySelectorAll("#keyboard [data-key]").forEach((el) => {
+      el.classList.toggle("next", el.dataset.key === ch);
+    });
+  }
+
+  let typing = null;
+  function startTyping(view) {
+    state.view = view;
+    const panel = $("panel");
+    panel.className = "panel " + view;
+    $("panel-label").innerHTML = LABELS[view];
+    document.querySelectorAll(".track-tabs button").forEach((b) => {
+      b.setAttribute("aria-selected", String(b.dataset.view === view));
+    });
+    typing = attach(PROMPTS[view]);
+    show("type");
+    panel.focus();
+  }
+
+  function attach(text) {
+    const promptEl = $("prompt");
+    const st = { pos: 0, correct: [], startedAt: null, done: false };
+    $("result").classList.remove("show");
+
+    function render() {
+      promptEl.innerHTML = "";
+      for (let i = 0; i < text.length; i++) {
+        const s = document.createElement("span");
+        s.className = "ch" + (text[i] === " " ? " space" : "");
+        s.textContent = text[i];
+        if (i < st.pos) s.classList.add(st.correct[i] ? "correct" : "incorrect");
+        else if (i === st.pos) s.classList.add("current");
+        promptEl.appendChild(s);
+      }
+      highlightNext(st.pos < text.length ? text[st.pos] : null);
+    }
+
+    function finish() {
+      st.done = true;
+      const errors = st.correct.filter((c) => c === false).length;
+      const elapsedMin = Math.max((Date.now() - st.startedAt) / 60000, 0.01);
+      // 08: net WPM = (chars/5)/min, minus errors. Toy version for the demo.
+      const gross = (text.length / 5) / elapsedMin;
+      const net = Math.max(0, Math.round(gross - errors / elapsedMin));
+      const acc = Math.round(((text.length - errors) / text.length) * 100);
+
+      $("stat-wpm").textContent = net;
+      $("stat-acc").textContent = acc + "%";
+      $("stat-err").textContent = errors;
+
+      const rows = [...MOCK_LB, { name: state.nickname, wpm: net, me: true }]
+        .sort((a, b) => b.wpm - a.wpm);
+      $("lb-body").innerHTML = rows
+        .map((r) => `<div class="lb-row${r.me ? " me" : ""}"><span>${r.name}</span><span>${r.wpm} wpm</span></div>`)
+        .join("");
+
+      $("result").classList.add("show");   // 06: revealed here, and only here
+      playComplete();                       // 12: rare event sound
+    }
+
+    function onKey(e) {
+      if (st.done) return;
+      if (e.key === "Backspace") {
+        if (st.pos > 0) { st.pos--; st.correct[st.pos] = undefined; render(); }
+        e.preventDefault();
+        return;
+      }
+      if (e.key.length !== 1) return;
+      if (st.pos >= text.length) return;
+      if (st.startedAt === null) st.startedAt = Date.now();
+
+      const ok = e.key.toLowerCase() === text[st.pos];
+      st.correct[st.pos] = ok;
+      st.pos++;
+      if (!ok) playError();   // 12: errors only — never on a correct key
+      render();
+      if (st.pos >= text.length) finish();
+      e.preventDefault();
+    }
+
+    const panel = $("panel");
+    panel.onkeydown = onKey;
+    panel.onclick = () => panel.focus();
+    render();
+    return { reset: () => { st.pos = 0; st.correct = []; st.startedAt = null; st.done = false; $("result").classList.remove("show"); render(); } };
+  }
+
+  document.querySelectorAll(".track-tabs button").forEach((b) => {
+    b.addEventListener("click", () => startTyping(b.dataset.view));
+  });
+  $("again").addEventListener("click", (e) => { e.stopPropagation(); typing.reset(); $("panel").focus(); });
+  $("to-home").addEventListener("click", (e) => { e.stopPropagation(); show("home"); });
+
+  // ============================================================
+  // 11 — Home + grown-ups navigation
+  // ============================================================
+  $("continue-btn").addEventListener("click", () => startTyping("learn"));
+  $("to-speed").addEventListener("click", () => startTyping("speed"));
+  $("switch-player").addEventListener("click", () => {
+    state.track = "learn";
+    setupNickScreen();
+    show("nick");
+  });
+  $("go-grownup").addEventListener("click", () => show("grownup"));
+  $("back-btn").addEventListener("click", () => {
+    show(document.body.dataset.screen === "grownup" ? "home" : "track");
+  });
+
+  buildKeyboard();
+  renderCards($("nick-cards"), 6);
+</script>
+</body>
+</html>

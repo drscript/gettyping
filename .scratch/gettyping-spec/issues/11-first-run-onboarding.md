@@ -14,6 +14,8 @@ Resolving this closes the last unwritten piece of "user flows" the destination r
 
 ## Answer
 
+Rendered end to end in [prototypes/resolved-design/](../prototypes/resolved-design/) — all five screens below are walkable there.
+
 One fact reframed the whole ticket: **a five-year-old does not arrive at a URL by themselves.** For the Learn Track's core audience an adult opened the tab, so "child-facing vs. parent-facing" is not a binary — the question is only which screens assume an adult is present.
 
 ### First-run sequence
