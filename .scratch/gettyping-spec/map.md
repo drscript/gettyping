@@ -19,17 +19,20 @@ A build-ready spec for GetTyping: a web-based, SQLite-backed typing tutor coveri
 - [Research SQLite concurrency & hosting patterns for a multi-user web app](issues/01-research-sqlite-hosting.md) — single VM + WAL SQLite + Litestream for backup/DR; Turso as the documented upgrade path if write volume or multi-region needs grow.
 - [Research typing-pedagogy best practices for sequencing a beginner curriculum](issues/03-research-typing-pedagogy.md) — home row → top row → bottom row → punctuation → numbers; 1-3 new keys/stage; gate on ~90% accuracy not speed; 10-15 min stages for ages 5-7.
 - [Choose tech stack: frontend framework, backend, hosting](issues/02-tech-stack.md) — Svelte + SvelteKit (adapter-node), Fly.io + Litestream, Drizzle ORM on better-sqlite3.
+- [Design the Learn-track curriculum outline](issues/04-curriculum-outline.md) — 21 Stages (single unbranched sequence, one Exercise each), home→top→bottom row→shift→punctuation→numbers, flat 90% accuracy gate, cumulative recycled content.
+- [Prototype weak-key detection & adaptive exercise generation logic](issues/05-prototype-weak-key-generation.md) — weakness score = errorRate×0.7 + latency×0.3 (3+ samples); both word-bank (readable default) and bigram (dense/unreadable) generation modes are valid, chosen by context; targeting-aggressiveness is a tunable 0-1 config value, not a locked constant; Weak-key Profile stores per (Player, key) attempts/errors/cumulative-latency.
 
 ## Not yet specified
 
-- Exact stage-by-stage lesson content/copy (specific text and ordering within a Stage) — downstream of the curriculum-outline ticket, not sharp until that resolves.
-- Precise word/bigram bank and generation-algorithm parameters — downstream of the weak-key generation prototype ticket.
+- Which contexts within Speed Test & Practice call for word-bank vs. bigram-mode generation, and the production-tuned default value for the targeting-aggressiveness knob — genuinely needs live playtest data (see [weak-key generation prototype](issues/05-prototype-weak-key-generation.md)), not yet sharp enough to ticket.
 - Anti-cheat / Leaderboard-integrity safeguards (e.g. server-side validation of claimed Scores) — a real open question, not yet sharp enough to ticket.
 - Audio/sound design — in scope or not, and what it sounds like; not yet discussed.
 - First-run/onboarding UX for a young child (e.g. any parent-facing intro screen) — not yet discussed.
 
 ## Out of scope
 
+- Exact stage-by-stage lesson content/copy (specific text/word lists per Stage) — the destination requires the curriculum *outline* (Stage count, keys, order, thresholds — settled in [Design the Learn-track curriculum outline](issues/04-curriculum-outline.md)), not fully-authored lesson text; writing the actual words/sentences per Stage is content-authoring work for implementation time, not a spec decision.
+- Exact word-bank/bigram content authoring for Speed Test & Practice generation (the literal word lists and synthesis vocabulary) — like the Learn track's lesson copy, this is content-authoring work for implementation time; the generation *approach* (scoring formula, dual-mode strategy, config shape) is settled in [Prototype weak-key detection & adaptive exercise generation logic](issues/05-prototype-weak-key-generation.md).
 - Native mobile apps — this is a web-based build; app-store packaging isn't.
 - Real-time multiplayer typing races — Leaderboards give the competitive hook without live-race infrastructure.
 - Monetization/ads.
