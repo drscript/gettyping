@@ -1,0 +1,3 @@
+# Speed Test & Practice generates Exercises adaptively from a Weak-key Profile
+
+Practice Exercises in the Speed Test & Practice Track are generated on demand, targeting the keys a Player struggles with most, rather than served from a fixed curated set of texts. We picked this over a static exercise library because it's what makes practice actually adaptive to each Player — the alternative is simpler to build but doesn't meaningfully help someone improve faster than generic typing practice would. The trade-off: it requires tracking per-key error/speed stats (the Weak-key Profile) and a generation algorithm, both of which are real design work captured in later tickets.
