@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>GetTyping — visual design prototype (ticket 06)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /*
+    PROTOTYPE — throwaway, not production. Resolves wayfinder ticket 06
+    (.scratch/gettyping-spec/issues/06-prototype-visual-design.md).
+
+    Plan: three structurally different visual variants for the typing
+    interface, switchable via ?variant=A|B|C (and Left/Right arrows), each
+    rendering BOTH Tracks side by side so the "one language flexed vs two
+    distinct modes" question is visible directly, plus each variant takes
+    its own stance on on-screen keyboard, correct/incorrect feedback
+    (never color alone), and inline Leaderboard placement.
+
+    No host project exists yet (spec-only repo, no framework scaffold) —
+    sub-shape B (standalone throwaway page), vanilla HTML/CSS/JS, no
+    build step, no deps. Open the file directly in a browser.
+  */
+
+  :root {
+    --bg: #f6f5f2;
+    --ink: #1c1b19;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  .dev-banner {
+    position: sticky; top: 0; z-index: 50;
+    background: #111; color: #fff; font: 12px/1.6 ui-monospace, monospace;
+    text-align: center; padding: 4px 8px; letter-spacing: .03em;
+  }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 20px 120px; }
+  .variant { display: none; }
+  body[data-variant="A"] .variant-a { display: block; }
+  body[data-variant="B"] .variant-b { display: block; }
+  body[data-variant="C"] .variant-c { display: block; }
+
+  .variant-intro { margin-bottom: 20px; }
+  .variant-intro h1 { font-size: 20px; margin: 0 0 4px; }
+  .variant-intro p { margin: 0; color: #555; font-size: 14px; max-width: 68ch; }
+
+  .tracks { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .tracks { grid-template-columns: 1fr; } }
+
+  .panel { border-radius: 14px; padding: 18px; position: relative; outline: none; }
+  .panel-label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; opacity: .6; margin-bottom: 8px; }
+  .prompt { font-size: 22px; line-height: 1.7; word-spacing: .25em; cursor: text; }
+  .prompt .ch { padding: 0 1px; border-radius: 4px; }
+  .restart { font: 11px ui-monospace, monospace; background: none; border: 1px solid currentColor;
+    border-radius: 6px; padding: 3px 8px; cursor: pointer; opacity: .55; float: right; }
+  .restart:hover { opacity: 1; }
+
+  /* ---------- Variant A: One language, flexed — "Playful-Adaptive" ---------- */
+  .variant-a .panel { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.08); border: 1px solid #eee; }
+  .variant-a .panel.learn .prompt { font-size: 30px; font-weight: 700; font-family: "Comic Sans MS", "Baloo 2", sans-serif; }
+  .variant-a .panel.speed .prompt { font-size: 17px; font-family: ui-monospace, monospace; letter-spacing: .01em; }
+  .variant-a .ch.correct { background: #d5f2d0; box-shadow: inset 0 0 0 1px #8fd685; }
+  .variant-a .ch.correct::after { content: "✓"; font-size: .55em; vertical-align: super; color: #2f8a24; margin-left: 1px; }
+  .variant-a .ch.incorrect { background: #ffe0d6; box-shadow: inset 0 0 0 1px dashed #e08a63; border: 1px dashed #d9713f; }
+  .variant-a .ch.incorrect::after { content: "×"; font-size: .6em; vertical-align: super; color: #b8461f; margin-left: 1px; }
+  .variant-a .ch.current { text-decoration: underline; text-decoration-thickness: 2px; }
+  .variant-a .leaderboard { margin-top: 14px; border-top: 1px dashed #ddd; padding-top: 10px; font-size: 13px; }
+  .variant-a .leaderboard-title { font-weight: 700; font-size: 11px; text-transform: uppercase; opacity: .55; margin-bottom: 6px; }
+  .variant-a .lb-row { display: flex; justify-content: space-between; padding: 2px 6px; border-radius: 6px; }
+  .variant-a .lb-row.me { background: #fff3c4; font-weight: 700; }
+  .a-keyboard { margin-top: 26px; display: grid; gap: 6px; }
+  .a-keyboard .row { display: flex; justify-content: center; gap: 6px; }
+  .a-keyboard .key { width: 34px; height: 34px; border-radius: 8px; background: #fff; border: 1px solid #e2e2e2;
+    display: flex; align-items: center; justify-content: center; font: 12px ui-monospace, monospace; box-shadow: 0 1px 1px rgba(0,0,0,.04); }
+  .a-keyboard .key.next { background: #fff3c4; border-color: #e6c94d; box-shadow: 0 0 0 2px #e6c94d55; font-weight: 700; }
+
+  /* ---------- Variant B: Two distinct modes — "Split Identity" ---------- */
+  .variant-b .tracks { grid-template-columns: 1.1fr .9fr; }
+  .variant-b .panel.learn {
+    background: linear-gradient(160deg,#fff2cf,#ffe1e1 60%,#e4f3ff);
+    border: 3px solid #fff; border-radius: 22px; box-shadow: 0 6px 0 #e9d9a8, 0 8px 16px rgba(0,0,0,.08);
+  }
+  .variant-b .learn .prompt { font-size: 34px; font-weight: 800; font-family: "Comic Sans MS", "Baloo 2", sans-serif; text-align: center; }
+  .variant-b .buddy { text-align: center; font-size: 40px; transition: transform .15s; }
+  .variant-b .buddy.happy { transform: scale(1.15); }
+  .variant-b .buddy.sad { animation: wobble .35s; }
+  @keyframes wobble { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
+  .variant-b .learn .ch.correct { color: #2f8a24; }
+  .variant-b .learn .ch.incorrect { color: #c0392b; text-decoration: underline wavy #c0392b; }
+  .variant-b .learn .nudge { text-align: center; font-size: 13px; font-weight: 700; color: #b8461f; min-height: 18px; }
+  .variant-b .b-keyboard { margin-top: 18px; display: grid; gap: 5px; }
+  .variant-b .b-keyboard .row { display: flex; justify-content: center; gap: 5px; }
+  .variant-b .b-keyboard .key { width: 30px; height: 30px; border-radius: 10px; background: #fff; border: 2px solid #f0d98a;
+    display: flex; align-items: center; justify-content: center; font: 11px ui-monospace, monospace; }
+  .variant-b .b-keyboard .key.next { background: #ffd54a; border-color: #e0a300; transform: scale(1.25); font-weight: 800; }
+  .variant-b .trophy-shelf { margin-top: 14px; background: rgba(255,255,255,.7); border-radius: 12px; padding: 10px; font-size: 13px;
+    text-align: center; display: none; }
+  .variant-b .trophy-shelf.show { display: block; }
+  .variant-b .trophy-shelf .lb-row { display: flex; justify-content: space-between; padding: 2px 8px; }
+  .variant-b .trophy-shelf .lb-row.me { background: #fff3c4; border-radius: 6px; font-weight: 700; }
+
+  .variant-b .panel.speed {
+    background: #111820; color: #d8e2ea; border-radius: 8px; font-family: ui-monospace, "SF Mono", monospace;
+  }
+  .variant-b .speed .prompt { font-size: 16px; letter-spacing: .01em; }
+  .variant-b .speed .ch.correct { text-decoration: underline; text-decoration-color: #6fe08a; }
+  .variant-b .speed .ch.incorrect { text-decoration: line-through wavy #ff6b6b; color: #ff9a9a; }
+  .variant-b .speed .stats { display: flex; gap: 14px; font-size: 11px; color: #7f93a3; margin-bottom: 10px; }
+  .variant-b .ticker { margin-top: 14px; background: #0b1015; border-radius: 6px; padding: 6px 10px; font-size: 11px;
+    overflow: hidden; white-space: nowrap; color: #7fd9ff; }
+
+  /* ---------- Variant C: Single minimal system — "Quiet Focus" ---------- */
+  .variant-c { --accent: #3457d5; }
+  .variant-c .panel { background: transparent; border: 1px solid #e3e1db; border-radius: 10px; }
+  .variant-c .panel.learn .prompt { font-size: 28px; line-height: 2.1; }
+  .variant-c .panel.speed .prompt { font-size: 16px; line-height: 1.9; font-family: ui-monospace, monospace; }
+  .variant-c .ch { position: relative; }
+  .variant-c .ch.correct { font-weight: 700; }
+  .variant-c .ch.correct .icon { content: ""; }
+  .variant-c .ch.correct::before {
+    content: "✓"; position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; color: var(--accent); opacity: .8;
+  }
+  .variant-c .ch.incorrect { animation: shake .2s; }
+  .variant-c .ch.incorrect .hint {
+    position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    font-size: 10px; font-weight: 400; color: #999; margin-top: 2px;
+  }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 30%{transform:translateX(-2px)} 70%{transform:translateX(2px)} }
+  .variant-c .ch.current { border-bottom: 2px solid var(--accent); }
+  .variant-c .lb-tab {
+    position: absolute; top: 18px; right: -1px; border: 1px solid #e3e1db; border-right: none;
+    background: #fff; padding: 6px 4px; font-size: 10px; writing-mode: vertical-rl; border-radius: 8px 0 0 8px; cursor: pointer;
+  }
+  .variant-c .lb-drawer {
+    position: absolute; top: 0; right: 0; width: 150px; height: 100%; background: #fff; border: 1px solid #e3e1db;
+    border-radius: 10px; padding: 12px; font-size: 12px; box-shadow: -4px 0 12px rgba(0,0,0,.08);
+    opacity: 0; pointer-events: none; transform: translateX(6px); transition: opacity .15s, transform .15s;
+  }
+  .variant-c .panel.drawer-open .lb-drawer { opacity: 1; pointer-events: auto; transform: translateX(0); }
+  .variant-c .lb-drawer .lb-row { display: flex; justify-content: space-between; padding: 2px 4px; border-radius: 5px; }
+  .variant-c .lb-drawer .lb-row.me { background: #eef1fb; font-weight: 700; }
+
+  /* switcher */
+  .switcher {
+    position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 10px; background: #111; color: #fff;
+    padding: 8px 10px; border-radius: 999px; box-shadow: 0 6px 20px rgba(0,0,0,.25); font: 13px ui-monospace, monospace; z-index: 100;
+  }
+  .switcher button { background: #2a2a2a; color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 14px; }
+  .switcher button:hover { background: #3a3a3a; }
+  .switcher .label { min-width: 190px; text-align: center; }
+  .switcher .label b { color: #ffd54a; }
+</style>
+</head>
+<body data-variant="A">
+  <div class="dev-banner">PROTOTYPE — ticket 06 — throwaway, not production. Click a prompt, then type it.</div>
+  <main>
+
+    <!-- ============ VARIANT A ============ -->
+    <section class="variant variant-a">
+      <div class="variant-intro">
+        <h1>A — Playful-Adaptive <span style="opacity:.5;font-weight:400">(one shared system, flexed per Track)</span></h1>
+        <p>Same components (rounded pill feedback, shared on-screen keyboard, sidebar Leaderboard) on both Tracks —
+          only type scale/font flex per Track. Feedback pairs color with a glyph + outline style (not color alone).</p>
+      </div>
+      <div class="tracks">
+        <div class="panel learn" id="a-learn" tabindex="0">
+          <button class="restart" data-reset="a-learn">↺ restart</button>
+          <div class="panel-label">Learn — Stage 6: Top row R &amp; U</div>
+          <div class="prompt"></div>
+          <div class="leaderboard">
+            <div class="leaderboard-title">Leaderboard — this Exercise</div>
+            <div class="lb-body"></div>
+          </div>
+        </div>
+        <div class="panel speed" id="a-speed" tabindex="0">
+          <button class="restart" data-reset="a-speed">↺ restart</button>
+          <div class="panel-label">Speed Test &amp; Practice — generated, targeting Q</div>
+          <div class="prompt"></div>
+          <div class="leaderboard">
+            <div class="leaderboard-title">Leaderboard — this Exercise</div>
+            <div class="lb-body"></div>
+          </div>
+        </div>
+      </div>
+      <div class="a-keyboard" id="a-keyboard"></div>
+    </section>
+
+    <!-- ============ VARIANT B ============ -->
+    <section class="variant variant-b">
+      <div class="variant-intro">
+        <h1>B — Split Identity <span style="opacity:.5;font-weight:400">(two distinct visual modes)</span></h1>
+        <p>Learn looks like a kids' app (chunky keyboard, buddy face, trophy shelf revealed on finish). Speed Test
+          looks like a dense terminal (no keyboard, top ticker, monospace). Feedback: shape/animation/text, not color alone.</p>
+      </div>
+      <div class="tracks">
+        <div class="panel learn" id="b-learn" tabindex="0">
+          <button class="restart" data-reset="b-learn">↺ restart</button>
+          <div class="panel-label" style="opacity:.5">Learn — Stage 6: Top row R &amp; U</div>
+          <div class="buddy" id="b-buddy">🙂</div>
+          <div class="prompt"></div>
+          <div class="nudge" id="b-nudge"></div>
+          <div class="b-keyboard" id="b-keyboard"></div>
+          <div class="trophy-shelf" id="b-trophy">
+            <div style="font-weight:700;margin-bottom:4px">🏆 Leaderboard</div>
+            <div class="lb-body"></div>
+          </div>
+        </div>
+        <div class="panel speed" id="b-speed" tabindex="0">
+          <button class="restart" data-reset="b-speed" style="border-color:#5a6b7a">↺ restart</button>
+          <div class="panel-label" style="color:#6a7c8c">Speed Test &amp; Practice — generated, targeting Q</div>
+          <div class="stats"><span id="b-stat-typed">0 typed</span><span id="b-stat-err">0 errors</span></div>
+          <div class="prompt"></div>
+          <div class="ticker" id="b-ticker">Leaderboard — you: #—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VARIANT C ============ -->
+    <section class="variant variant-c">
+      <div class="variant-intro">
+        <h1>C — Quiet Focus <span style="opacity:.5;font-weight:400">(one minimal system, no keyboard, feedback-forward)</span></h1>
+        <p>No on-screen keyboard on either Track — nothing but the text. Feedback relies on weight/icon/shape (a check
+          glyph, a hint of the expected letter) rather than fills. Leaderboard tucked in a drawer, one click away.</p>
+      </div>
+      <div class="tracks">
+        <div class="panel learn" id="c-learn" tabindex="0" style="overflow:visible">
+          <button class="restart" data-reset="c-learn">↺ restart</button>
+          <div class="panel-label">Learn — Stage 6: Top row R &amp; U</div>
+          <div class="prompt"></div>
+          <div class="lb-tab" data-drawer="c-learn">RANK</div>
+          <div class="lb-drawer"><div class="lb-body"></div></div>
+        </div>
+        <div class="panel speed" id="c-speed" tabindex="0" style="overflow:visible">
+          <button class="restart" data-reset="c-speed">↺ restart</button>
+          <div class="panel-label">Speed Test &amp; Practice — generated, targeting Q</div>
+          <div class="prompt"></div>
+          <div class="lb-tab" data-drawer="c-speed">RANK</div>
+          <div class="lb-drawer"><div class="lb-body"></div></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="switcher">
+    <button id="prev">←</button>
+    <span class="label" id="switcher-label"></span>
+    <button id="next">→</button>
+  </div>
+
+<script>
+  const VARIANTS = ["A", "B", "C"];
+  const NAMES = { A: "Playful-Adaptive", B: "Split Identity", C: "Quiet Focus" };
+
+  const LEARN_PROMPT = "fur jar dark hug";
+  const SPEED_PROMPT = "quiz queen quick quiet";
+
+  const MOCK_LB = [
+    { name: "pixelfox", score: 412 },
+    { name: "keysmash", score: 388 },
+    { name: "typo_tamer", score: 351 },
+    { name: "you", score: 0, me: true },
+    { name: "slowpoke9", score: 90 },
+  ];
+
+  let activePanel = null; // gates arrow-key variant switching while typing
+
+  function setVariant(v) {
+    document.body.dataset.variant = v;
+    document.getElementById("switcher-label").innerHTML =
+      `<b>${v}</b> — ${NAMES[v]}`;
+    const params = new URLSearchParams(location.search);
+    params.set("variant", v);
+    try {
+      history.replaceState(null, "", `${location.pathname}?${params}`);
+    } catch (e) { /* file:// history restrictions — ignore, in-memory still works */ }
+  }
+
+  function initialVariant() {
+    const v = new URLSearchParams(location.search).get("variant");
+    return VARIANTS.includes(v) ? v : "A";
+  }
+
+  function cycle(dir) {
+    const cur = document.body.dataset.variant;
+    const i = (VARIANTS.indexOf(cur) + dir + VARIANTS.length) % VARIANTS.length;
+    setVariant(VARIANTS[i]);
+  }
+
+  document.getElementById("prev").addEventListener("click", () => cycle(-1));
+  document.getElementById("next").addEventListener("click", () => cycle(1));
+  document.addEventListener("keydown", (e) => {
+    if (activePanel) return; // typing takes priority
+    if (e.key === "ArrowLeft") cycle(-1);
+    if (e.key === "ArrowRight") cycle(1);
+  });
+
+  // ---------- shared on-screen keyboard builder ----------
+  const ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+  function buildKeyboard(container, keyClass) {
+    container.innerHTML = "";
+    for (const row of ROWS) {
+      const rowEl = document.createElement("div");
+      rowEl.className = "row";
+      for (const ch of row) {
+        const k = document.createElement("div");
+        k.className = keyClass;
+        k.dataset.key = ch;
+        k.textContent = ch;
+        rowEl.appendChild(k);
+      }
+      container.appendChild(rowEl);
+    }
+  }
+  function highlightNext(container, ch) {
+    container.querySelectorAll("[data-key]").forEach((el) => {
+      el.classList.toggle("next", el.dataset.key === ch);
+    });
+  }
+
+  // ---------- leaderboard rendering (toy scoring: correct - 2*errors) ----------
+  function renderLeaderboard(container, score) {
+    const rows = MOCK_LB.map((r) => (r.me ? { ...r, score } : r));
+    rows.sort((a, b) => b.score - a.score);
+    container.innerHTML = rows
+      .map((r) => `<div class="lb-row${r.me ? " me" : ""}"><span>${r.name}</span><span>${r.score}</span></div>`)
+      .join("");
+  }
+
+  // ---------- typing engine ----------
+  function attachPanel(panelId, promptText, opts = {}) {
+    const panel = document.getElementById(panelId);
+    const promptEl = panel.querySelector(".prompt");
+    const state = { pos: 0, correct: [] };
+
+    function render() {
+      promptEl.innerHTML = "";
+      for (let i = 0; i < promptText.length; i++) {
+        const span = document.createElement("span");
+        span.className = "ch";
+        span.textContent = promptText[i];
+        if (i < state.pos) {
+          span.classList.add(state.correct[i] ? "correct" : "incorrect");
+          if (!state.correct[i] && opts.showHint) {
+            const hint = document.createElement("span");
+            hint.className = "hint";
+            hint.textContent = promptText[i];
+            span.appendChild(hint);
+          }
+        } else if (i === state.pos) {
+          span.classList.add("current");
+        }
+        promptEl.appendChild(span);
+      }
+      const correctCount = state.correct.filter(Boolean).length;
+      const errorCount = state.correct.filter((c) => c === false).length;
+      const score = Math.max(0, correctCount - errorCount * 2);
+      opts.onUpdate?.({ pos: state.pos, correctCount, errorCount, score, nextChar: promptText[state.pos] });
+    }
+
+    function reset() {
+      state.pos = 0;
+      state.correct = [];
+      render();
+    }
+
+    panel.addEventListener("click", () => {
+      activePanel = panelId;
+      panel.focus();
+    });
+    panel.addEventListener("focus", () => (activePanel = panelId));
+    panel.addEventListener("blur", () => {
+      if (activePanel === panelId) activePanel = null;
+    });
+    panel.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace") {
+        if (state.pos > 0) {
+          state.pos -= 1;
+          state.correct[state.pos] = undefined;
+          render();
+        }
+        e.preventDefault();
+        return;
+      }
+      if (e.key.length !== 1) return; // ignore modifiers/arrows/etc
+      if (state.pos >= promptText.length) return;
+      const expected = promptText[state.pos];
+      state.correct[state.pos] = e.key.toLowerCase() === expected;
+      state.pos += 1;
+      render();
+      e.preventDefault();
+    });
+
+    const resetBtn = document.querySelector(`[data-reset="${panelId}"]`);
+    resetBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      reset();
+    });
+
+    render();
+    return { reset };
+  }
+
+  // ---------- Variant A wiring ----------
+  buildKeyboard(document.getElementById("a-keyboard"), "key");
+  attachPanel("a-learn", LEARN_PROMPT, {
+    onUpdate: ({ score, nextChar }) => {
+      renderLeaderboard(document.querySelector("#a-learn .lb-body"), score);
+      highlightNext(document.getElementById("a-keyboard"), nextChar);
+    },
+  });
+  attachPanel("a-speed", SPEED_PROMPT, {
+    onUpdate: ({ score, nextChar }) => {
+      renderLeaderboard(document.querySelector("#a-speed .lb-body"), score);
+      highlightNext(document.getElementById("a-keyboard"), nextChar);
+    },
+  });
+
+  // ---------- Variant B wiring ----------
+  buildKeyboard(document.getElementById("b-keyboard"), "key");
+  attachPanel("b-learn", LEARN_PROMPT, {
+    onUpdate: ({ pos, errorCount, score, nextChar }) => {
+      highlightNext(document.getElementById("b-keyboard"), nextChar);
+      const buddy = document.getElementById("b-buddy");
+      const nudge = document.getElementById("b-nudge");
+      if (pos > 0) {
+        const lastOk = errorCount === 0 || true; // recompute below
+      }
+      buddy.textContent = errorCount === 0 ? "😊" : "😮";
+      buddy.className = "buddy " + (errorCount === 0 ? "happy" : "sad");
+      nudge.textContent = errorCount > 0 ? "try again — you can do it!" : "";
+      const trophy = document.getElementById("b-trophy");
+      if (pos >= LEARN_PROMPT.length) {
+        trophy.classList.add("show");
+        renderLeaderboard(trophy.querySelector(".lb-body"), score);
+      } else {
+        trophy.classList.remove("show");
+      }
+    },
+  });
+  attachPanel("b-speed", SPEED_PROMPT, {
+    onUpdate: ({ correctCount, errorCount, score }) => {
+      document.getElementById("b-stat-typed").textContent = `${correctCount} typed`;
+      document.getElementById("b-stat-err").textContent = `${errorCount} errors`;
+      const rank = MOCK_LB.filter((r) => !r.me && r.score > score).length + 1;
+      document.getElementById("b-ticker").textContent = `Leaderboard — you: #${rank} (${score} pts)`;
+    },
+  });
+
+  // ---------- Variant C wiring ----------
+  attachPanel("c-learn", LEARN_PROMPT, {
+    showHint: true,
+    onUpdate: ({ score }) => renderLeaderboard(document.querySelector("#c-learn .lb-body"), score),
+  });
+  attachPanel("c-speed", SPEED_PROMPT, {
+    showHint: true,
+    onUpdate: ({ score }) => renderLeaderboard(document.querySelector("#c-speed .lb-body"), score),
+  });
+  document.querySelectorAll(".lb-tab").forEach((tab) => {
+    tab.addEventListener("click", (e) => {
+      e.stopPropagation();
+      document.getElementById(tab.dataset.drawer).classList.toggle("drawer-open");
+    });
+  });
+
+  setVariant(initialVariant());
+</script>
+</body>
+</html>
