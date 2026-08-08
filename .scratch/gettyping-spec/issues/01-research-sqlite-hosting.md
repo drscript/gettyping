@@ -1,6 +1,7 @@
 # Research SQLite concurrency & hosting patterns for a multi-user web app
 
 Type: research
+Research branch: research/sqlite-hosting (findings land there; not yet merged)
 
 ## Question
 

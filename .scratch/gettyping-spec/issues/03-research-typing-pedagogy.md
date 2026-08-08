@@ -1,6 +1,7 @@
 # Research typing-pedagogy best practices for sequencing a beginner curriculum
 
 Type: research
+Research branch: research/typing-pedagogy (findings land there; not yet merged)
 
 ## Question
 
