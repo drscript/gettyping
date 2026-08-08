@@ -1,0 +1,2 @@
+# Agent worktree checkouts — a nested copy of the repo, never source
+.claude/worktrees/
