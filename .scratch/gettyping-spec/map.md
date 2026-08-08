@@ -21,6 +21,7 @@ A build-ready spec for GetTyping: a web-based, SQLite-backed typing tutor coveri
 - [Choose tech stack: frontend framework, backend, hosting](issues/02-tech-stack.md) — Svelte + SvelteKit (adapter-node), Fly.io + Litestream, Drizzle ORM on better-sqlite3.
 - [Design the Learn-track curriculum outline](issues/04-curriculum-outline.md) — 21 Stages (single unbranched sequence, one Exercise each), home→top→bottom row→shift→punctuation→numbers, flat 90% accuracy gate, cumulative recycled content.
 - [Prototype weak-key detection & adaptive exercise generation logic](issues/05-prototype-weak-key-generation.md) — weakness score = errorRate×0.7 + latency×0.3 (3+ samples); both word-bank (readable default) and bigram (dense/unreadable) generation modes are valid, chosen by context; targeting-aggressiveness is a tunable 0-1 config value, not a locked constant; Weak-key Profile stores per (Player, key) attempts/errors/cumulative-latency.
+- [Prototype the visual design for the typing interface](issues/06-prototype-visual-design.md) — one shared visual language flexed per Track (not two modes), on-screen keyboard on both Tracks, feedback pairs color with a glyph/shape (not color alone), Leaderboard hidden during the Attempt and revealed only on completing the Exercise.
 
 ## Not yet specified
 
