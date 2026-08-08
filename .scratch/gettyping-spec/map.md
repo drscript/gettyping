@@ -16,7 +16,9 @@ A build-ready spec for GetTyping: a web-based, SQLite-backed typing tutor coveri
 
 ## Decisions so far
 
-_(none yet — charting session only; work-through-the-map sessions will populate this)_
+- [Research SQLite concurrency & hosting patterns for a multi-user web app](issues/01-research-sqlite-hosting.md) — single VM + WAL SQLite + Litestream for backup/DR; Turso as the documented upgrade path if write volume or multi-region needs grow.
+- [Research typing-pedagogy best practices for sequencing a beginner curriculum](issues/03-research-typing-pedagogy.md) — home row → top row → bottom row → punctuation → numbers; 1-3 new keys/stage; gate on ~90% accuracy not speed; 10-15 min stages for ages 5-7.
+- [Choose tech stack: frontend framework, backend, hosting](issues/02-tech-stack.md) — Svelte + SvelteKit (adapter-node), Fly.io + Litestream, Drizzle ORM on better-sqlite3.
 
 ## Not yet specified
 
@@ -24,7 +26,6 @@ _(none yet — charting session only; work-through-the-map sessions will populat
 - Precise word/bigram bank and generation-algorithm parameters — downstream of the weak-key generation prototype ticket.
 - Anti-cheat / Leaderboard-integrity safeguards (e.g. server-side validation of claimed Scores) — a real open question, not yet sharp enough to ticket.
 - Audio/sound design — in scope or not, and what it sounds like; not yet discussed.
-- Deployment/CI pipeline specifics — downstream of the tech-stack ticket.
 - First-run/onboarding UX for a young child (e.g. any parent-facing intro screen) — not yet discussed.
 
 ## Out of scope
@@ -35,3 +36,4 @@ _(none yet — charting session only; work-through-the-map sessions will populat
 - Non-English content and non-QWERTY keyboard layouts.
 - UI localization/i18n.
 - Screen-reader/full assistive-tech support — baseline visual accessibility only (colorblind-safe feedback, legible sizing/contrast), decided during destination-naming.
+- Deployment/CI pipeline specifics (build/test/deploy workflow, Litestream restore drills, etc.) — the destination's required spec content is scope, user flows, curriculum, data model, Leaderboard rules, and visual/UX principles; the platform choice itself (Fly.io) is settled in [02-tech-stack.md](issues/02-tech-stack.md), but the operational pipeline is implementation-time work, not spec content.
