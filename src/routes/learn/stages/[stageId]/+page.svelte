@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { untrack } from 'svelte';
 	import TrackFrame from '$lib/components/TrackFrame.svelte';
 	import TypingAttempt, {
 		type AttemptToType,
@@ -28,22 +28,31 @@
 	let loading = $state(true);
 	let message = $state('');
 	const endpoint = $derived(`/api/attempts/learn/${data.stageId}`);
+	// "Next Stage" navigates within this same route, so the component is reused and
+	// only the loaded Stage id changes. Every load is numbered so a slow response
+	// for an abandoned Stage cannot overwrite the Stage the Player is now on.
+	let currentLoad = 0;
 
 	async function startStage(): Promise<void> {
+		const load = ++currentLoad;
+		const stageEndpoint = endpoint;
 		loading = true;
 		message = '';
+		attempt = undefined;
 		score = undefined;
 		result = undefined;
 		leaderboard = undefined;
 		let response: Response;
 		try {
-			response = await fetch(endpoint);
+			response = await fetch(stageEndpoint);
 		} catch {
 			// A rejected fetch must not strand the Player on the loading state forever.
+			if (load !== currentLoad) return;
 			loading = false;
 			message = 'This Stage is not ready yet.';
 			return;
 		}
+		if (load !== currentLoad) return;
 		if (response.status === 401) {
 			window.location.assign('/');
 			return;
@@ -53,11 +62,16 @@
 			message = response.status === 403 ? 'This Stage is not open yet.' : 'This Stage is not ready yet.';
 			return;
 		}
-		attempt = (await response.json()) as LearnAttempt;
+		const loaded = (await response.json()) as LearnAttempt;
+		if (load !== currentLoad) return;
+		attempt = loaded;
 		loading = false;
 	}
 
-	onMount(() => void startStage());
+	$effect(() => {
+		data.stageId;
+		untrack(() => void startStage());
+	});
 </script>
 
 <svelte:head>
