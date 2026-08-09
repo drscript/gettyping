@@ -115,3 +115,13 @@ SELECT * FROM ranked WHERE rk = 1 ORDER BY net_wpm DESC LIMIT 10;
 Deliberately a query predicate rather than `leaderboard_eligible = 0`: that column means "implausible, possibly tampered" and is the manual moderation lever, so conflating it with "typed sloppily but honestly" would poison both meanings.
 
 Note this query still has no tie-break — [15-leaderboard-display-rules.md](./15-leaderboard-display-rules.md) is open and owns that.
+
+## Addendum (from [14-practice-loop.md](./14-practice-loop.md))
+
+**No schema change**, but two constraints on how existing tables are used.
+
+**`weak_key_stats` counters are recency-weighted, not lifetime totals.** Point 4 above ("the Weak-key Profile aggregates from every Attempt on both Tracks") still holds, but the aggregation decays: existing `attempts` / `errors` / cumulative-latency are multiplied by a factor below 1 before each new sample is folded in. Same columns, different arithmetic on write — see the addendum on [05-prototype-weak-key-generation.md](./05-prototype-weak-key-generation.md) for why. Note the columns are no longer integer counts.
+
+**The Speed Test Exercise row's `content` is immutable once live.** Its Leaderboard's meaning depends on every ranked Player having typed the same text; editing `content` would leave old and new Scores incomparable while still ranked together. A replacement text must be inserted as a **new `exercises` row** with its own Leaderboard, never an `UPDATE` to the seeded one. (The same reasoning applies to the 21 Learn Exercise rows, which 13 also fixed as non-regenerating.)
+
+**A practice "session" is deliberately not modelled.** The session summary in 14 needs a before/after view of the Weak-key Profile, which tempts a `sessions` table. It doesn't need one — the client snapshots the top weak keys when practice begins and diffs against the current Profile at finish.

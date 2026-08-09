@@ -22,3 +22,15 @@ Exactly which contexts call for which mode wasn't pinned down further than "it d
 **Targeting aggressiveness ("density")**: a 0–1 knob blending uniform-random selection (0) against always-favor-the-weakest (1). 0.7 felt right in testing, but this is explicitly **not locked as a production constant** — it needs real playtest data post-implementation, so it must ship as an adjustable config value, not a hardcoded number.
 
 **What the Weak-key Profile needs to store** (feeds [09-db-schema.md](./09-db-schema.md)): per (Player, key) — an attempt count, an error count, and cumulative (or average) latency. Matches the prototype's `{ attempts, errors, totalLatencyMs }` shape in [logic.mjs](../prototypes/05-weak-key-generation/logic.mjs).
+
+## Addendum — Profile becomes recency-weighted (from [14-practice-loop.md](./14-practice-loop.md))
+
+The stored shape above (`{ attempts, errors, totalLatencyMs }` per Player/key) was specified as **lifetime totals**, aggregating every Attempt on both Tracks. Resolving the practice-loop ticket found that this makes the Profile progressively *less* responsive as a Player improves: early errors on a key are never forgotten, so after a few thousand Attempts recent performance barely moves the weakness score, and a Player who has genuinely fixed a key keeps being served practice on it — undermining the adaptive targeting this prototype exists to drive.
+
+**Amended**: the counters **decay on write**. Multiply the existing `attempts` / `errors` / `totalLatencyMs` by a factor below 1 before folding in each new sample, giving exponentially-weighted statistics that track recent performance.
+
+Unchanged: the stored shape (same three values, **no schema change**), the weakness formula `errorRate × 0.7 + latencyFactor × 0.3`, both generation modes, and the aggressiveness knob.
+
+Two consequences:
+- The **decay factor** is a tuned constant, not a locked value — it ships as config alongside the aggressiveness knob, and sits in the map's fog until playtest data exists.
+- **"3+ samples" becomes a weighted threshold** rather than an integer count, since `attempts` is no longer a whole number.
