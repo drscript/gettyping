@@ -77,7 +77,12 @@ describe('walking skeleton', () => {
 				content: null
 			}))
 		);
-		expect(exerciseSeeds[21]).toEqual({ track: 'speed_test', stageId: null, content: null });
+		expect(exerciseSeeds[21]).toEqual({
+			track: 'speed_test',
+			stageId: null,
+			content:
+				'small steps build steady skill. keep your hands relaxed and let each key arrive in its own time. accuracy grows into speed with calm practice.'
+		});
 	});
 
 	test('injects every tunable and makes random generation repeatable from a seed', async () => {

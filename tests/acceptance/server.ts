@@ -8,6 +8,7 @@ import { join } from 'node:path';
 export interface TestServer {
 	baseUrl: string;
 	databasePath: string;
+	restart: () => Promise<void>;
 	stop: () => Promise<void>;
 }
 
@@ -50,29 +51,40 @@ export async function startTestServer(overrides: NodeJS.ProcessEnv = {}): Promis
 	const databasePath = join(directory, 'test.sqlite');
 	const port = await availablePort();
 	const baseUrl = `http://127.0.0.1:${port}`;
-	const child = spawn(process.execPath, ['build'], {
-		cwd: process.cwd(),
-		env: {
-			...process.env,
-			...overrides,
-			DATABASE_PATH: databasePath,
-			HOST: '127.0.0.1',
-			ORIGIN: baseUrl,
-			PORT: String(port)
-		},
-		stdio: ['ignore', 'pipe', 'pipe']
-	});
+	const launch = async (): Promise<ChildProcess> => {
+		const process = spawn(globalThis.process.execPath, ['build'], {
+			cwd: globalThis.process.cwd(),
+			env: {
+				...globalThis.process.env,
+				...overrides,
+				DATABASE_PATH: databasePath,
+				HOST: '127.0.0.1',
+				ORIGIN: baseUrl,
+				PORT: String(port)
+			},
+			stdio: ['ignore', 'pipe', 'pipe']
+		});
+		await waitUntilReady(process, baseUrl);
+		return process;
+	};
+	const terminate = async (process: ChildProcess): Promise<void> => {
+		if (process.exitCode === null) {
+			process.kill('SIGTERM');
+			await once(process, 'exit');
+		}
+	};
 
-	await waitUntilReady(child, baseUrl);
+	let child = await launch();
 
 	return {
 		baseUrl,
 		databasePath,
+		restart: async () => {
+			await terminate(child);
+			child = await launch();
+		},
 		stop: async () => {
-			if (child.exitCode === null) {
-				child.kill('SIGTERM');
-				await once(child, 'exit');
-			}
+			await terminate(child);
 			await rm(directory, { recursive: true, force: true });
 		}
 	};

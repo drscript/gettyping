@@ -122,4 +122,4 @@ INSERT INTO `exercises` (`id`, `track`, `stage_id`, `content`) VALUES
 	(19, 'learn', 19, NULL),
 	(20, 'learn', 20, NULL),
 	(21, 'learn', 21, NULL),
-	(22, 'speed_test', NULL, NULL);
+	(22, 'speed_test', NULL, 'small steps build steady skill. keep your hands relaxed and let each key arrive in its own time. accuracy grows into speed with calm practice.');
