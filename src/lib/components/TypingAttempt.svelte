@@ -34,7 +34,11 @@
 		track: TrackFlex;
 		label: string;
 		heading: string;
-		oncomplete: (body: { score: TypedScore; result?: Record<string, unknown> }) => void;
+		oncomplete: (body: {
+			score: TypedScore;
+			result?: Record<string, unknown>;
+			leaderboard?: Record<string, unknown>;
+		}) => void;
 		oninvalid: () => void;
 	} = $props();
 
@@ -63,6 +67,7 @@
 	);
 	const nextExpectedKey = $derived.by((): TypingKey | undefined => {
 		const next = content[cursor];
+		if (next && next !== next.toLowerCase() && /[a-z]/i.test(next)) return 'shift';
 		return typingKeys.includes(next as TypingKey) ? (next as TypingKey) : undefined;
 	});
 	const liveWpm = $derived.by(() => {
@@ -84,7 +89,13 @@
 			oninvalid();
 			return;
 		}
-		oncomplete((await response.json()) as { score: TypedScore; result?: Record<string, unknown> });
+		oncomplete(
+			(await response.json()) as {
+				score: TypedScore;
+				result?: Record<string, unknown>;
+				leaderboard?: Record<string, unknown>;
+			}
+		);
 	}
 
 	function recordKey(event: KeyboardEvent): void {

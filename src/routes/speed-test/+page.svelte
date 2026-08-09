@@ -5,10 +5,12 @@
 		type AttemptToType,
 		type TypedScore
 	} from '$lib/components/TypingAttempt.svelte';
+	import LeaderboardPanel, { type LeaderboardView } from '$lib/components/LeaderboardPanel.svelte';
 
 	let { data } = $props();
 	let attempt = $state<AttemptToType>();
 	let score = $state<TypedScore>();
+	let leaderboard = $state<LeaderboardView>();
 	let loading = $state(true);
 	let message = $state('');
 
@@ -16,6 +18,7 @@
 		loading = true;
 		message = '';
 		score = undefined;
+		leaderboard = undefined;
 		const response = await fetch('/api/attempts/speed-test');
 		if (response.status === 401) {
 			window.location.assign('/');
@@ -56,6 +59,7 @@
 					<div><dt>Time</dt><dd>{(score.elapsedMs / 1000).toFixed(1)}s</dd></div>
 					<div><dt>Errors left</dt><dd>{score.errorCount}</dd></div>
 				</dl>
+				{#if leaderboard}<LeaderboardPanel {leaderboard} />{/if}
 				<div class="score-actions">
 					<a class="primary-action" href="/practice">Practise your weak keys →</a>
 					<button type="button" onclick={startAttempt}>Take it again</button>
@@ -72,7 +76,10 @@
 					track="speed-test-practice"
 					label="Speed Test"
 					heading="Type at your natural pace"
-					oncomplete={(body) => (score = body.score)}
+					oncomplete={(body) => {
+						score = body.score;
+						leaderboard = body.leaderboard as unknown as LeaderboardView;
+					}}
 					oninvalid={() => (message = 'That Attempt could not be saved. Please start a fresh Speed Test.')}
 				/>
 			{/key}

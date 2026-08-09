@@ -114,7 +114,7 @@ describe('Learn Stage gate', () => {
 
 		const body = await submitStage(server, cookie, started, 10);
 
-		expect(body).toEqual({
+		expect(body).toMatchObject({
 			score: {
 				id: expect.any(Number),
 				netWpm: expect.any(Number),
@@ -129,6 +129,12 @@ describe('Learn Stage gate', () => {
 				achievedAccuracy: 0.9,
 				requiredAccuracy: 0.9,
 				nextStageId: 2
+			},
+			leaderboard: {
+				exerciseId: 1,
+				suppressed: true,
+				rows: [],
+				personal: { status: 'not-ranked', accuracy: 0.9 }
 			}
 		});
 
@@ -174,14 +180,15 @@ describe('Learn Stage gate', () => {
 		const started = await startStage(server, cookie, 21);
 		const body = await submitStage(server, cookie, started, 10, 21);
 
-		expect(body).toEqual({
+		expect(body).toMatchObject({
 			score: expect.objectContaining({ accuracy: 0.9 }),
 			result: {
-				state: 'cleared',
+				state: 'completed',
 				achievedAccuracy: 0.9,
 				requiredAccuracy: 0.9,
 				nextStageId: null
-			}
+			},
+			leaderboard: { exerciseId: 21, personal: { accuracy: 0.9 } }
 		});
 	});
 
@@ -198,7 +205,8 @@ describe('Learn Stage gate', () => {
 				state: 'failed',
 				achievedAccuracy: 0.89,
 				requiredAccuracy: 0.9,
-				nextStageId: null
+				nextStageId: null,
+				adultHelpAvailable: false
 			}
 		});
 		expect(firstBody).not.toHaveProperty('leaderboard');
@@ -210,7 +218,13 @@ describe('Learn Stage gate', () => {
 			fifthBody = await submitStage(server, cookie, retry, 11);
 		}
 
-		expect(fifthBody.result).toEqual(firstBody.result);
+		expect(fifthBody.result).toEqual({
+			state: 'failed',
+			achievedAccuracy: 0.89,
+			requiredAccuracy: 0.9,
+			nextStageId: null,
+			adultHelpAvailable: true
+		});
 		const database = new Database(server.databasePath, { readonly: true });
 		const scoreCount = database
 			.prepare('SELECT COUNT(*) AS count FROM scores WHERE nickname = ? AND exercise_id = 1')

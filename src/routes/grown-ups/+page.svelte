@@ -1,3 +1,7 @@
+<script lang="ts">
+	let { data, form } = $props();
+</script>
+
 <svelte:head>
 	<title>For grown-ups · GetTyping</title>
 	<meta
@@ -14,6 +18,21 @@
 	</p>
 
 	<div class="prose">
+		{#if data.currentStage}
+			<section class="override-card">
+				<h2>Help past a stuck Stage</h2>
+				<p>
+					If the Player is genuinely stuck, you can count Stage {data.currentStage.id} as resolved.
+					The 90% standard does not change, and no qualifying Score will be invented.
+				</p>
+				<form method="POST" action="?/resolve-stage">
+					<input type="hidden" name="stageId" value={data.currentStage.id} />
+					<button type="submit">Resolve Stage {data.currentStage.id}</button>
+				</form>
+				{#if form?.message}<p class="form-message" role="alert">{form.message}</p>{/if}
+			</section>
+		{/if}
+
 		<section>
 			<h2>There's no account</h2>
 			<p>
@@ -97,6 +116,32 @@
 		border: 1px solid #ece0b0;
 		border-radius: 0.65rem;
 		background: #fffbe9;
+	}
+
+	.override-card {
+		padding: 1.1rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 0.8rem;
+		background: var(--card);
+	}
+
+	.override-card form {
+		margin-top: 1rem;
+	}
+
+	.override-card button {
+		padding: 0.68rem 1rem;
+		border: 1px solid var(--ink);
+		border-radius: 999px;
+		background: var(--ink);
+		color: white;
+		cursor: pointer;
+		font-weight: 700;
+	}
+
+	.form-message {
+		margin-top: 0.8rem;
+		color: var(--incorrect-ink);
 	}
 
 	@media (max-width: 560px) {

@@ -15,6 +15,13 @@
 			"when": 1786270000000,
 			"tag": "0001_stage_one_content",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "6",
+			"when": 1786270800000,
+			"tag": "0002_learn_curriculum",
+			"breakpoints": true
 		}
 	]
 }

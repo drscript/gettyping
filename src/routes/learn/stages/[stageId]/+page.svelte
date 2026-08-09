@@ -5,22 +5,25 @@
 		type AttemptToType,
 		type TypedScore
 	} from '$lib/components/TypingAttempt.svelte';
+	import LeaderboardPanel, { type LeaderboardView } from '$lib/components/LeaderboardPanel.svelte';
 
 	interface LearnAttempt extends AttemptToType {
 		exercise: { id: number; stageId: number; content: string };
 		stage: { id: number; name: string; keysTaught: string[]; requiredAccuracy: number };
 	}
 	interface StageResult {
-		state: 'cleared' | 'failed';
+		state: 'cleared' | 'failed' | 'completed';
 		achievedAccuracy: number;
 		requiredAccuracy: number;
 		nextStageId: number | null;
+		adultHelpAvailable?: boolean;
 	}
 
 	let { data } = $props();
 	let attempt = $state<LearnAttempt>();
 	let score = $state<TypedScore>();
 	let result = $state<StageResult>();
+	let leaderboard = $state<LeaderboardView>();
 	let loading = $state(true);
 	let message = $state('');
 	const endpoint = $derived(`/api/attempts/learn/${data.stageId}`);
@@ -30,6 +33,7 @@
 		message = '';
 		score = undefined;
 		result = undefined;
+		leaderboard = undefined;
 		const response = await fetch(endpoint);
 		if (response.status === 401) {
 			window.location.assign('/');
@@ -66,6 +70,24 @@
 					<button class="primary" type="button" onclick={startStage}>Try again</button>
 					<a href="/">Back to home</a>
 				</div>
+				{#if result.adultHelpAvailable}
+					<p class="adult-help">A grown-up can help if this Stage is truly stuck. <a href="/grown-ups">Show them the grown-ups page.</a></p>
+				{/if}
+			</section>
+		{:else if score && result?.state === 'completed'}
+			<section class="card cleared-card" aria-live="polite">
+				<p class="eyebrow">All 21 Stages cleared</p>
+				<h1>You learned the whole keyboard ✓</h1>
+				<div class="stats">
+					<span>Accuracy<strong>{(score.accuracy * 100).toFixed(1)}%</strong></span>
+					<span>Net WPM<strong>{score.netWpm.toFixed(1)}</strong></span>
+					<span>Errors<strong>{score.errorCount}</strong></span>
+				</div>
+				{#if leaderboard}<LeaderboardPanel {leaderboard} />{/if}
+				<div class="actions">
+					<a class="primary link-button" href="/speed-test">Take the Speed Test →</a>
+					<a href="/">See all Stages</a>
+				</div>
 			</section>
 		{:else if score && result?.state === 'cleared'}
 			<section class="card cleared-card" aria-live="polite">
@@ -76,7 +98,12 @@
 					<span>Net WPM<strong>{score.netWpm.toFixed(1)}</strong></span>
 					<span>Errors<strong>{score.errorCount}</strong></span>
 				</div>
-				<p class="speed-note">Your accuracy opened the next Stage. Speed was measured, but it did not gate you.</p>
+				{#if leaderboard}<LeaderboardPanel {leaderboard} />{/if}
+				<p class="speed-note">
+					{score.accuracy >= result.requiredAccuracy
+						? 'Your accuracy opened the next Stage. Speed was measured, but it did not gate you.'
+						: 'This Stage was already cleared, so your path stays open. This replay was still recorded.'}
+				</p>
 				<div class="actions">
 					{#if result.nextStageId}
 						<a class="primary link-button" href={`/learn/stages/${result.nextStageId}`}>Next Stage →</a>
@@ -95,6 +122,7 @@
 					oncomplete={(body) => {
 						score = body.score;
 						result = body.result as unknown as StageResult;
+						leaderboard = body.leaderboard as unknown as LeaderboardView;
 					}}
 					oninvalid={() => (message = 'That Attempt could not be saved. Please start the Stage again.')}
 				/>
@@ -117,6 +145,7 @@
 	h1 { margin: 0; font-size: clamp(2rem, 8vw, 4.25rem); line-height: 1; }
 	.target { margin: 0.65rem 0 0; font-size: clamp(1.15rem, 3vw, 1.45rem); }
 	.speed-note { color: var(--muted); font-family: var(--font-sans); font-size: 0.82rem; line-height: 1.5; }
+	.adult-help { margin: 1.6rem 0 0; color: var(--muted); font: 0.78rem/1.5 var(--font-sans); }
 	.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; margin: 1.5rem 0; }
 	.stats span { padding: 0.9rem; border: 1px solid var(--line); border-radius: 0.75rem; color: var(--muted); font: 0.7rem var(--font-sans); text-transform: uppercase; }
 	.stats strong { display: block; margin-top: 0.3rem; color: var(--ink); font: 700 1.25rem var(--font-rounded); }

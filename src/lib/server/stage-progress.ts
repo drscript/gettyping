@@ -1,6 +1,6 @@
-import { and, eq, gte, ne } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, ne } from 'drizzle-orm';
 import type { getDatabase } from './database';
-import { exercises, scores, stageUnlocks } from './database/schema';
+import { exercises, scores, stages, stageUnlocks } from './database/schema';
 
 export const learnAccuracyThreshold = 0.9;
 
@@ -34,4 +34,41 @@ export function stageIsResolved(
 
 export function stageIsAvailable(database: Database, playerId: string, stageId: number): boolean {
 	return stageId === 1 || (stageId > 1 && stageIsResolved(database, playerId, stageId - 1));
+}
+
+export function consecutiveStageFailures(
+	database: Database,
+	playerId: string,
+	stageId: number
+): number {
+	const attempts = database
+		.select({ accuracy: scores.accuracy })
+		.from(scores)
+		.innerJoin(exercises, eq(exercises.id, scores.exerciseId))
+		.where(and(eq(scores.playerId, playerId), eq(exercises.stageId, stageId)))
+		.orderBy(desc(scores.id))
+		.all();
+
+	let failures = 0;
+	for (const attempt of attempts) {
+		if (attempt.accuracy >= learnAccuracyThreshold) break;
+		failures += 1;
+	}
+	return failures;
+}
+
+export function readStageList(database: Database, playerId: string) {
+	return database
+		.select({ id: stages.id, name: stages.name, keysTaught: stages.keysTaught })
+		.from(stages)
+		.orderBy(asc(stages.id))
+		.all()
+		.map((stage) => ({
+			...stage,
+			state: stageIsResolved(database, playerId, stage.id)
+				? ('cleared' as const)
+				: stageIsAvailable(database, playerId, stage.id)
+					? ('current' as const)
+					: ('locked' as const)
+		}));
 }

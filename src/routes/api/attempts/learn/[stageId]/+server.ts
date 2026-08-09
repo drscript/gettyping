@@ -5,10 +5,13 @@ import { completeAttempt, createAttemptHandshake } from '$lib/server/attempts';
 import { getDatabase } from '$lib/server/database';
 import { exercises, stages } from '$lib/server/database/schema';
 import {
+	consecutiveStageFailures,
 	learnAccuracyThreshold,
 	stageIsAvailable,
 	stageIsResolved
 } from '$lib/server/stage-progress';
+import { getRuntimeConfiguration } from '$lib/server/runtime/configuration';
+import { readLeaderboard } from '$lib/server/leaderboards';
 import type { RequestHandler } from './$types';
 
 function readStageId(value: string): number {
@@ -66,13 +69,28 @@ export const POST: RequestHandler = async ({ cookies, params, request }) => {
 		completed.score.id
 	);
 	const cleared = alreadyResolved || completed.score.accuracy >= learnAccuracyThreshold;
+	const completedTrack = cleared && stageId === 21;
+	const adultHelpAvailable =
+		!cleared &&
+		consecutiveStageFailures(getDatabase(), completed.playerId, stageId) >=
+			getRuntimeConfiguration().consecutiveFailureCount;
 	return json({
 		score: completed.score,
+		...(cleared && completed.exerciseId !== null
+			? {
+					leaderboard: readLeaderboard(
+						completed.exerciseId,
+						completed.playerId,
+						completed.score.id
+					)
+				}
+			: {}),
 		result: {
-			state: cleared ? 'cleared' : 'failed',
+			state: completedTrack ? 'completed' : cleared ? 'cleared' : 'failed',
 			achievedAccuracy: completed.score.accuracy,
 			requiredAccuracy: learnAccuracyThreshold,
-			nextStageId: cleared && stageId < 21 ? stageId + 1 : null
+			nextStageId: cleared && stageId < 21 ? stageId + 1 : null,
+			...(!cleared ? { adultHelpAvailable } : {})
 		}
 	});
 };

@@ -22,6 +22,35 @@
 			</div>
 			<a class="continue-button" href={data.continueHref}>Continue</a>
 		</section>
+
+		<section class="stage-path" aria-labelledby="stage-path-heading">
+			<div class="stage-heading">
+				<div>
+					<p class="eyebrow">Learn path</p>
+					<h2 id="stage-path-heading">Your 21 Stages</h2>
+				</div>
+				<p>Cleared Stages stay open for replay.</p>
+			</div>
+			<ol class="stage-grid">
+				{#each data.stages ?? [] as stage}
+					<li data-stage-state={stage.state}>
+						{#if stage.state === 'locked'}
+							<span class="stage-tile locked" aria-label={`Stage ${stage.id}, ${stage.name}, locked`}>
+								<span class="stage-icon" aria-hidden="true">◆</span>
+								<strong>{stage.id}</strong>
+								<small>Locked</small>
+							</span>
+						{:else}
+							<a class:cleared={stage.state === 'cleared'} class:current={stage.state === 'current'} href={`/learn/stages/${stage.id}`} aria-label={`Stage ${stage.id}, ${stage.name}, ${stage.state === 'cleared' ? 'cleared, replay' : 'current'}`}>
+								<span class="stage-icon" aria-hidden="true">{stage.state === 'cleared' ? '✓' : '●'}</span>
+								<strong>{stage.id}</strong>
+								<small>{stage.state === 'cleared' ? 'Replay' : 'Next'}</small>
+							</a>
+						{/if}
+					</li>
+				{/each}
+			</ol>
+		</section>
 	</main>
 {:else}
 	<main class="welcome-shell">
@@ -89,6 +118,83 @@
 		border-radius: 1rem;
 		background: var(--card);
 		box-shadow: 0 1px 3px rgb(0 0 0 / 5%);
+	}
+
+	.stage-path {
+		margin-top: 2.4rem;
+	}
+
+	.stage-heading {
+		display: flex;
+		align-items: end;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.stage-heading h2,
+	.stage-heading p {
+		margin: 0;
+	}
+
+	.stage-heading > p {
+		color: var(--muted);
+		font-size: 0.76rem;
+	}
+
+	.stage-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(5.25rem, 1fr));
+		gap: 0.65rem;
+		padding: 0;
+		margin: 0;
+		list-style: none;
+	}
+
+	.stage-tile,
+	.stage-grid a {
+		display: grid;
+		min-height: 6.2rem;
+		place-items: center;
+		align-content: center;
+		gap: 0.15rem;
+		border: 1px solid var(--line);
+		border-radius: 1rem;
+		background: var(--card);
+		text-decoration: none;
+	}
+
+	.stage-grid a.cleared {
+		border-radius: 1rem 1rem 1rem 0.35rem;
+		border-color: var(--correct-line);
+		background: var(--correct-fill);
+	}
+
+	.stage-grid a.current {
+		border-width: 2px;
+		border-color: var(--focus-line);
+		border-radius: 50%;
+		background: var(--focus);
+	}
+
+	.stage-tile.locked {
+		border-style: dashed;
+		color: var(--muted);
+		clip-path: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);
+	}
+
+	.stage-icon {
+		font-size: 1rem;
+	}
+
+	.stage-grid strong {
+		font-family: var(--font-rounded);
+		font-size: 1.25rem;
+	}
+
+	.stage-grid small {
+		font-size: 0.66rem;
+		text-transform: uppercase;
 	}
 
 	.continue-card h2 {
@@ -234,6 +340,11 @@
 
 		.continue-button {
 			text-align: center;
+		}
+
+		.stage-heading {
+			align-items: start;
+			flex-direction: column;
 		}
 	}
 </style>

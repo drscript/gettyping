@@ -176,7 +176,7 @@ describe('Speed Test Attempt', () => {
 		});
 
 		expect(response.status).toBe(200);
-		expect(await response.json()).toEqual({
+		expect(await response.json()).toMatchObject({
 			score: {
 				id: expect.any(Number),
 				netWpm: 28.4,
@@ -245,7 +245,7 @@ describe('Speed Test Attempt', () => {
 		});
 
 		expect(response.status).toBe(200);
-		expect(await response.json()).toEqual({
+		expect(await response.json()).toMatchObject({
 			score: {
 				id: expect.any(Number),
 				netWpm: 28.6,
@@ -271,7 +271,7 @@ describe('Speed Test Attempt', () => {
 		);
 
 		expect(response.status).toBe(200);
-		expect(await response.json()).toEqual({
+		expect(await response.json()).toMatchObject({
 			score: {
 				id: expect.any(Number),
 				netWpm: 56.8,

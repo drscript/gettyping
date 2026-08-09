@@ -4,6 +4,7 @@ import { requireActivePlayer } from '$lib/server/active-player';
 import { completeAttempt, createAttemptHandshake } from '$lib/server/attempts';
 import { getDatabase } from '$lib/server/database';
 import { exercises } from '$lib/server/database/schema';
+import { readLeaderboard } from '$lib/server/leaderboards';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = ({ cookies }) => {
@@ -30,5 +31,13 @@ function invalidAttemptResponse(): Response {
 
 export const POST: RequestHandler = async ({ cookies, request }) => {
 	const completed = await completeAttempt(cookies, request, 'speed-test');
-	return completed ? json({ score: completed.score }) : invalidAttemptResponse();
+	if (!completed || completed.exerciseId === null) return invalidAttemptResponse();
+	return json({
+		score: completed.score,
+		leaderboard: readLeaderboard(
+			completed.exerciseId,
+			completed.playerId,
+			completed.score.id
+		)
+	});
 };
