@@ -1,5 +1,24 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { mutePreference } from '$lib/ui/mute-preference';
+
+	let { initialMuted = false }: { initialMuted?: boolean } = $props();
+	let locallyChanged = $state(false);
+	let localMuted = $state(false);
+	let muted = $derived(locallyChanged ? localMuted : initialMuted);
+
+	function toggleMute(): void {
+		localMuted = !muted;
+		locallyChanged = true;
+		mutePreference.set(localMuted);
+		void fetch('/api/preferences/mute', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ muted: localMuted })
+		}).catch(() => undefined);
+	}
+
+	onMount(() => mutePreference.set(initialMuted));
 </script>
 
 <nav class="corner-furniture" aria-label="Persistent controls">
@@ -10,11 +29,11 @@
 	<button
 		class="mute-toggle"
 		type="button"
-		aria-label={$mutePreference ? 'Sound muted. Turn sound on' : 'Sound on. Mute sound'}
-		aria-pressed={$mutePreference}
-		onclick={() => mutePreference.update((muted) => !muted)}
+		aria-label={muted ? 'Sound muted. Turn sound on' : 'Sound on. Mute sound'}
+		aria-pressed={muted}
+		onclick={toggleMute}
 	>
-		<span aria-hidden="true">{$mutePreference ? '🔇' : '🔊'}</span>
+		<span aria-hidden="true">{muted ? '🔇' : '🔊'}</span>
 	</button>
 </nav>
 

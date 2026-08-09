@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import Database from 'better-sqlite3';
+import { createPlayerCookie } from './player';
 import { startTestServer, type TestServer } from './server';
 
 describe('Player identity', () => {
@@ -165,5 +166,201 @@ describe('Player identity', () => {
 		}
 		expect(firstVisit).not.toContain("There's no account");
 		expect(firstVisit).not.toContain('no way to recover progress');
+	});
+
+	test('a shared device keeps every Player while switching the active Player', async () => {
+		const firstCookie = await createPlayerCookie(server, 'SunnyFox', {
+			track: 'learn',
+			source: 'curated'
+		});
+		const secondCookie = await createPlayerCookie(server, 'SecondSwift', {
+			existingCookie: firstCookie
+		});
+		const secondIdentity = JSON.parse(decodeURIComponent(secondCookie.split('=', 2)[1])) as {
+			active: string;
+			players: string[];
+		};
+
+		const homeResponse = await fetch(server.baseUrl, { headers: { cookie: secondCookie } });
+		const home = await homeResponse.text();
+		expect(home).toContain('SecondSwift');
+		expect(home).toContain('href="/players"');
+		expect(home).toContain('Not you?');
+
+		const pickerResponse = await fetch(`${server.baseUrl}/players`, {
+			headers: { cookie: secondCookie }
+		});
+		const picker = await pickerResponse.text();
+		expect(pickerResponse.status).toBe(200);
+		expect(picker).toContain('SunnyFox');
+		expect(picker).toContain('SecondSwift');
+		expect(picker).toContain('Add another Player');
+
+		const switchResponse = await fetch(`${server.baseUrl}/players?/switch`, {
+			method: 'POST',
+			headers: {
+				accept: 'text/html',
+				'content-type': 'application/x-www-form-urlencoded',
+				cookie: secondCookie,
+				origin: server.baseUrl
+			},
+			body: new URLSearchParams({ playerId: secondIdentity.players[0] }),
+			redirect: 'manual'
+		});
+		const switchedCookie = switchResponse.headers.get('set-cookie')!.split(';', 1)[0];
+		const switchedIdentity = JSON.parse(decodeURIComponent(switchedCookie.split('=', 2)[1]));
+
+		expect(switchResponse.status).toBe(303);
+		expect(switchResponse.headers.get('location')).toBe('/');
+		expect(switchedIdentity).toEqual({
+			active: secondIdentity.players[0],
+			players: secondIdentity.players
+		});
+
+		const switchedHome = await fetch(server.baseUrl, { headers: { cookie: switchedCookie } });
+		expect(await switchedHome.text()).toContain('SunnyFox');
+	});
+
+	test('renaming applies the Nickname policy and never rewrites earlier Scores', async () => {
+		const cookie = await createPlayerCookie(server, 'OriginalOrca');
+		const identity = JSON.parse(decodeURIComponent(cookie.split('=', 2)[1])) as {
+			active: string;
+		};
+		const database = new Database(server.databasePath);
+		database
+			.prepare(
+				`INSERT INTO scores
+				 (player_id, exercise_id, nickname, net_wpm, gross_wpm, accuracy, elapsed_ms,
+				  char_count, error_count, leaderboard_eligible, created_at)
+				 VALUES (?, 22, 'OriginalOrca', 10, 10, 1, 60000, 50, 0, 1, ?)`
+			)
+			.run(identity.active, Date.now() - 1_000);
+		database.close();
+
+		const rejectedResponse = await fetch(`${server.baseUrl}/players?/rename`, {
+			method: 'POST',
+			headers: {
+				accept: 'text/html',
+				'content-type': 'application/x-www-form-urlencoded',
+				cookie,
+				origin: server.baseUrl
+			},
+			body: new URLSearchParams({ source: 'typed', nickname: 'DamnFox' }),
+			redirect: 'manual'
+		});
+		expect(rejectedResponse.status).toBe(303);
+		expect(rejectedResponse.headers.get('location')).toBe('/players?notice=unavailable');
+
+		const curatedResponse = await fetch(`${server.baseUrl}/players?/rename`, {
+			method: 'POST',
+			headers: {
+				accept: 'text/html',
+				'content-type': 'application/x-www-form-urlencoded',
+				cookie,
+				origin: server.baseUrl
+			},
+			body: new URLSearchParams({ source: 'curated', nickname: 'BraveOtter' }),
+			redirect: 'manual'
+		});
+		expect(curatedResponse.status).toBe(303);
+		expect(curatedResponse.headers.get('location')).toBe('/players?notice=renamed');
+
+		const startedResponse = await fetch(`${server.baseUrl}/api/attempts/speed-test`, {
+			headers: { cookie }
+		});
+		const started = (await startedResponse.json()) as {
+			token: string;
+			exercise: { content: string };
+		};
+		const submitResponse = await fetch(`${server.baseUrl}/api/attempts/speed-test`, {
+			method: 'POST',
+			headers: { cookie, 'content-type': 'application/json' },
+			body: JSON.stringify({
+				token: started.token,
+				events: [...started.exercise.content].map((character, index) => ({
+					expected: character,
+					received: character,
+					timestampOffsetMs: Math.round(
+						((index + 1) / started.exercise.content.length) * 60_000
+					)
+				}))
+			})
+		});
+		const completed = (await submitResponse.json()) as {
+			leaderboard: { personal: { nickname: string } };
+		};
+		expect(submitResponse.status).toBe(200);
+		expect(completed.leaderboard.personal.nickname).toBe('BraveOtter');
+
+		const databaseAfter = new Database(server.databasePath, { readonly: true });
+		const player = databaseAfter
+			.prepare('SELECT nickname FROM players WHERE id = ?')
+			.get(identity.active);
+		const scoreNicknames = databaseAfter
+			.prepare('SELECT nickname FROM scores WHERE player_id = ? ORDER BY id')
+			.all(identity.active);
+		databaseAfter.close();
+		expect(player).toEqual({ nickname: 'BraveOtter' });
+		expect(scoreNicknames).toEqual([
+			{ nickname: 'OriginalOrca' },
+			{ nickname: 'BraveOtter' }
+		]);
+	});
+
+	test('Players sharing one cookie keep separate Stage progress and Weak-key Profiles', async () => {
+		const firstCookie = await createPlayerCookie(server, 'FirstFinch', {
+			track: 'learn'
+		});
+		const firstIdentity = JSON.parse(decodeURIComponent(firstCookie.split('=', 2)[1])) as {
+			active: string;
+		};
+		const database = new Database(server.databasePath);
+		database
+			.prepare(
+				`INSERT INTO scores
+				 (player_id, exercise_id, nickname, net_wpm, gross_wpm, accuracy, elapsed_ms,
+				  char_count, error_count, leaderboard_eligible, created_at)
+				 VALUES (?, 1, 'FirstFinch', 12, 12, 1, 60000, 60, 0, 1, ?)`
+			)
+			.run(firstIdentity.active, Date.now());
+		database
+			.prepare(
+				`INSERT INTO weak_key_stats (player_id, key, attempts, errors, total_latency_ms)
+				 VALUES (?, 'q', 5, 3, 5000)`
+			)
+			.run(firstIdentity.active);
+		database.close();
+
+		const secondCookie = await createPlayerCookie(server, 'SecondSwan', {
+			existingCookie: firstCookie,
+			track: 'learn'
+		});
+
+		const secondHomeResponse = await fetch(server.baseUrl, { headers: { cookie: secondCookie } });
+		const secondHome = await secondHomeResponse.text();
+		expect(secondHome).not.toContain('data-stage-state="cleared"');
+		const secondProfile = await fetch(`${server.baseUrl}/api/weak-key-profile`, {
+			headers: { cookie: secondCookie }
+		});
+		expect(await secondProfile.json()).toEqual({ keys: [] });
+
+		const switchResponse = await fetch(`${server.baseUrl}/players?/switch`, {
+			method: 'POST',
+			headers: {
+				accept: 'text/html',
+				'content-type': 'application/x-www-form-urlencoded',
+				cookie: secondCookie,
+				origin: server.baseUrl
+			},
+			body: new URLSearchParams({ playerId: firstIdentity.active }),
+			redirect: 'manual'
+		});
+		const switchedCookie = switchResponse.headers.get('set-cookie')!.split(';', 1)[0];
+		const firstHomeResponse = await fetch(server.baseUrl, { headers: { cookie: switchedCookie } });
+		expect(await firstHomeResponse.text()).toContain('data-stage-state="cleared"');
+		const firstProfile = await fetch(`${server.baseUrl}/api/weak-key-profile`, {
+			headers: { cookie: switchedCookie }
+		});
+		expect(await firstProfile.json()).toMatchObject({ keys: [{ key: 'q' }] });
 	});
 });

@@ -1,3 +1,5 @@
+import { isCuratedNickname } from '$lib/nicknames';
+
 const blockedTerms = [
 	'damn',
 	'fuck',
@@ -25,4 +27,15 @@ export function normalizeNickname(value: FormDataEntryValue | null): string | un
 export function typedNicknameIsAllowed(nickname: string): boolean {
 	const searchable = nickname.toLocaleLowerCase('en').replace(/[^a-z0-9]/g, '');
 	return !blockedTerms.some((term) => searchable.includes(term));
+}
+
+export function acceptedNicknameChoice(
+	source: FormDataEntryValue | null,
+	value: FormDataEntryValue | null
+): string | undefined {
+	const nickname = normalizeNickname(value);
+	if (nickname === undefined) return undefined;
+	if (source === 'curated' && isCuratedNickname(nickname)) return nickname;
+	if (source === 'typed' && typedNicknameIsAllowed(nickname)) return nickname;
+	return undefined;
 }

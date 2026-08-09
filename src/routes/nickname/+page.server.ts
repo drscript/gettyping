@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { error, redirect } from '@sveltejs/kit';
 import { getDatabase } from '$lib/server/database';
 import { players } from '$lib/server/database/schema';
-import { readIdentity, writeIdentity } from '$lib/server/identity';
-import { normalizeNickname, typedNicknameIsAllowed } from '$lib/server/nickname-policy';
-import { curatedNicknames, isCuratedNickname } from '$lib/nicknames';
+import { readIdentity, readMutedPreference, writeIdentity } from '$lib/server/identity';
+import { acceptedNicknameChoice } from '$lib/server/nickname-policy';
+import { curatedNicknames } from '$lib/nicknames';
 import type { TrackFlex } from '$lib/ui/types';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -31,15 +31,8 @@ export const actions: Actions = {
 	create: async ({ request, cookies, url }) => {
 		const data = await request.formData();
 		const track = selectedTrack(data.get('track')?.toString() ?? null);
-		const source = data.get('source');
-		const nickname = normalizeNickname(data.get('nickname'));
-
-		const isCuratedChoice =
-			source === 'curated' && nickname !== undefined && isCuratedNickname(nickname);
-		const isAllowedTypedChoice =
-			source === 'typed' && nickname !== undefined && typedNicknameIsAllowed(nickname);
-
-		if (!isCuratedChoice && !isAllowedTypedChoice) {
+		const nickname = acceptedNicknameChoice(data.get('source'), data.get('nickname'));
+		if (nickname === undefined) {
 			redirect(303, `/nickname?track=${track}&notice=unavailable`);
 		}
 
@@ -54,7 +47,8 @@ export const actions: Actions = {
 			cookies,
 			{
 				active: playerId,
-				players: [...(previousIdentity?.players ?? []), playerId]
+				players: [...(previousIdentity?.players ?? []), playerId],
+				...(readMutedPreference(cookies) ? { muted: true } : {})
 			},
 			url.protocol === 'https:'
 		);

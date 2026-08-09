@@ -23,6 +23,11 @@
 			<a class="continue-button" href={data.continueHref}>Continue</a>
 		</section>
 
+		<nav class="home-secondary" aria-label="Player options">
+			<a href="/history">Your history</a>
+			<a href="/players">Not you?</a>
+		</nav>
+
 		<section class="stage-path" aria-labelledby="stage-path-heading">
 			<div class="stage-heading">
 				<div>
@@ -118,6 +123,18 @@
 		border-radius: 1rem;
 		background: var(--card);
 		box-shadow: 0 1px 3px rgb(0 0 0 / 5%);
+	}
+
+	.home-secondary {
+		display: flex;
+		gap: 1rem;
+		margin-top: 0.9rem;
+		font-size: 0.8rem;
+	}
+
+	.home-secondary a {
+		color: var(--muted);
+		text-underline-offset: 0.22rem;
 	}
 
 	.stage-path {

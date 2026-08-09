@@ -6,6 +6,7 @@
 		type TypedScore
 	} from '$lib/components/TypingAttempt.svelte';
 	import LeaderboardPanel, { type LeaderboardView } from '$lib/components/LeaderboardPanel.svelte';
+	import { playCompletionSound } from '$lib/ui/audio-feedback';
 
 	interface LearnAttempt extends AttemptToType {
 		exercise: { id: number; stageId: number; content: string };
@@ -123,6 +124,7 @@
 						score = body.score;
 						result = body.result as unknown as StageResult;
 						leaderboard = body.leaderboard as unknown as LeaderboardView;
+						if (result.achievedAccuracy >= result.requiredAccuracy) playCompletionSound();
 					}}
 					oninvalid={() => (message = 'That Attempt could not be saved. Please start the Stage again.')}
 				/>

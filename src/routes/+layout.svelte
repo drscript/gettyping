@@ -3,8 +3,8 @@
 	import '../app.css';
 	import CornerFurniture from '$lib/components/CornerFurniture.svelte';
 
-	let { children } = $props();
+	let { children, data } = $props();
 </script>
 
-<CornerFurniture />
+<CornerFurniture initialMuted={data.muted} />
 {@render children()}

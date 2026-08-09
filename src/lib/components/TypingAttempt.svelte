@@ -4,6 +4,7 @@
 	import OnScreenKeyboard from './OnScreenKeyboard.svelte';
 	import type { CharacterFeedbackItem, TrackFlex, TypingKey } from '$lib/ui/types';
 	import { typingKeys } from '$lib/ui/types';
+	import { createAttemptAudioFeedback } from '$lib/ui/audio-feedback';
 
 	export interface AttemptToType {
 		token: string;
@@ -50,6 +51,9 @@
 	let startedAt = $state(0);
 	let submitting = $state(false);
 	let typingPanel = $state<HTMLElement>();
+	let typedKeyCount = 0;
+	let correctKeyCount = 0;
+	const audioFeedback = createAttemptAudioFeedback();
 
 	const content = $derived(attempt.exercise.content);
 	const feedback = $derived.by((): CharacterFeedbackItem[] =>
@@ -115,6 +119,10 @@
 		event.preventDefault();
 		const expected = content[cursor];
 		events.push({ expected, received: event.key, timestampOffsetMs });
+		typedKeyCount += 1;
+		const correct = event.key === expected;
+		if (correct) correctKeyCount += 1;
+		audioFeedback.recordKey(correct, correctKeyCount / typedKeyCount);
 		typedCharacters[cursor] = event.key;
 		cursor += 1;
 		if (cursor === content.length) void finishAttempt();

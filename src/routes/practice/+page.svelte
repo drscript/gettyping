@@ -130,7 +130,9 @@
 					track="speed-test-practice"
 					label={`Practice · ${attempt.exercise.mode === 'word-bank' ? 'readable words' : 'focused bigrams'}`}
 					heading="Work on what slows you down"
-					oncomplete={(body) => (score = body.score)}
+					oncomplete={(body) => {
+						score = body.score;
+					}}
 					oninvalid={() => (message = 'That Attempt could not be saved. Please start a fresh Exercise.')}
 				/>
 			{/key}
