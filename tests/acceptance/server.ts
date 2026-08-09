@@ -57,6 +57,7 @@ export async function startTestServer(overrides: NodeJS.ProcessEnv = {}): Promis
 			...overrides,
 			DATABASE_PATH: databasePath,
 			HOST: '127.0.0.1',
+			ORIGIN: baseUrl,
 			PORT: String(port)
 		},
 		stdio: ['ignore', 'pipe', 'pipe']
