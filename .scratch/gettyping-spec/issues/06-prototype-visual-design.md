@@ -27,3 +27,14 @@ Feeds the destination's visual/UX-principles section directly. No data-model imp
 "Revealed only on completing the Exercise" is ambiguous for a failed Attempt: every character was typed, so the Exercise *was* completed, and as written this reveals the Leaderboard to a Player who just missed the Learn gate.
 
 **Refined**: the Leaderboard is revealed on **clearing** the Exercise, not merely finishing it. A sub-90% Learn Attempt goes to a distinct failure state with no Leaderboard — the pedagogy research is explicit that young learners should get progress-coupled framing over "competitive/leaderboard mechanics", and a child who scored 62% should not be shown their rank beneath ten strangers. The Score still persists and still counts for personal history. Everything else above is unchanged.
+
+## Addendum — reveal refined again by [15-leaderboard-display-rules.md](./15-leaderboard-display-rules.md)
+
+The reveal now has two conditions rather than one. 13 established that it fires on *clearing* an Exercise, not merely finishing it. 15 adds that the **Leaderboard itself only appears once the Exercise has a threshold number of distinct ranked Players** — below that, a board of one or two rows manufactures a competitive signal that does not exist.
+
+**Net effect on the completion screen:**
+- **Stats always.** Suppression removes the ranking, never the completion moment.
+- **Above the threshold**: the top 10, plus the Player's own row appended below with their rank when they fall outside it, carrying a personal-best marker when the Attempt improved on their previous best, or a "not ranked" marker when the Score was ineligible.
+- **Below the threshold**: that same personal row alone — Score and personal-best marker, no rank, no rows.
+
+One component in two contexts, so the design degrades gracefully instead of branching. Everything else above is unchanged.

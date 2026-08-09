@@ -125,3 +125,29 @@ Note this query still has no tie-break — [15-leaderboard-display-rules.md](./1
 **The Speed Test Exercise row's `content` is immutable once live.** Its Leaderboard's meaning depends on every ranked Player having typed the same text; editing `content` would leave old and new Scores incomparable while still ranked together. A replacement text must be inserted as a **new `exercises` row** with its own Leaderboard, never an `UPDATE` to the seeded one. (The same reasoning applies to the 21 Learn Exercise rows, which 13 also fixed as non-regenerating.)
 
 **A practice "session" is deliberately not modelled.** The session summary in 14 needs a before/after view of the Weak-key Profile, which tempts a `sessions` table. It doesn't need one — the client snapshots the top weak keys when practice begins and diffs against the current Profile at finish.
+
+## Addendum (from [15-leaderboard-display-rules.md](./15-leaderboard-display-rules.md))
+
+**No schema change.** The Leaderboard query gains a deterministic tie-break, and two further reads are named that the query above did not cover.
+
+**Tie-break** — `id ASC` in *both* clauses. Without it, tied `net_wpm` rows return in arbitrary order and the board visibly reshuffles between reads. `id` is an autoincrement PK, so it is unique in one key and monotonic with insertion, implicitly meaning "the earlier Score wins":
+
+```sql
+WITH ranked AS (
+  SELECT *, ROW_NUMBER() OVER (
+    PARTITION BY player_id ORDER BY net_wpm DESC, id ASC
+  ) AS rk
+  FROM scores
+  WHERE exercise_id = ? AND leaderboard_eligible = 1
+    AND accuracy >= 0.90   -- Learn Exercises only; the Speed Test has no gate
+)
+SELECT * FROM ranked WHERE rk = 1 ORDER BY net_wpm DESC, id ASC LIMIT 10;
+```
+
+The inner clause is not cosmetic: `nickname` is snapshotted per Score (per [07-nickname-uniqueness.md](./07-nickname-uniqueness.md)), so without it a Player who renamed between two identical-WPM runs would see their row flicker between two names.
+
+**Two additional reads**, neither derivable from the query above:
+- **The Player's own rank**, for the row appended below the top 10 — a count of distinct Players whose eligible best beats theirs, plus one.
+- **A count of distinct ranked Players** for the Exercise, to decide whether the board clears the display threshold at all.
+
+The existing index `(exercise_id, player_id, net_wpm)` still serves all three; `id` is the rowid and comes along for free.
