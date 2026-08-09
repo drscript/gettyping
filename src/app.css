@@ -1,0 +1,66 @@
+:root {
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	color: #1c1b19;
+	background: #f6f5f2;
+	font-synthesis: none;
+	--font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	--font-rounded: 'Baloo 2', 'Avenir Next Rounded', ui-rounded, sans-serif;
+	--font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', monospace;
+	--paper: #f6f5f2;
+	--card: #fff;
+	--ink: #1c1b19;
+	--muted: #6b6862;
+	--line: #e3e1db;
+	--line-strong: #c8c5bd;
+	--focus: #fff3c4;
+	--focus-line: #e6c94d;
+	--correct-fill: #d5f2d0;
+	--correct-line: #8fd685;
+	--correct-ink: #2f8a24;
+	--incorrect-fill: #fff1ea;
+	--incorrect-line: #d9713f;
+	--incorrect-ink: #b8461f;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html {
+	min-width: 320px;
+	background: var(--paper);
+}
+
+body {
+	margin: 0;
+	min-width: 320px;
+	min-height: 100vh;
+	background: var(--paper);
+}
+
+button,
+a {
+	font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible {
+	outline: 3px solid rgb(230 201 77 / 55%);
+	outline-offset: 3px;
+}
+
+a {
+	color: inherit;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
