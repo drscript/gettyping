@@ -79,11 +79,28 @@ function scoreCount(databasePath: string, nickname: string): number {
 	return row.count;
 }
 
+function setHandshakeAge(databasePath: string, token: string, ageMs: number): void {
+	const database = new Database(databasePath);
+	database
+		.prepare('UPDATE attempt_tokens SET served_at = ? WHERE id = ?')
+		.run(Date.now() - ageMs, token);
+	database.close();
+}
+
+function scoreEligibility(databasePath: string, nickname: string): number | undefined {
+	const database = new Database(databasePath, { readonly: true });
+	const row = database
+		.prepare('SELECT leaderboard_eligible AS leaderboardEligible FROM scores WHERE nickname = ?')
+		.get(nickname) as { leaderboardEligible: number } | undefined;
+	database.close();
+	return row?.leaderboardEligible;
+}
+
 describe('Speed Test Attempt', () => {
 	let server: TestServer;
 
 	beforeAll(async () => {
-		server = await startTestServer({ EVENT_COUNT_CEILING: '150' });
+		server = await startTestServer({ EVENT_COUNT_CEILING: '150', NET_WPM_CEILING: '30' });
 	});
 
 	afterAll(async () => {
@@ -239,6 +256,69 @@ describe('Speed Test Attempt', () => {
 				errorCount: 0
 			}
 		});
+	});
+
+	test('persists a Score over the configured Net WPM ceiling in history with eligibility off', async () => {
+		const cookie = await createSpeedTestPlayer(server, 'RapidRabbit');
+		const started = await startAttempt(server, cookie);
+		setHandshakeAge(server.databasePath, started.token, 120_000);
+
+		const response = await submitAttempt(
+			server,
+			cookie,
+			started.token,
+			perfectEvents(started.exercise.content, 30_000)
+		);
+
+		expect(response.status).toBe(200);
+		expect(await response.json()).toEqual({
+			score: {
+				id: expect.any(Number),
+				netWpm: 56.8,
+				grossWpm: 56.8,
+				accuracy: 1,
+				elapsedMs: 30_000,
+				charCount: 142,
+				errorCount: 0
+			}
+		});
+		expect(scoreCount(server.databasePath, 'RapidRabbit')).toBe(1);
+		expect(scoreEligibility(server.databasePath, 'RapidRabbit')).toBe(0);
+	});
+
+	test('persists a wall-clock-inconsistent Score with the same ordinary success shape', async () => {
+		const plausibleCookie = await createSpeedTestPlayer(server, 'PatientPanda');
+		const plausible = await startAttempt(server, plausibleCookie);
+		setHandshakeAge(server.databasePath, plausible.token, 61_000);
+		const plausibleResponse = await submitAttempt(
+			server,
+			plausibleCookie,
+			plausible.token,
+			perfectEvents(plausible.exercise.content)
+		);
+
+		const implausibleCookie = await createSpeedTestPlayer(server, 'HastyHeron');
+		const implausible = await startAttempt(server, implausibleCookie);
+		const implausibleResponse = await submitAttempt(
+			server,
+			implausibleCookie,
+			implausible.token,
+			perfectEvents(implausible.exercise.content)
+		);
+
+		expect(plausibleResponse.status).toBe(200);
+		expect(implausibleResponse.status).toBe(200);
+		const plausibleBody = (await plausibleResponse.json()) as { score: Record<string, unknown> };
+		const implausibleBody = (await implausibleResponse.json()) as {
+			score: Record<string, unknown>;
+		};
+		expect({ ...implausibleBody.score, id: undefined }).toEqual({
+			...plausibleBody.score,
+			id: undefined
+		});
+		expect(Object.keys(implausibleBody.score).sort()).toEqual(Object.keys(plausibleBody.score).sort());
+		expect(scoreEligibility(server.databasePath, 'PatientPanda')).toBe(1);
+		expect(scoreEligibility(server.databasePath, 'HastyHeron')).toBe(0);
 	});
 
 	test('rejects structurally invalid streams without persisting a Score', async () => {

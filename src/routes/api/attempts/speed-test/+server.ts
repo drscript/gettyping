@@ -5,6 +5,7 @@ import { getDatabase } from '$lib/server/database';
 import { attemptTokens, exercises, players, scores } from '$lib/server/database/schema';
 import { readIdentity } from '$lib/server/identity';
 import { getAttemptConfiguration } from '$lib/server/runtime/attempt-configuration';
+import { getRuntimeConfiguration } from '$lib/server/runtime/configuration';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = ({ cookies }) => {
@@ -174,7 +175,8 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			playerId: attemptTokens.playerId,
 			exerciseId: attemptTokens.exerciseId,
 			content: exercises.content,
-			nickname: players.nickname
+			nickname: players.nickname,
+			servedAt: attemptTokens.servedAt
 		})
 		.from(attemptTokens)
 		.innerJoin(exercises, eq(exercises.id, attemptTokens.exerciseId))
@@ -197,6 +199,14 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	);
 	if (!derived) return invalidAttemptResponse();
 	const createdAt = Date.now();
+	const observedElapsedMs = createdAt - handshake.servedAt;
+	const observedElapsedMinutes = observedElapsedMs / 60_000;
+	const observedGrossWpm = derived.charCount / 5 / observedElapsedMinutes;
+	const { netWpmCeiling } = getRuntimeConfiguration();
+	const leaderboardEligible =
+		derived.netWpm <= netWpmCeiling &&
+		derived.elapsedMs <= observedElapsedMs &&
+		observedGrossWpm <= netWpmCeiling;
 	const inserted = database.transaction((transaction) => {
 		transaction.delete(attemptTokens).where(eq(attemptTokens.id, handshake.id)).run();
 		return transaction
@@ -206,7 +216,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 				exerciseId: handshake.exerciseId,
 				nickname: handshake.nickname,
 				...derived,
-				leaderboardEligible: true,
+				leaderboardEligible,
 				createdAt
 			})
 			.returning({ id: scores.id })
