@@ -38,3 +38,19 @@ The reveal now has two conditions rather than one. 13 established that it fires 
 - **Below the threshold**: that same personal row alone — Score and personal-best marker, no rank, no rows.
 
 One component in two contexts, so the design degrades gracefully instead of branching. Everything else above is unchanged.
+
+## Addendum — reveal keyed to the Stage, plus a Stage list, by [16-learn-completion-and-revisiting.md](./16-learn-completion-and-revisiting.md)
+
+Replay made 13's wording ambiguous a third time. "Revealed on *clearing* the Exercise" reads as *this Attempt cleared it*, which would withhold the board from a Player replaying a Stage they cleared weeks ago and hand them 13's failure screen for a sub-90% run — punitive to someone who has already passed.
+
+**Refined**: the Leaderboard is revealed when **the Stage is cleared — by this Attempt or by any earlier one**. A cleared Stage always reveals. A sub-gate replay simply produces a Score that cannot rank under 13's predicate, so the Player's existing best still holds their row.
+
+**New surface**: the returning-Player home screen from [11-first-run-onboarding.md](./11-first-run-onboarding.md) grows a **Stage list** — all 21 Stages, cleared / current / locked, every one addressable. Its three states must carry **shape and glyph as well as hue** (solid + ✓, ring + ▸, dashed + 🔒) under this ticket's never-colour-alone rule, and must read for a five-year-old: icons and colour states, not a table. It is the app's first scrolling screen.
+
+**Also new**: a distinct **Stage 21 completion screen**, structurally mirroring 14's Speed-Test result screen — a celebration plus one dominant CTA into the other Track. Everything else above is unchanged.
+
+## The reference render
+
+[prototypes/resolved-design/](../prototypes/resolved-design/) is kept current with every decision that touches presentation — it now covers 06, 11, 12, 13, 14, 15 and 16 across seven screens and eighteen addressable states, including the ones that cannot be reached by playing forward (a suppressed board, an ineligible Score, Stage 21, a graduate's home screen).
+
+Includes [17-personal-history-surface.md](./17-personal-history-surface.md)'s history screen — a route off the home screen's secondary row, sectioned into a Speed Test trend, Learn bests per Stage, and a Practice aggregate, with ineligible Scores listed-and-marked but never plotted.

@@ -80,3 +80,9 @@ That last one is not cosmetic — a blended profile means [05-prototype-weak-key
 
 - The **generated-nickname word list itself** is content-authoring, the same category as Stage lesson copy and the word-bank vocabulary already out of scope. The mechanism (curated list, safe by construction) is the spec decision; the words are not.
 - The **Speed Test floor** that triggers the "start from the beginning?" offer is a playtest-tuned number, not a spec constant — the same shape as the targeting-aggressiveness knob already in the map's fog.
+
+## Addendum — a third route off the home screen, from [17-personal-history-surface.md](./17-personal-history-surface.md)
+
+The home screen's secondary row gains a **history** route, beside "Try the Speed Test instead" and "Not you?". This confirms rather than extends the pattern this ticket established: what was refused here was replacing one home screen with five separate entry points, not hanging routes off the hub — the "For grown-ups" affordance is itself such a route, and [16](./16-learn-completion-and-revisiting.md)'s Stage list was added on the same reasoning.
+
+It is **plainly styled, not adult-gated**. The deliberately-uninteresting treatment invented here is for things that are an adult's business; a Player's own Scores are not, and the primary reader is a Speed Test Player looking at their own WPM trend.

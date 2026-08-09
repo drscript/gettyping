@@ -78,3 +78,9 @@ A placeholder message ("not enough scores yet, check back") was rejected for dra
 - **[09-db-schema.md](./09-db-schema.md)** — the Leaderboard query gains `, id ASC` in both clauses. Addendum recorded, along with two reads the schema ticket did not previously mention: the appended row needs the Player's rank among eligible bests, and the suppression check needs a count of distinct ranked Players for the Exercise. Neither is difficult; neither falls out of the existing top-10 query.
 - **[06-prototype-visual-design.md](./06-prototype-visual-design.md)** — the reveal is refined a second time. 13 made it "on clearing, not merely finishing"; this makes it "stats always; board only above the threshold". Addendum recorded.
 
+
+## Addendum — the "not ranked" marker gains a second context, from [17-personal-history-surface.md](./17-personal-history-surface.md)
+
+The marker built here for the appended board row is reused unchanged on the history screen: an ineligible Score is **listed and marked, with no explanation offered**, exactly as on the board. No new component, no new wording, and the same refusal to name the detection.
+
+It is, however, **excluded from that screen's Speed Test trend line**. The distinction is that a list entry is a row while a trend is an assertion about direction — and one implausible outlier would make that assertion false. Marked where it is a row, absent where it would be a claim.

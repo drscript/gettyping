@@ -151,3 +151,12 @@ The inner clause is not cosmetic: `nickname` is snapshotted per Score (per [07-n
 - **A count of distinct ranked Players** for the Exercise, to decide whether the board clears the display threshold at all.
 
 The existing index `(exercise_id, player_id, net_wpm)` still serves all three; `id` is the rowid and comes along for free.
+
+## Addendum — the personal-history reads, from [17-personal-history-surface.md](./17-personal-history-surface.md)
+
+Two pieces of this schema were provisioned for a surface no ticket had specified: the index `(player_id, created_at)`, annotated "supports personal history, including null-exercise Practice rows", and the **nullable `exercise_id`**, whose only stated purpose was retaining ephemeral Practice Scores for that history. 17 specifies the surface, so both now have a reader. **No schema change.**
+
+**Three reads**, all ordinary and all served by existing indexes:
+- **Speed Test trend** — this Player's Scores for the Speed Test Exercise ordered by `created_at`, excluding `leaderboard_eligible = 0` from the plotted series while still listing them.
+- **Learn bests** — this Player's best Score per Learn Exercise; the same `ROW_NUMBER()` shape as the Leaderboard query, partitioned for one Player instead of ranked across many.
+- **Practice aggregate** — count and `SUM(elapsed_ms)` over this Player's null-`exercise_id` rows, beside the existing `weak_key_stats` read that 14's session summary already performs.

@@ -9,10 +9,9 @@
     RESOLVED DESIGN REFERENCE — not production, but not a decision tool either.
 
     The ticket-06 prototype (../06-visual-design/) explored three competing
-    variants; two lost. This renders the design that WON, plus the decisions
-    made after it in tickets 11 (onboarding) and 12 (audio), so an implementer
-    has one place to see the specified app rather than three options and a
-    changelog.
+    variants; two lost. This renders the design that WON, plus every decision
+    taken after it, so an implementer has one place to see the specified app
+    rather than a winning variant and a changelog across seven tickets.
 
     Sources:
       06 — one visual language flexed per Track, on-screen keyboard on both,
@@ -25,9 +24,35 @@
       12 — error-only keystroke ticks + rare event sounds, strictly redundant
            with the visual channel, default on, single toggle reachable
            mid-Attempt.
+      13 — sub-gate Learn Attempt goes to a distinct failure state with NO
+           Leaderboard; retry replays identical text; no failure sound; a
+           stuck Player is freed by an adult-granted override, never a skip.
+      14 — Speed Test is a one-time prerequisite for Practice; its result
+           screen carries a dominant "practise your weak keys" CTA; the
+           practice loop is Player-paced and ends in a session summary
+           showing the Weak-key Profile moving; Practice has no Leaderboard.
+      15 — ties break on id ASC; the out-of-top-10 Player gets an appended row
+           with their true rank and a personal-best marker; an ineligible
+           Score is marked not ranked with no explanation; the board is
+           suppressed below a threshold of distinct ranked Players, leaving
+           the personal panel alone.
+      17 — a history screen, reached as a plainly-styled route off the home
+           screen, sectioned by what each Track can honestly say: a Speed Test
+           trend, Learn bests per Stage, a Practice aggregate. Ineligible
+           Scores are listed and marked but never plotted.
+      16 — cleared Stages are freely replayable via a Stage list on the home
+           screen; the reveal is keyed to THE STAGE being cleared, not to this
+           Attempt clearing it; Stage 21 ends on its own completion screen
+           whose dominant CTA is the Speed Test; a graduate's home screen
+           falls through to 11's existing second branch.
 
     Vanilla HTML/CSS/JS, no deps, no build. Open directly in a browser.
     Audio is synthesised via WebAudio — no asset files (those are out of scope).
+
+    The floating bar at the bottom jumps between SCENARIOS. Several specified
+    states (a suppressed board, an ineligible Score, Stage 21, a graduate's
+    home screen) cannot be reached by playing forward in a demo, so they are
+    addressable directly. Reload-stable via the URL hash.
   */
 
   :root {
@@ -58,7 +83,7 @@
     text-align: center; padding: 4px 8px; letter-spacing: .03em;
   }
 
-  main { max-width: 940px; margin: 0 auto; padding: 40px 20px 140px; }
+  main { max-width: 940px; margin: 0 auto; padding: 40px 20px 150px; }
 
   /* ---------- screen router ---------- */
   .screen { display: none; }
@@ -66,6 +91,9 @@
   body[data-screen="nick"]    .screen-nick,
   body[data-screen="type"]    .screen-type,
   body[data-screen="home"]    .screen-home,
+  body[data-screen="finale"]  .screen-finale,
+  body[data-screen="summary"] .screen-summary,
+  body[data-screen="history"] .screen-history,
   body[data-screen="grownup"] .screen-grownup { display: block; }
 
   h1 { font-size: 26px; margin: 0 0 6px; }
@@ -86,7 +114,7 @@
   }
   .icon-btn:hover { border-color: #c8c5bd; }
   .icon-btn[aria-pressed="true"] { background: #eeece6; }
-  /* 11: deliberately adult-styled, NOT a kid-facing button */
+  /* 11/13: deliberately adult-styled, NOT a kid-facing button */
   .grownup-link {
     font-size: 12px; color: var(--muted); text-decoration: underline;
     text-underline-offset: 3px; background: none; border: none; cursor: pointer;
@@ -125,6 +153,7 @@
   .btn:hover { background: #000; }
   .btn.ghost { background: none; color: var(--muted); border: 1px solid var(--line); }
   .btn.ghost:hover { color: var(--ink); background: #fff; }
+  .btn.big { font-size: 16px; padding: 14px 26px; border-radius: 12px; }
   .text-field {
     font: 16px ui-monospace, monospace; padding: 11px 13px; border-radius: 10px;
     border: 1px solid var(--line); background: var(--card); min-width: 240px;
@@ -142,7 +171,7 @@
   .reject.show { display: block; }
 
   /* ---------- 06: the typing interface — ONE language, flexed per Track ---------- */
-  .track-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .track-tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
   .track-tabs button {
     font-size: 12.5px; padding: 6px 13px; border-radius: 999px; cursor: pointer;
     border: 1px solid var(--line); background: var(--card); color: var(--muted);
@@ -154,7 +183,11 @@
     padding: 24px; outline: none; box-shadow: 0 1px 3px rgba(0,0,0,.05);
   }
   .panel:focus-within { border-color: #cfccc4; }
-  .panel-label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 14px; }
+  .panel-label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 14px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .panel-label .replay-tag {
+    text-transform: none; letter-spacing: 0; background: var(--ok-fill); color: var(--ok-ink);
+    border: 1px solid var(--ok-line); border-radius: 999px; padding: 1px 9px; font-size: 11px;
+  }
 
   .prompt { line-height: 1.85; word-spacing: .25em; cursor: text; min-height: 2.6em; }
   .prompt .ch { padding: 1px 2px; border-radius: 5px; }
@@ -185,21 +218,55 @@
   }
   .keyboard .key.next { background: var(--gold); border-color: var(--gold-line); box-shadow: 0 0 0 2px #e6c94d55; font-weight: 700; }
   .keyboard .key.space { width: 200px; font-size: 10px; letter-spacing: .08em; color: var(--muted); }
-  .panel.learn ~ .keyboard .key { width: 40px; height: 40px; border-radius: 10px; font-size: 13px; }
 
   .hint-line { font-size: 12.5px; color: var(--muted); margin-top: 16px; text-align: center; }
 
-  /* 06: Leaderboard HIDDEN during the Attempt, revealed only on completion */
+  /* 06/13/15: the reveal. Hidden during the Attempt; on completion it resolves
+     to one of three shapes depending on what happened. */
   .result { display: none; margin-top: 20px; border-top: 1px dashed var(--line); padding-top: 18px; }
   .result.show { display: block; animation: rise .25s ease-out; }
   @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  .result-stats { display: flex; gap: 22px; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
-  .result-stats b { color: var(--ink); font-size: 16px; display: block; }
-  .lb-title { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 8px; }
-  .lb-row { display: flex; justify-content: space-between; padding: 4px 8px; border-radius: 7px; font-size: 13.5px; }
-  .lb-row.me { background: var(--gold); font-weight: 700; }
+  .res-block { display: none; }
+  .res-block.show { display: block; }
 
-  /* ---------- 11: returning-Player home ---------- */
+  .result-stats { display: flex; gap: 22px; font-size: 13px; color: var(--muted); margin-bottom: 14px; flex-wrap: wrap; }
+  .result-stats b { color: var(--ink); font-size: 16px; display: block; }
+
+  /* 15: the board itself */
+  .lb-title { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 8px; }
+  .lb-row { display: grid; grid-template-columns: 30px 1fr auto; gap: 8px; padding: 4px 8px; border-radius: 7px; font-size: 13.5px; align-items: center; }
+  .lb-row .rk { color: var(--muted); font: 12px ui-monospace, monospace; }
+  .lb-row.me { background: var(--gold); font-weight: 700; }
+  .lb-row.me .rk { color: var(--ink); }
+  /* the appended out-of-top-10 row is visually separated from the ten */
+  .lb-append { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  .badge {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    border-radius: 999px; padding: 2px 8px; margin-left: 8px; white-space: nowrap;
+  }
+  .badge.pb { background: #fff; border: 1px solid var(--gold-line); color: #8a6d09; }
+  /* 15: marked, never explained. Dashed = "not on the board", matching the
+     dashed-outline vocabulary the feedback pills already use for "not right". */
+  .badge.unranked { background: #fff; border: 1px dashed var(--muted); color: var(--muted); font-weight: 600; }
+
+  /* 15: below the threshold this panel stands alone — same component, no rows */
+  .me-panel {
+    background: var(--gold); border: 1px solid var(--gold-line); border-radius: 10px;
+    padding: 11px 13px; display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; font-size: 14px; font-weight: 700; flex-wrap: wrap;
+  }
+
+  /* 13: the failure state — leads with the number, no board anywhere near it */
+  .fail-head { font-size: 34px; font-weight: 700; line-height: 1.1; margin-bottom: 4px; }
+  .fail-target { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+  .fail-target b { color: var(--ink); }
+  .fail-adult {
+    margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--line);
+    display: none;
+  }
+  .fail-adult.show { display: block; }
+
+  /* ---------- 11 + 16: returning-Player home ---------- */
   .home-greet { font-size: 15px; color: var(--muted); margin-bottom: 4px; }
   .home-name { font-size: 30px; font-weight: 700; margin-bottom: 22px; font-family: "Baloo 2", "Comic Sans MS", sans-serif; }
   .continue-card {
@@ -212,21 +279,114 @@
   .progress-label { font-size: 12.5px; color: var(--muted); }
   .secondary-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
 
-  /* ---------- 11: grown-ups page — adult voice, stable route ---------- */
+  /* 16: the Stage list. States carry SHAPE and GLYPH as well as hue, per 06. */
+  .stage-head { display: flex; justify-content: space-between; align-items: baseline; margin: 30px 0 10px; gap: 12px; flex-wrap: wrap; }
+  .stage-head .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+  .stage-legend { font-size: 12px; color: var(--muted); }
+  .stage-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  @media (max-width: 720px) { .stage-grid { grid-template-columns: repeat(5, 1fr); } }
+  .stage-tile {
+    aspect-ratio: 1 / 1; border-radius: 12px; border: 1px solid var(--line); background: var(--card);
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 1px; font: 12px ui-monospace, monospace; color: var(--muted); padding: 2px;
+  }
+  .stage-tile .n { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .stage-tile .g { font-size: 12px; }
+  .stage-tile.cleared { background: var(--ok-fill); border-color: var(--ok-line); }
+  .stage-tile.cleared .n { color: var(--ok-ink); }
+  .stage-tile.current { border: 2px solid var(--gold-line); background: var(--gold); box-shadow: 0 0 0 3px #e6c94d33; }
+  .stage-tile.locked { border-style: dashed; background: #f1efea; cursor: not-allowed; opacity: .8; }
+  .stage-tile.locked .n { color: var(--muted); }
+  .stage-tile:not(.locked):hover { transform: translateY(-1px); }
+
+  /* ---------- 16: Stage 21 completion ---------- */
+  .finale-mark { font-size: 62px; line-height: 1; margin-bottom: 10px; }
+  .finale-head { font-size: 34px; font-weight: 700; font-family: "Baloo 2", "Comic Sans MS", sans-serif; margin-bottom: 8px; }
+
+  /* ---------- 14: practice session summary — the Profile moving ---------- */
+  .wk-legend { display: flex; gap: 18px; font-size: 12px; color: var(--muted); margin-bottom: 12px; flex-wrap: wrap; }
+  .swatch { display: inline-block; width: 22px; height: 8px; border-radius: 999px; vertical-align: middle; margin-right: 5px; }
+  .wk-row {
+    display: grid; grid-template-columns: 34px 1fr 1fr 120px; gap: 12px; align-items: center;
+    font: 13px ui-monospace, monospace; padding: 7px 0; border-bottom: 1px solid var(--line);
+  }
+  @media (max-width: 720px) { .wk-row { grid-template-columns: 30px 1fr 1fr; } .wk-row .wk-note { grid-column: 1 / -1; } }
+  .wk-key {
+    width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--card);
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+  .bar { height: 10px; background: #eeece6; border-radius: 999px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; border-radius: 999px; background: var(--err-line); }
+  .bar.after > i { background: var(--ok-line); }
+  .wk-note { font-size: 11.5px; color: var(--muted); text-align: right; }
+  .wk-note.dropped { color: var(--ok-ink); font-weight: 700; }
+
+  /* ---------- 17: history — sectioned by what each Track can honestly say ---------- */
+  .hist-block { margin-bottom: 26px; }
+  .hist-head { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+  .hist-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 12px; max-width: 60ch; line-height: 1.5; }
+  /* uniform scaling — a stretched axis would distort the one honest series */
+  .trend { width: 100%; max-width: 620px; height: auto; display: block; }
+  .hist-row {
+    display: grid; grid-template-columns: 92px 1fr auto; gap: 10px; align-items: center;
+    font: 13px ui-monospace, monospace; padding: 6px 0; border-bottom: 1px solid var(--line);
+  }
+  .hist-row .when { color: var(--muted); }
+  .hist-row:last-child { border-bottom: none; }
+  .hist-agg { display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 16px; }
+  .hist-agg span { font-size: 12.5px; color: var(--muted); }
+  .hist-agg b { display: block; font-size: 20px; color: var(--ink); }
+  .wk-now { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .wk-chip {
+    display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line);
+    background: var(--card); border-radius: 999px; padding: 4px 11px 4px 5px; font: 12px ui-monospace, monospace;
+  }
+  .wk-chip .k {
+    width: 22px; height: 22px; border-radius: 6px; background: #f1efea; border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+
+  /* ---------- 11 + 13: grown-ups page — adult voice, stable route ---------- */
   .prose { max-width: 62ch; font-size: 14.5px; line-height: 1.65; color: #3a3833; }
   .prose h3 { font-size: 15px; margin: 26px 0 6px; color: var(--ink); }
   .prose p { margin: 0 0 12px; }
   .prose .warn { background: #fffbe9; border: 1px solid #ece0b0; border-radius: 10px; padding: 12px 14px; }
+  .override-card {
+    background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--gold-line);
+    border-radius: 12px; padding: 18px 20px; max-width: 62ch; margin: 10px 0 4px;
+  }
+  .override-card .who { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .override-done { display: none; font-size: 13.5px; color: var(--ok-ink); margin-top: 10px; font-weight: 600; }
+  .override-done.show { display: block; }
 
   .spec-note {
     margin-top: 34px; font: 12px/1.6 ui-monospace, monospace; color: #8a867e;
     border-top: 1px dashed var(--line); padding-top: 12px; max-width: 76ch;
   }
   .spec-note b { color: #5f5c56; }
+  .spec-note + .spec-note { margin-top: 14px; border-top: none; padding-top: 0; }
+
+  /* ---------- scenario bar (prototype furniture, never part of the design) ---------- */
+  .proto-bar {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 80;
+    display: flex; align-items: center; gap: 8px; background: #111; color: #fff;
+    border-radius: 999px; padding: 7px 10px; box-shadow: 0 6px 24px rgba(0,0,0,.3);
+    font: 12px ui-monospace, monospace; max-width: 94vw;
+  }
+  .proto-bar select {
+    background: #222; color: #fff; border: 1px solid #3d3d3d; border-radius: 999px;
+    padding: 5px 9px; font: 12px ui-monospace, monospace; max-width: 56vw;
+  }
+  .proto-bar button {
+    background: #333; color: #fff; border: none; border-radius: 50%;
+    width: 26px; height: 26px; cursor: pointer; font-size: 13px; line-height: 1;
+  }
+  .proto-bar button:hover { background: #444; }
+  .proto-bar .idx { color: #888; }
 </style>
 </head>
 <body data-screen="track">
-  <div class="dev-banner">RESOLVED DESIGN REFERENCE — the specified app, not a decision tool. Click a prompt, then type it.</div>
+  <div class="dev-banner">RESOLVED DESIGN REFERENCE — the specified app, not a decision tool. Click a prompt, then type it. Jump between specified states with the bar below.</div>
 
   <!-- 12: mute is reachable on EVERY screen, including mid-Attempt, so silencing
        never costs a Stage in progress. 11: grown-ups link is permanent + adult-styled. -->
@@ -307,27 +467,55 @@
     <!-- ================= TYPING ================= -->
     <section class="screen screen-type">
       <div class="track-tabs">
-        <button data-view="learn" aria-selected="true">Learn</button>
-        <button data-view="speed" aria-selected="false">Speed Test &amp; Practice</button>
+        <button data-view="learn" aria-selected="true">Learn — Stage</button>
+        <button data-view="speed" aria-selected="false">Speed Test</button>
+        <button data-view="practice" aria-selected="false">Practice (generated)</button>
       </div>
 
       <div class="panel learn" id="panel" tabindex="0">
-        <div class="panel-label" id="panel-label">Learn — Stage 6: Top row R &amp; U</div>
+        <div class="panel-label"><span id="panel-label">Learn — Stage 6: Top row R &amp; U</span><span class="replay-tag" id="replay-tag" style="display:none">replay — already cleared</span></div>
         <div class="prompt" id="prompt"></div>
 
-        <!-- 06: revealed only on completing the Exercise, never live during the Attempt -->
+        <!-- The reveal. One of three blocks, decided by what actually happened. -->
         <div class="result" id="result">
-          <div class="result-stats">
-            <span>Net WPM<b id="stat-wpm">—</b></span>
-            <span>Accuracy<b id="stat-acc">—</b></span>
-            <span>Errors<b id="stat-err">—</b></span>
+
+          <!-- 13: gate failure — no Leaderboard anywhere on this block -->
+          <div class="res-block" id="res-fail">
+            <div class="fail-head" id="fail-acc">84%</div>
+            <div class="fail-target">You need <b>90%</b> to clear this stage.</div>
+            <div class="row-actions">
+              <button class="btn big" id="fail-again">Try again</button>
+              <button class="btn ghost" id="fail-home">Back to home</button>
+            </div>
+            <div class="fail-adult" id="fail-adult">
+              <button class="grownup-link" id="fail-grownup">Stuck on this stage? There's something a grown-up can do →</button>
+            </div>
           </div>
-          <div class="lb-title">Leaderboard — this Exercise</div>
-          <div id="lb-body"></div>
-          <div class="row-actions" style="margin-top:16px">
-            <button class="btn" id="again">Try again</button>
-            <button class="btn ghost" id="to-home">Back to home</button>
+
+          <!-- 06 + 15: cleared. Stats always; the board only above the threshold. -->
+          <div class="res-block" id="res-ok">
+            <div class="result-stats">
+              <span>Net WPM<b id="stat-wpm">—</b></span>
+              <span>Accuracy<b id="stat-acc">—</b></span>
+              <span>Errors<b id="stat-err">—</b></span>
+            </div>
+            <div id="board-area"></div>
+            <div class="row-actions" id="ok-actions" style="margin-top:16px"></div>
           </div>
+
+          <!-- 14: a generated Practice Exercise. Compact stats, no board, ever. -->
+          <div class="res-block" id="res-practice">
+            <div class="result-stats">
+              <span>Net WPM<b id="pr-wpm">—</b></span>
+              <span>Accuracy<b id="pr-acc">—</b></span>
+              <span>Targeted<b id="pr-keys">q z</b></span>
+            </div>
+            <div class="row-actions">
+              <button class="btn big" id="pr-next">Next exercise →</button>
+              <button class="grownup-link" id="pr-finish">Finish for now</button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -341,8 +529,11 @@
         colour alone</b> — correct is a filled pill plus ✓, incorrect is a <i>dashed</i> outline plus ×, so shape and
         glyph each carry the signal.<br />
         <b>12 — audio.</b> A soft tick fires on errors only, never on correct keys, and never escalates on a run of
-        mistakes. It is strictly redundant with the × above, so muting loses nothing.
+        mistakes. It is strictly redundant with the × above, so muting loses nothing. <b>13 adds no failure sound</b> —
+        a sting would fire loudest and most often for the child having the worst time, inverting 12's self-attenuation
+        exactly.
       </div>
+      <div class="spec-note" id="type-note"></div>
     </section>
 
     <!-- ================= HOME (returning) ================= -->
@@ -352,17 +543,27 @@
 
       <div class="continue-card">
         <div>
-          <h2 style="margin-bottom:2px">Stage 6 — Top row R &amp; U</h2>
-          <div class="progress-track"><div class="progress-fill" style="width:24%"></div></div>
-          <div class="progress-label">5 of 21 stages cleared</div>
+          <h2 style="margin-bottom:2px" id="home-cta-title">Stage 6 — Top row R &amp; U</h2>
+          <div class="progress-track"><div class="progress-fill" id="home-progress-fill" style="width:24%"></div></div>
+          <div class="progress-label" id="home-progress-label">5 of 21 stages cleared</div>
         </div>
-        <button class="btn" id="continue-btn">Continue →</button>
+        <button class="btn big" id="continue-btn">Continue →</button>
       </div>
 
       <div class="secondary-row">
-        <button class="btn ghost" id="to-speed">Try the Speed Test instead</button>
+        <button class="btn ghost" id="to-other-track">Try the Speed Test instead</button>
+        <!-- 17: a route off the hub, plainly styled — NOT adult-gated. A Player's
+             own Scores are not an adult's business. -->
+        <button class="btn ghost" id="to-history">My scores</button>
         <button class="btn ghost" id="switch-player">Not BraveOtter?</button>
       </div>
+
+      <!-- 16: the Stage list. Every Stage addressable; progress is the thing you tap. -->
+      <div class="stage-head">
+        <span class="lbl">Your stages</span>
+        <span class="stage-legend">✓ cleared · ▸ up next · 🔒 not open yet</span>
+      </div>
+      <div class="stage-grid" id="stage-grid"></div>
 
       <div class="spec-note">
         <b>11 — the home screen is the app's surface for everything that isn't typing.</b> Deep-linking straight back
@@ -371,6 +572,145 @@
         <b>"Not BraveOtter?"</b> exists because identity is a cookie on a browser: without it, two siblings on one
         tablet are the same Player, blending their Weak-key Profiles and quietly breaking the adaptive generation.
         The cookie carries <code>{ active, players[] }</code> — no schema change.
+      </div>
+      <div class="spec-note">
+        <b>16 — the Stage list is why replay exists at all.</b> Cleared Stages are freely replayable, which is what
+        09's <code>ROW_NUMBER() … PARTITION BY player_id</code> always assumed — with one Score per Player per Exercise
+        that window function is dead code. Replay is also what lets 15's personal-best marker ever move for a beginner
+        sitting at #47. It lives here rather than on a second screen because 11 explicitly refused to invent extra
+        entry points. <b>Tap a cleared tile to replay it.</b><br />
+        The three states carry <b>shape and glyph</b>, not just hue — solid + ✓, gold ring + ▸, dashed + 🔒 — under 06's
+        never-colour-alone rule. A visible locked Stage is its own motivation: the child can see there is more.
+      </div>
+    </section>
+
+    <!-- ================= STAGE 21 COMPLETION ================= -->
+    <section class="screen screen-finale">
+      <div class="finale-mark">🏁</div>
+      <div class="finale-head">You finished all 21 stages.</div>
+      <p class="sub">Every key on the keyboard, start to finish. You can go back and beat any of your old times
+        whenever you like — or find out how fast you are now.</p>
+
+      <div class="continue-card">
+        <div>
+          <h2 style="margin-bottom:2px">Take the Speed Test</h2>
+          <div class="progress-label">One typing test, about a minute. It shows your speed and finds the keys
+            still slowing you down.</div>
+        </div>
+        <button class="btn big" id="finale-speedtest">Take the Speed Test →</button>
+      </div>
+
+      <div class="secondary-row">
+        <button class="btn ghost" id="finale-home">Back to my stages</button>
+      </div>
+
+      <div class="spec-note">
+        <b>16 — Stage 21 does not clear like Stage 20.</b> 21 gated Stages is the longest commitment the app asks of
+        anyone, and its end is the single moment a child is proudest; treating it as an ordinary clear wastes that.
+        The dominant CTA is the Speed Test because 14 made it a one-time <i>prerequisite</i> for Practice, so a
+        graduate has exactly one onward path — and because 11 already established that the app offers the other
+        Track by intent rather than leaving a Player to find it.<br />
+        This mirrors 14's Speed-Test result screen, which hands off into Practice the same way: <b>both of the app's
+        Track hand-offs have one shape.</b><br />
+        <b>12 —</b> one of the rare event sounds fires here. Rare by construction: this one can only ever fire once.
+      </div>
+    </section>
+
+    <!-- ================= PRACTICE SESSION SUMMARY ================= -->
+    <section class="screen screen-summary">
+      <h1>Nice session.</h1>
+      <p class="sub">Six exercises, all generated from the keys you were slowest and least accurate on.
+        Here is what moved.</p>
+
+      <div class="panel speed" style="padding:22px 24px">
+        <div class="wk-legend">
+          <span><span class="swatch" style="background:var(--err-line)"></span>when you started</span>
+          <span><span class="swatch" style="background:var(--ok-line)"></span>now</span>
+        </div>
+        <div id="wk-rows"></div>
+      </div>
+
+      <div class="row-actions" style="margin-top:20px">
+        <button class="btn big" id="sum-more">Practise again</button>
+        <button class="btn ghost" id="sum-home">Back to home</button>
+      </div>
+
+      <div class="spec-note">
+        <b>14 — this summary is the substance of the decision, not decoration.</b> ADR 0003 built adaptive generation
+        on the promise that targeting weak keys beats generic practice, but nothing in the spec ever <i>showed the
+        Player that working</i> — the Profile shifted silently in a table they never see. This is the first and only
+        surface where a Player watches the adaptive targeting do its job, and it fits the pedagogy research's
+        principle of rewards "tightly coupled to typing progress itself": the reward here is literally the evidence
+        of progress.<br />
+        <b>A "session" is a client-side grouping, not a modelled entity</b> — snapshot the top weak keys when practice
+        begins, diff against the current Profile at finish. No <code>sessions</code> table, no schema change.<br />
+        <b>Why keys drop off:</b> 14 made the Profile recency-weighted (counters decay on write) because lifetime
+        totals meant a Player who had genuinely fixed <code>q</code> kept being served <code>q</code> — the Profile
+        grew <i>less</i> responsive exactly as they improved. The decay factor is a tuned constant in the map's fog.
+      </div>
+    </section>
+
+    <!-- ================= HISTORY ================= -->
+    <section class="screen screen-history">
+      <h1>Your scores</h1>
+      <p class="sub">Three sections, because the two Tracks produce very different things and only one of
+        them is comparable over time.</p>
+
+      <div class="panel speed" style="padding:22px 24px">
+
+        <div class="hist-block">
+          <div class="hist-head">Speed Test</div>
+          <div class="hist-sub">The same text every time, so these numbers can honestly be put on one line.</div>
+          <svg class="trend" id="trend" viewBox="0 0 600 160" role="img"
+               aria-label="Net WPM over time"></svg>
+          <div id="trend-list" style="margin-top:14px"></div>
+        </div>
+
+        <div class="hist-block">
+          <div class="hist-head">Learn</div>
+          <div class="hist-sub">Your best on each stage you have cleared. Replay any of them from the home screen.</div>
+          <div id="learn-bests"></div>
+        </div>
+
+        <div class="hist-block" style="margin-bottom:0">
+          <div class="hist-head">Practice</div>
+          <div class="hist-sub">Every practice exercise was generated just for you from different keys, so there is
+            nothing to compare one against another. What carries forward is the total, and the keys you are working on
+            now.</div>
+          <div class="hist-agg">
+            <span>Exercises<b>42</b></span>
+            <span>Time typing<b>1h 12m</b></span>
+            <span>Since<b>2 Mar</b></span>
+          </div>
+          <div class="wk-now" id="wk-now"></div>
+        </div>
+
+      </div>
+
+      <div class="row-actions" style="margin-top:20px">
+        <button class="btn ghost" id="hist-home">Back to home</button>
+      </div>
+
+      <div class="spec-note">
+        <b>17 — this screen is what six other tickets were promising.</b> "Personal history" was the stated reason
+        09 made <code>scores.exercise_id</code> nullable and carried an index on <code>(player_id, created_at)</code>,
+        and the reason 10, 13 and 15 persisted Scores rather than rejecting them. Until this ticket the spec had an
+        index built for a query nobody had described. <b>No schema change</b> — those two pieces simply stop being
+        speculative.<br />
+        <b>Why it is not one list.</b> A reverse-chronological feed would set a Practice Attempt targeting
+        <code>q</code> and <code>z</code> beside one targeting <code>e</code> and <code>t</code> as though the numbers
+        related, and bury the Speed Test trend under rows from the Track that generates the most of them. A single
+        WPM-over-time chart across everything would be worse still — one line moving for reasons that have nothing to
+        do with the Player improving.
+      </div>
+      <div class="spec-note">
+        <b>Why the Speed Test can have a trend line at all.</b> 14 made its text <i>immutable</i> so its Leaderboard
+        would stay meaningful — every ranked Player must have typed the same thing. That decision, taken to protect
+        the board, is also the only reason a personal trend here is honest.<br />
+        <b>The 118 wpm entry is listed but not plotted.</b> It failed 10's plausibility check, so it carries 15's
+        existing "not ranked" marker — same wording, same refusal to explain — and is excluded from the line. A list
+        entry is a row; a trend is an assertion about direction, and one outlier from a laptop that slept mid-Attempt
+        would make that assertion false. <b>Marked where it is a row, absent where it would be a claim.</b>
       </div>
     </section>
 
@@ -399,35 +739,102 @@
         <p>The app makes a quiet sound when a key is typed wrongly, and a short one when a stage is cleared. Nothing
           the sound tells you is missing from the screen, so muting it costs nothing. The speaker icon is on every
           screen, including mid-exercise.</p>
+
+        <h3>Stuck on a stage</h3>
+        <p>Each stage needs 90% accuracy to clear, and the bar doesn't move. If a child is stuck and getting
+          miserable, you can let them past it — the stage stays unfinished, but the next one opens.</p>
       </div>
+
+      <div class="override-card">
+        <div class="who"><b>BraveOtter</b> · Stage 11 — Bottom row V, B &amp; N · missed the mark 4 times in a row</div>
+        <button class="btn" id="do-override">Let BraveOtter move past Stage 11</button>
+        <div class="override-done" id="override-done">✓ Done — Stage 12 is open. Nothing changed on the leaderboards.</div>
+      </div>
+
       <div class="spec-note">
         <b>11 — a persistent route, not an interstitial.</b> Information delivered before it means anything is
         information not delivered, and a pre-flow wall of text is worthless when the child is the one who opened the
         tab. So this is permanent and findable at Stage 9, while the one <i>actionable</i> fact — the no-real-names
         nudge — is inlined at the Nickname step instead.
       </div>
+      <div class="spec-note">
+        <b>13 — the override is adult-granted and the child never sees a skip button.</b> A child offered an escape
+        from effort takes it every time, and arrives at Stage 21 having learned nothing. Equally rejected: lowering
+        the bar after repeated failure, which does something worse than move a number — it makes "cleared Stage 6"
+        mean different things for different Players, corrupting the only progress signal Learn has. The judgment
+        "my child is stuck and miserable" needs context the app doesn't have and is genuinely an adult's to make.<br />
+        <b>16 — what the granted row means.</b> A <code>stage_unlocks</code> row reads "<b>Stage <i>n</i> counts as
+        resolved</b>", not "Stage <i>n+1</i> is available" — availability of the next Stage is then derived exactly
+        as it is from a gate-clearing Score. That re-read is what lets this work on <b>Stage 21</b>, where the old
+        reading needed a row pointing at a Stage 22 that doesn't exist. An override on Stage 21 completes the Track,
+        and the completion screen looks identical either way, because a quieter "you were let through" screen would
+        leak the override straight back to the child at the app's proudest moment.
+      </div>
     </section>
 
   </main>
+
+  <!-- prototype furniture — deliberately not part of the design being evaluated -->
+  <div class="proto-bar">
+    <button id="sc-prev" title="Previous scenario (←)">‹</button>
+    <select id="sc-select"></select>
+    <button id="sc-next" title="Next scenario (→)">›</button>
+    <span class="idx" id="sc-idx"></span>
+  </div>
 
 <script>
   // ============================================================
   // State
   // ============================================================
   const state = {
-    track: "learn",     // which Track was chosen at the door
-    view: "learn",      // which Track the typing screen is demonstrating
+    track: "learn",       // which Track was chosen at the door
+    view: "learn",        // learn | speed | practice
     nickname: "BraveOtter",
-    muted: false,       // 12: defaults ON (i.e. not muted)
+    muted: false,         // 12: defaults ON (i.e. not muted)
+    stageNo: 6,           // Learn Stage currently being shown
+    cleared: 5,           // Stages cleared so far
+    isReplay: false,      // 16: is this Stage already cleared?
+    failStreak: 0,        // 13: consecutive misses on this Stage
+    board: "full",        // 15: full | thin | ineligible
   };
+
+  // 15: the threshold is a named config constant with a sensible default.
+  // Its tuned value is the fifth entry in the map's fog.
+  const LB_THRESHOLD = 5;
+  // 13: N consecutive failures before the adult line appears — also fog.
+  const STUCK_AFTER = 3;
+
+  const GATE = 90; // 04: flat 90% accuracy, no ratchet, WPM never gates
 
   const PROMPTS = {
     learn: "fur jar dark hug",
-    speed: "quiz queen quick quiet",
+    speed: "the quick brown fox jumps over the lazy dog",
+    practice: "quiz zap jazz quilt",
   };
   const LABELS = {
-    learn: "Learn — Stage 6: Top row R &amp; U",
-    speed: "Speed Test &amp; Practice — generated, targeting Q",
+    learn: () => `Learn — Stage ${state.stageNo}: Top row R &amp; U`,
+    speed: () => "Speed Test — the same text for every Player",
+    practice: () => "Practice — generated, targeting Q and Z",
+  };
+  const TYPE_NOTES = {
+    learn: `<b>13 — retries replay identical text, every time.</b> No re-draw from the Stage's cumulative key set, even
+      though 10 already put a server-side generator in the codebase. This makes explicit a rule that was implicit
+      across the spec: <b>fixed content ⟺ has a Leaderboard, generated content ⟺ none.</b> If Stages re-drew their
+      text per Attempt, a Stage 6 board would rank Players who each typed different strings, gutting the per-Exercise
+      model ADR 0002 built the competition on. Accepted cost: a child retrying six times is partly reciting by the end.`,
+    speed: `<b>14 — the Speed Test is a one-time prerequisite for Practice.</b> Sequencing, not a gate: there is no
+      score to beat and nothing to fail, so the Track stays ungated. CONTEXT.md already defines the Test as the
+      diagnostic used to seed the Weak-key Profile "before any targeted practice is generated" — adaptive practice
+      against an empty Profile is random text wearing the label.<br />
+      <b>Its text is immutable once live.</b> This is the Track's only Leaderboard and the app's de facto flagship
+      board, so its meaning depends on every ranked Player having typed the same thing. A new text needs a new
+      Exercise row with a fresh board, never an edit to this one.`,
+    practice: `<b>14 — generated Exercises carry no Leaderboard, ever.</b> Ranking them would compare a Player
+      targeting <code>q</code> and <code>z</code> against one targeting <code>e</code> and <code>t</code> — measuring
+      nothing. So the reveal here is stats only, with <b>"next" dominant and "finish" subordinate</b>: the loop is
+      Player-paced. A fixed session of N exercises was rejected (N is arbitrary, and would be a fifth tuned constant);
+      endless auto-advance was rejected too, since it never tells a Player they accomplished anything — they leave by
+      closing the tab.`,
   };
 
   // Demo candidates only. The real curated list is content-authoring, out of scope.
@@ -439,12 +846,13 @@
   // Demo blocklist only — enough to show the rejection behaviour.
   const BLOCKED = ["damn", "hell", "crap", "butt", "poo"];
 
-  const MOCK_LB = [
-    { name: "pixelfox", wpm: 41 },
-    { name: "keysmash", wpm: 37 },
-    { name: "typo_tamer", wpm: 33 },
-    { name: "slowpoke9", wpm: 12 },
+  // 15: note rows 2 and 3 are tied on 41. They are ordered by id ASC, so the
+  // earlier Score wins and the board cannot reshuffle between reads.
+  const MOCK_TOP = [
+    ["pixelfox", 44], ["keysmash", 41], ["quillbot", 41], ["typo_tamer", 39], ["mossgoat", 37],
+    ["dot_matrix", 35], ["ninefingers", 33], ["harborlight", 31], ["slowpoke9", 28], ["tealkite", 26],
   ];
+  const MY_RANK = 47;
 
   const $ = (id) => document.getElementById(id);
   function show(screen) {
@@ -493,11 +901,17 @@
     tone({ freq: 220, dur: 0.07, gain: 0.045, type: "triangle" });
   }
 
-  // Rare by nature: only fires on completing an Exercise.
+  // Rare by nature: only fires on CLEARING an Exercise. 13 adds no failure
+  // counterpart — a sting would fire loudest for the child struggling most.
   function playComplete() {
     if (state.muted) return;
     tone({ freq: 523.25, dur: 0.12, gain: 0.05, at: 0 });
     tone({ freq: 783.99, dur: 0.18, gain: 0.05, at: 0.11 });
+  }
+  function playFinale() {
+    if (state.muted) return;
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) =>
+      tone({ freq: f, dur: 0.16, gain: 0.045, at: i * 0.1 }));
   }
 
   const muteBtn = $("mute-btn");
@@ -516,7 +930,6 @@
   document.querySelectorAll(".door").forEach((d) => {
     d.addEventListener("click", () => {
       state.track = d.dataset.track;
-      state.view = state.track;
       setupNickScreen();
       show("nick");
     });
@@ -542,7 +955,7 @@
     state.nickname = name;
     $("home-name").textContent = name;
     $("switch-player").textContent = `Not ${name}?`;
-    startTyping(state.track);
+    startTyping(state.track === "speed" ? "speed" : "learn");
   }
 
   function setupNickScreen() {
@@ -592,6 +1005,128 @@
   });
 
   // ============================================================
+  // 15 — The Leaderboard component.
+  //
+  // One component, three contexts. Stats always survive; only the ranking
+  // is conditional. Suppression removes the board, never the completion moment.
+  // ============================================================
+  //
+  // The row is always the Player's BEST Score, never their latest — that is
+  // what 09's ROW_NUMBER() partition selects. The personal-best marker fires
+  // only when *this* Attempt became that best, which is why a sub-gate replay
+  // (16) leaves the row showing the earlier, gate-clearing Score untouched.
+  function renderBoard({ net, rank, distinctRanked, eligible, personalBest }) {
+    const area = $("board-area");
+
+    // Below the threshold: the personal panel ALONE. No rank, no rows.
+    // Padding to ten with placeholders was rejected — ten dashes beneath a
+    // single name reads as broken, and advertises emptiness exactly when the
+    // app most needs to feel alive.
+    if (distinctRanked < LB_THRESHOLD) {
+      area.innerHTML = `
+        <div class="lb-title">Your score</div>
+        <div class="me-panel">
+          <span>${state.nickname} — ${net} wpm</span>
+          ${personalBest ? '<span class="badge pb">your best yet</span>' : ""}
+        </div>
+        <div class="hint-line" style="text-align:left;margin-top:10px">
+          Only ${distinctRanked} ${distinctRanked === 1 ? "player has" : "players have"} a ranked score here so far,
+          so there is no board yet — this is the same panel the out-of-top-10 case uses, rendered without the ten rows.
+        </div>`;
+      return;
+    }
+
+    const rows = MOCK_TOP.map(([name, wpm], i) =>
+      `<div class="lb-row"><span class="rk">${i + 1}</span><span>${name}</span><span>${wpm} wpm</span></div>`
+    ).join("");
+
+    // The appended row: their true rank, or — if their best Score is ineligible —
+    // no rank at all, because they have no ranked best.
+    const mine = eligible
+      ? `<div class="lb-row me"><span class="rk">${rank}</span>
+           <span>${state.nickname}${personalBest ? '<span class="badge pb">your best yet</span>' : ""}</span>
+           <span>${net} wpm</span></div>`
+      : `<div class="lb-row me"><span class="rk">—</span>
+           <span>${state.nickname}<span class="badge unranked">not ranked</span></span>
+           <span>${net} wpm</span></div>`;
+
+    area.innerHTML = `
+      <div class="lb-title">Leaderboard — this Exercise</div>
+      ${rows}
+      <div class="lb-append">${mine}</div>`;
+  }
+
+  // ============================================================
+  // The reveal — decides which of the three blocks to render
+  // ============================================================
+  function showBlock(id) {
+    document.querySelectorAll(".res-block").forEach((b) => b.classList.toggle("show", b.id === id));
+    $("result").classList.add("show");
+  }
+
+  function revealCleared({ net, acc, errors, isFinale, bestNet, bestRank }) {
+    $("stat-wpm").textContent = net;
+    $("stat-acc").textContent = acc + "%";
+    $("stat-err").textContent = errors;
+
+    // When bestNet is supplied, an earlier Attempt still holds the row and
+    // this run did not beat it — so no personal-best marker.
+    const improved = bestNet === undefined;
+    renderBoard({
+      net: improved ? net : bestNet,
+      rank: improved ? MY_RANK : bestRank,
+      distinctRanked: state.board === "thin" ? 2 : 38,
+      eligible: state.board !== "ineligible",
+      personalBest: improved && state.board !== "ineligible",
+    });
+
+    // Actions differ by Track — 14 gives the Speed Test result a dominant
+    // "practise your weak keys" CTA, with 11's sub-floor offer as the
+    // conditional secondary. Both of the Track's exits sit in one place.
+    const acts = $("ok-actions");
+    if (state.view === "speed") {
+      acts.innerHTML = `
+        <button class="btn big" id="a-practice">Practise your weak keys →</button>
+        <button class="grownup-link" id="a-tolearn">Start from the beginning instead?</button>`;
+      $("a-practice").onclick = (e) => { e.stopPropagation(); startTyping("practice"); };
+      $("a-tolearn").onclick = (e) => { e.stopPropagation(); state.track = "learn"; startTyping("learn"); };
+    } else {
+      acts.innerHTML = `
+        <button class="btn big" id="a-next">${isFinale ? "See what's next →" : "Next stage →"}</button>
+        <button class="btn ghost" id="a-again">Try again</button>
+        <button class="btn ghost" id="a-home">Back to home</button>`;
+      $("a-next").onclick = (e) => {
+        e.stopPropagation();
+        if (isFinale) { show("finale"); playFinale(); }
+        else { state.stageNo++; state.cleared = Math.max(state.cleared, state.stageNo - 1); startTyping("learn"); }
+      };
+      $("a-again").onclick = (e) => { e.stopPropagation(); typing.reset(); $("panel").focus(); };
+      $("a-home").onclick = (e) => { e.stopPropagation(); goHome(); };
+    }
+
+    showBlock("res-ok");
+    playComplete();
+  }
+
+  function revealFailed({ acc }) {
+    // 13: leads with the accuracy achieved against the target. One failure
+    // state, not tiered by severity — "84% — you need 90%" states proximity
+    // more precisely than any near-miss tier could.
+    $("fail-acc").textContent = acc + "%";
+    state.failStreak++;
+    $("fail-adult").classList.toggle("show", state.failStreak >= STUCK_AFTER);
+    showBlock("res-fail");
+    // No sound. Deliberately.
+  }
+
+  function revealPractice({ net, acc }) {
+    $("pr-wpm").textContent = net;
+    $("pr-acc").textContent = acc + "%";
+    showBlock("res-practice");
+    playComplete();
+  }
+
+  // ============================================================
   // 06 — The typing interface
   // ============================================================
   const ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
@@ -628,11 +1163,17 @@
   }
 
   let typing = null;
-  function startTyping(view) {
+  function startTyping(view, opts = {}) {
     state.view = view;
+    if (opts.stageNo) state.stageNo = opts.stageNo;
+    state.isReplay = view === "learn" && (opts.replay ?? state.stageNo <= state.cleared);
+    if (!opts.keepStreak) state.failStreak = 0;
+
     const panel = $("panel");
-    panel.className = "panel " + view;
-    $("panel-label").innerHTML = LABELS[view];
+    panel.className = "panel " + (view === "learn" ? "learn" : "speed");
+    $("panel-label").innerHTML = LABELS[view]();
+    $("replay-tag").style.display = state.isReplay ? "inline-block" : "none";
+    $("type-note").innerHTML = TYPE_NOTES[view];
     document.querySelectorAll(".track-tabs button").forEach((b) => {
       b.setAttribute("aria-selected", String(b.dataset.view === view));
     });
@@ -663,23 +1204,28 @@
       st.done = true;
       const errors = st.correct.filter((c) => c === false).length;
       const elapsedMin = Math.max((Date.now() - st.startedAt) / 60000, 0.01);
-      // 08: net WPM = (chars/5)/min, minus errors. Toy version for the demo.
+      // 08: net WPM = (chars/5)/min, minus errors. Toy version for the demo —
+      // in the real app 10 has the SERVER derive every aggregate from POSTed
+      // keystroke events. None of this arithmetic is client-side.
       const gross = (text.length / 5) / elapsedMin;
       const net = Math.max(0, Math.round(gross - errors / elapsedMin));
       const acc = Math.round(((text.length - errors) / text.length) * 100);
 
-      $("stat-wpm").textContent = net;
-      $("stat-acc").textContent = acc + "%";
-      $("stat-err").textContent = errors;
+      if (state.view === "practice") return revealPractice({ net, acc });
+      if (state.view === "speed") return revealCleared({ net, acc, errors });
 
-      const rows = [...MOCK_LB, { name: state.nickname, wpm: net, me: true }]
-        .sort((a, b) => b.wpm - a.wpm);
-      $("lb-body").innerHTML = rows
-        .map((r) => `<div class="lb-row${r.me ? " me" : ""}"><span>${r.name}</span><span>${r.wpm} wpm</span></div>`)
-        .join("");
-
-      $("result").classList.add("show");   // 06: revealed here, and only here
-      playComplete();                       // 12: rare event sound
+      // Learn. 16: the reveal is keyed to THE STAGE being cleared, not to this
+      // Attempt clearing it — so a sub-gate replay of a cleared Stage gets the
+      // ordinary result, and its Score simply never ranks under 13's predicate.
+      if (acc >= GATE || state.isReplay) {
+        if (acc >= GATE) state.cleared = Math.max(state.cleared, state.stageNo);
+        state.failStreak = 0;
+        return revealCleared({
+          net, acc, errors,
+          isFinale: state.stageNo === 21 && acc >= GATE,
+        });
+      }
+      revealFailed({ acc });
     }
 
     function onKey(e) {
@@ -706,32 +1252,327 @@
     panel.onkeydown = onKey;
     panel.onclick = () => panel.focus();
     render();
-    return { reset: () => { st.pos = 0; st.correct = []; st.startedAt = null; st.done = false; $("result").classList.remove("show"); render(); } };
+    return {
+      reset: () => {
+        st.pos = 0; st.correct = []; st.startedAt = null; st.done = false;
+        $("result").classList.remove("show");
+        render();
+      },
+      // Used by scenarios to render a specified end-state without typing it
+      // out. Fills the prompt as a completed Attempt so the reveal sits under
+      // a finished exercise rather than an untouched one.
+      force: (fn, errors = 0) => {
+        st.done = true;
+        st.pos = text.length;
+        st.correct = [];
+        let left = errors;
+        for (let i = 0; i < text.length; i++) {
+          const spendable = text[i] !== " " && left > 0 && i % 3 === 1;
+          st.correct[i] = !spendable;
+          if (spendable) left--;
+        }
+        render();
+        fn();
+      },
+    };
   }
 
   document.querySelectorAll(".track-tabs button").forEach((b) => {
     b.addEventListener("click", () => startTyping(b.dataset.view));
   });
-  $("again").addEventListener("click", (e) => { e.stopPropagation(); typing.reset(); $("panel").focus(); });
-  $("to-home").addEventListener("click", (e) => { e.stopPropagation(); show("home"); });
+
+  // 13: the retry replays IDENTICAL text — same string, every time.
+  $("fail-again").addEventListener("click", (e) => {
+    e.stopPropagation(); typing.reset(); $("panel").focus();
+  });
+  $("fail-home").addEventListener("click", (e) => { e.stopPropagation(); goHome(); });
+  $("fail-grownup").addEventListener("click", (e) => { e.stopPropagation(); show("grownup"); });
+
+  // 14: Player-paced loop — "next" dominant, "finish" subordinate.
+  $("pr-next").addEventListener("click", (e) => { e.stopPropagation(); startTyping("practice"); });
+  $("pr-finish").addEventListener("click", (e) => { e.stopPropagation(); show("summary"); });
 
   // ============================================================
-  // 11 — Home + grown-ups navigation
+  // 16 — Home: the Stage list
   // ============================================================
-  $("continue-btn").addEventListener("click", () => startTyping("learn"));
-  $("to-speed").addEventListener("click", () => startTyping("speed"));
+  function renderStages() {
+    const grid = $("stage-grid");
+    grid.innerHTML = "";
+    for (let n = 1; n <= 21; n++) {
+      const t = document.createElement("button");
+      const isCleared = n <= state.cleared;
+      const isCurrent = n === state.cleared + 1;
+      t.className = "stage-tile " + (isCleared ? "cleared" : isCurrent ? "current" : "locked");
+      t.innerHTML = `<span class="n">${n}</span><span class="g">${isCleared ? "✓" : isCurrent ? "▸" : "🔒"}</span>`;
+      if (isCleared || isCurrent) {
+        t.title = isCleared ? `Replay Stage ${n}` : `Stage ${n} — up next`;
+        t.addEventListener("click", () => startTyping("learn", { stageNo: n, replay: isCleared }));
+      } else {
+        t.disabled = true;
+        t.setAttribute("aria-disabled", "true");
+        t.title = "Not open yet";
+      }
+      grid.appendChild(t);
+    }
+  }
+
+  function goHome() {
+    const graduate = state.cleared >= 21;
+    // 16: no new rule. 11's CTA is already "next unlocked Stage, OR the Speed
+    // Test" — a graduate simply has no first branch left, so it falls through.
+    $("home-cta-title").innerHTML = graduate
+      ? "Take the Speed Test"
+      : `Stage ${state.cleared + 1} — Top row R &amp; U`;
+    $("continue-btn").textContent = graduate ? "Take the Speed Test →" : "Continue →";
+    $("home-progress-fill").style.width = Math.round((state.cleared / 21) * 100) + "%";
+    $("home-progress-label").textContent = graduate
+      ? "21 of 21 stages cleared — all done"
+      : `${state.cleared} of 21 stages cleared`;
+    $("to-other-track").textContent = graduate ? "Replay a stage" : "Try the Speed Test instead";
+    $("home-name").textContent = state.nickname;
+    $("switch-player").textContent = `Not ${state.nickname}?`;
+    renderStages();
+    show("home");
+  }
+
+  $("continue-btn").addEventListener("click", () => {
+    if (state.cleared >= 21) startTyping("speed");
+    else startTyping("learn", { stageNo: state.cleared + 1, replay: false });
+  });
+  $("to-other-track").addEventListener("click", () => {
+    if (state.cleared >= 21) startTyping("learn", { stageNo: 1, replay: true });
+    else startTyping("speed");
+  });
   $("switch-player").addEventListener("click", () => {
     state.track = "learn";
     setupNickScreen();
     show("nick");
   });
+
+  // ============================================================
+  // 16 — Stage 21 completion
+  // ============================================================
+  $("finale-speedtest").addEventListener("click", () => startTyping("speed"));
+  $("finale-home").addEventListener("click", () => { state.cleared = 21; goHome(); });
+
+  // ============================================================
+  // 14 — Practice session summary: the Weak-key Profile moving
+  // ============================================================
+  // Demo figures. In the real app these are a snapshot taken when practice
+  // began, diffed against the current Profile — no sessions table.
+  const WEAK_SHIFT = [
+    { key: "q", before: 0.86, after: 0.34 },
+    { key: "z", before: 0.78, after: 0.41 },
+    { key: "p", before: 0.71, after: null },   // dropped off the weakest list
+    { key: ";", before: 0.64, after: 0.52 },
+    { key: "x", before: 0.58, after: null },
+  ];
+  function renderSummary() {
+    $("wk-rows").innerHTML = WEAK_SHIFT.map((w) => `
+      <div class="wk-row">
+        <span class="wk-key">${w.key}</span>
+        <span class="bar"><i style="width:${Math.round(w.before * 100)}%"></i></span>
+        <span class="bar after"><i style="width:${Math.round((w.after ?? 0) * 100)}%"></i></span>
+        <span class="wk-note${w.after === null ? " dropped" : ""}">
+          ${w.after === null ? "no longer one of your weakest" : "still targeted"}
+        </span>
+      </div>`).join("");
+  }
+  $("sum-more").addEventListener("click", () => startTyping("practice"));
+  $("sum-home").addEventListener("click", () => goHome());
+
+  // ============================================================
+  // 17 — History. Sectioned by what each Track can honestly say.
+  // ============================================================
+  // Demo figures. The 118 wpm run failed 10's plausibility check.
+  const SPEED_HISTORY = [
+    { when: "2 Mar", wpm: 28, eligible: true },
+    { when: "9 Mar", wpm: 31, eligible: true },
+    { when: "16 Mar", wpm: 30, eligible: true },
+    { when: "23 Mar", wpm: 34, eligible: true },
+    { when: "29 Mar", wpm: 118, eligible: false },
+    { when: "5 Apr", wpm: 37, eligible: true },
+  ];
+
+  function renderHistory() {
+    // --- Speed Test trend. Only eligible Scores are plotted: a trend is an
+    // assertion about direction, and one implausible outlier makes it false.
+    const pts = SPEED_HISTORY.filter((s) => s.eligible);
+    const W = 600, H = 160, PAD = 26;
+    const max = Math.max(...pts.map((p) => p.wpm)) * 1.3;
+    const px = (i) => PAD + (i * (W - PAD * 2)) / (pts.length - 1);
+    const py = (v) => H - PAD - (v / max) * (H - PAD * 2);
+    $("trend").innerHTML = `
+      <line x1="${PAD}" y1="${H - PAD}" x2="${W - PAD}" y2="${H - PAD}"
+            stroke="var(--line)" stroke-width="1" />
+      <polyline points="${pts.map((p, i) => `${px(i)},${py(p.wpm)}`).join(" ")}"
+                fill="none" stroke="var(--ok-line)" stroke-width="2.5"
+                stroke-linejoin="round" stroke-linecap="round" />
+      ${pts.map((p, i) => `
+        <circle cx="${px(i)}" cy="${py(p.wpm)}" r="4.5" fill="var(--ok-line)"
+                stroke="var(--card)" stroke-width="2" />
+        <text x="${px(i)}" y="${py(p.wpm) - 12}" text-anchor="middle"
+              font-size="12" font-family="ui-monospace, monospace" fill="var(--ink)">${p.wpm}</text>
+        <text x="${px(i)}" y="${H - PAD + 16}" text-anchor="middle"
+              font-size="11" font-family="ui-monospace, monospace" fill="var(--muted)">${p.when}</text>
+      `).join("")}`;
+
+    // --- and every retake listed, including the one that is not on the line.
+    $("trend-list").innerHTML = [...SPEED_HISTORY].reverse().map((s) => `
+      <div class="hist-row">
+        <span class="when">${s.when}</span>
+        <span>${s.eligible ? "" : '<span class="badge unranked">not ranked</span>'}</span>
+        <span>${s.wpm} wpm</span>
+      </div>`).join("");
+
+    // --- Learn: best per cleared Stage, mirroring 16's Stage list rather than
+    // inventing a second progress vocabulary.
+    const cleared = Math.max(state.cleared, 1);
+    $("learn-bests").innerHTML = Array.from({ length: cleared }, (_, i) => {
+      const n = i + 1;
+      return `<div class="hist-row">
+        <span class="when">Stage ${n}</span>
+        <span>${["Home row F &amp; J", "Home row D &amp; K", "Home row S &amp; L", "Home row A &amp; ;",
+                  "Home row G &amp; H", "Top row R &amp; U", "Top row E &amp; I", "Top row W &amp; O",
+                  "Top row Q &amp; P"][i] || `Stage ${n}`}</span>
+        <span>${14 + n} wpm · ${92 + (n % 5)}%</span>
+      </div>`;
+    }).join("");
+
+    // --- Practice: the aggregate, plus the Profile as it stands. Never the
+    // individual generated Attempts — each targeted different keys.
+    $("wk-now").innerHTML = WEAK_SHIFT.filter((w) => w.after !== null)
+      .map((w) => `<span class="wk-chip"><span class="k">${w.key}</span>working on this</span>`).join("");
+  }
+
+  function goHistory() { renderHistory(); show("history"); }
+  $("to-history").addEventListener("click", goHistory);
+  $("hist-home").addEventListener("click", () => goHome());
+
+  // ============================================================
+  // 11 + 13 — grown-ups navigation and the override
+  // ============================================================
   $("go-grownup").addEventListener("click", () => show("grownup"));
   $("back-btn").addEventListener("click", () => {
-    show(document.body.dataset.screen === "grownup" ? "home" : "track");
+    const s = document.body.dataset.screen;
+    if (s === "grownup" || s === "history") goHome();
+    else show("track");
+  });
+  $("do-override").addEventListener("click", () => {
+    $("override-done").classList.add("show");
+    // 16: this writes a stage_unlocks row meaning "Stage 11 counts as
+    // resolved" — Stage 12's availability is then derived exactly as it is
+    // from a gate-clearing Score.
+    state.cleared = Math.max(state.cleared, 11);
+    renderStages();
+  });
+
+  // ============================================================
+  // Scenario bar — prototype furniture, not part of the design
+  // ============================================================
+  function reset(partial) {
+    Object.assign(state, {
+      view: "learn", stageNo: 6, cleared: 5, isReplay: false,
+      failStreak: 0, board: "full",
+    }, partial);
+  }
+
+  const SCENARIOS = [
+    ["track", "11 · Track choice — two doors, framed by intent", () => { reset(); show("track"); }],
+    ["nick-learn", "11 · Nickname — Learn (tap to pick, filter never runs)", () => { reset(); state.track = "learn"; setupNickScreen(); show("nick"); }],
+    ["nick-speed", "11 · Nickname — Speed Test (free text, filter on submit)", () => { reset(); state.track = "speed"; setupNickScreen(); show("nick"); }],
+    ["home", "11+16 · Home — mid-progress, with the Stage list", () => { reset(); goHome(); }],
+    ["learn-type", "06 · Learn Stage — typable, Leaderboard hidden", () => { reset(); startTyping("learn", { stageNo: 6, replay: false }); }],
+    ["learn-cleared", "15 · Cleared — full board, you outside the top 10", () => {
+      reset({ board: "full" });
+      startTyping("learn", { stageNo: 6, replay: false });
+      typing.force(() => revealCleared({ net: 22, acc: 96, errors: 1 }), 1);
+    }],
+    ["learn-thin", "15 · Cleared — board SUPPRESSED, personal panel alone", () => {
+      reset({ board: "thin" });
+      startTyping("learn", { stageNo: 6, replay: false });
+      typing.force(() => revealCleared({ net: 22, acc: 96, errors: 1 }), 1);
+    }],
+    ["learn-ineligible", "15 · Cleared — Score marked not ranked, unexplained", () => {
+      reset({ board: "ineligible" });
+      startTyping("learn", { stageNo: 6, replay: false });
+      typing.force(() => revealCleared({ net: 118, acc: 99, errors: 0 }), 0);
+    }],
+    ["learn-failed", "13 · Gate failure — no Leaderboard, dominant retry", () => {
+      reset();
+      startTyping("learn", { stageNo: 6, replay: false });
+      typing.force(() => revealFailed({ acc: 84 }), 3);
+    }],
+    ["learn-stuck", "13 · Gate failure ×3 — the adult-voiced override line", () => {
+      reset({ failStreak: STUCK_AFTER - 1 });
+      startTyping("learn", { stageNo: 11, replay: false, keepStreak: true });
+      typing.force(() => revealFailed({ acc: 81 }), 3);
+    }],
+    ["learn-replay", "16 · Replay of a cleared Stage, below the gate — ordinary result", () => {
+      reset({ cleared: 9 });
+      startTyping("learn", { stageNo: 3, replay: true });
+      typing.force(() => revealCleared({ net: 19, acc: 84, errors: 3, bestNet: 25, bestRank: 31 }), 3);
+      $("type-note").innerHTML = `<b>16 — the reveal is keyed to THE STAGE being cleared, not to this Attempt
+        clearing it.</b> This run came in at 84%, under the gate — but the Stage was cleared weeks ago, so there is
+        no failure state, no re-locking, and none of 13's retry-and-override machinery, all of which exists to route
+        a Player who has <i>not yet</i> passed. Showing 13's failure screen here would be punitive to someone who
+        already passed; withholding the board for this one run would make the reveal flicker between replays of the
+        same Stage, which reads as a bug rather than a rule.<br />
+        <b>The sub-gate Score still cannot rank</b> — 13's predicate bars it on its own, with no extra machinery. So
+        the row below still shows the Player's earlier best of 25 wpm at #31, and nothing appears to have gone
+        backwards. The Score is recorded all the same: <i>recorded</i> and <i>ranked</i> were already separate
+        concepts in 09, and the keystrokes still feed the Weak-key Profile.`;
+    }],
+    ["finale", "16 · Stage 21 cleared — the completion screen", () => { reset({ cleared: 21 }); show("finale"); playFinale(); }],
+    ["home-graduate", "16 · Home as a graduate — CTA falls through to the Speed Test", () => { reset({ cleared: 21 }); goHome(); }],
+    ["speed-result", "14 · Speed Test result — dominant 'practise your weak keys'", () => {
+      reset();
+      startTyping("speed");
+      typing.force(() => revealCleared({ net: 34, acc: 94, errors: 3 }), 3);
+    }],
+    ["practice", "14 · Practice Exercise — generated, typable, no board", () => { reset(); startTyping("practice"); }],
+    ["practice-between", "14 · Between exercises — 'next' dominant, 'finish' subordinate", () => {
+      reset();
+      startTyping("practice");
+      typing.force(() => revealPractice({ net: 31, acc: 91 }));
+    }],
+    ["summary", "14 · Session summary — the Weak-key Profile moving", () => { reset(); show("summary"); }],
+    ["history", "17 · Your scores — sectioned by what each Track can say", () => { reset({ cleared: 9 }); goHistory(); }],
+    ["grownup", "11+13+16 · For grown-ups — including the override", () => { reset(); show("grownup"); }],
+  ];
+
+  let scIdx = 0;
+  function runScenario(i, pushHash = true) {
+    scIdx = (i + SCENARIOS.length) % SCENARIOS.length;
+    const [key, , run] = SCENARIOS[scIdx];
+    run();
+    $("sc-select").value = key;
+    $("sc-idx").textContent = `${scIdx + 1}/${SCENARIOS.length}`;
+    if (pushHash) location.hash = key;
+  }
+
+  $("sc-select").innerHTML = SCENARIOS
+    .map(([key, label]) => `<option value="${key}">${label}</option>`).join("");
+  $("sc-select").addEventListener("change", (e) =>
+    runScenario(SCENARIOS.findIndex(([k]) => k === e.target.value)));
+  $("sc-prev").addEventListener("click", () => runScenario(scIdx - 1));
+  $("sc-next").addEventListener("click", () => runScenario(scIdx + 1));
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    // Never steal arrows from a field, or from the typing panel mid-Attempt.
+    const t = document.activeElement;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable || t.id === "panel")) return;
+    runScenario(scIdx + (e.key === "ArrowRight" ? 1 : -1));
   });
 
   buildKeyboard();
   renderCards($("nick-cards"), 6);
+  renderSummary();
+  renderStages();
+
+  const fromHash = SCENARIOS.findIndex(([k]) => k === location.hash.slice(1));
+  runScenario(fromHash >= 0 ? fromHash : 0, false);
 </script>
 </body>
 </html>
