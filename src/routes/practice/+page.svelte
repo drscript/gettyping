@@ -30,10 +30,14 @@
 	});
 
 	async function loadWeakKeyProfile(): Promise<WeakKeyProfileItem[]> {
-		const response = await fetch('/api/weak-key-profile');
-		return response.ok
-			? ((await response.json()) as { keys: WeakKeyProfileItem[] }).keys
-			: [];
+		try {
+			const response = await fetch('/api/weak-key-profile');
+			return response.ok
+				? ((await response.json()) as { keys: WeakKeyProfileItem[] }).keys
+				: [];
+		} catch {
+			return [];
+		}
 	}
 
 	async function startPractice(): Promise<void> {
@@ -41,7 +45,15 @@
 		message = '';
 		score = undefined;
 		endingWeakKeyProfile = undefined;
-		const response = await fetch(`/api/attempts/practice?mode=${mode}`);
+		let response: Response;
+		try {
+			response = await fetch(`/api/attempts/practice?mode=${mode}`);
+		} catch {
+			// A rejected fetch must not strand the Player on the loading state forever.
+			loading = false;
+			message = 'Practice could not start. Please try again.';
+			return;
+		}
 		if (response.status === 401) {
 			window.location.assign('/');
 			return;
@@ -112,10 +124,10 @@
 					<span>Accuracy<strong>{(score.accuracy * 100).toFixed(1)}%</strong></span>
 					<span>Errors<strong>{score.errorCount}</strong></span>
 				</div>
-				<div class="mode-choice" aria-label="Next Practice style">
+				<div class="mode-choice" role="group" aria-label="Next Practice style">
 					<span>Next style</span>
-					<button class:active={mode === 'word-bank'} type="button" onclick={() => (mode = 'word-bank')}>Readable words</button>
-					<button class:active={mode === 'bigram'} type="button" onclick={() => (mode = 'bigram')}>Intense bigrams</button>
+					<button class:active={mode === 'word-bank'} aria-pressed={mode === 'word-bank'} type="button" onclick={() => (mode = 'word-bank')}>Readable words</button>
+					<button class:active={mode === 'bigram'} aria-pressed={mode === 'bigram'} type="button" onclick={() => (mode = 'bigram')}>Intense bigrams</button>
 				</div>
 				<div class="actions">
 					<button class="primary" type="button" onclick={startPractice}>Next Exercise →</button>
@@ -143,29 +155,33 @@
 </main>
 
 <style>
-	.track-shell { width: min(calc(100% - 2rem), 62rem); margin: 0 auto; padding: clamp(6.5rem, 12vh, 8rem) 0 4rem; }
+	/* Same room and terrain as the Speed Test, one shade further into the blue. */
+	.track-shell { position: relative; width: min(calc(100% - 2rem), 62rem); min-height: 100vh; margin: 0 auto; padding: clamp(9rem, 15vh, 11rem) 0 6rem; }
+	.track-shell::before { position: absolute; z-index: -1; top: -6rem; left: calc(50% - 50vw); width: 100vw; height: 14rem; border-radius: 0 0 50% 50% / 0 0 3rem 3rem; background: var(--night); content: ''; }
+	.track-shell::after { position: absolute; z-index: -1; right: -20vw; bottom: 0; left: -20vw; height: 12rem; border-radius: 50%; background: var(--lesson-blue); content: ''; opacity: 0.26; transform: rotate(-2deg); }
 	.card,
-	.error-card { padding: clamp(1.1rem, 4vw, 1.75rem); border: 1px solid var(--line); border-radius: 1rem; background: var(--card); box-shadow: 0 1px 3px rgb(0 0 0 / 5%); }
+	.error-card { padding: clamp(1.4rem, 4vw, 2.3rem); border: 2px solid var(--line); border-radius: 1.6rem; background: var(--card); box-shadow: var(--shadow-card); }
 	.card { max-width: 46rem; margin: 0 auto; }
-	.eyebrow { margin: 0 0 0.55rem; color: var(--muted); font: 700 0.72rem var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; }
-	h1 { margin: 0; font: 700 clamp(1.6rem, 5vw, 2.45rem) var(--font-mono); }
+	.eyebrow { width: fit-content; padding: 0.4rem 0.7rem; margin: 0 0 0.7rem; border-radius: 999px; background: var(--indigo); color: #fff; font: 800 0.68rem var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; }
+	h1 { margin: 0; font: 700 clamp(2.1rem, 6vw, 3.6rem)/1 var(--font-rounded); letter-spacing: -0.03em; }
 	.muted,
 	.empty-profile { color: var(--muted); font-size: 0.86rem; line-height: 1.55; }
 	.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; margin: 1.4rem 0; }
-	.stats span { padding: 0.9rem; border: 1px solid var(--line); border-radius: 0.7rem; color: var(--muted); font-size: 0.68rem; text-transform: uppercase; }
+	.stats span { padding: 1rem; border-radius: 1rem; background: var(--paper-deep); color: var(--muted); font-size: 0.68rem; font-weight: 800; text-transform: uppercase; box-shadow: 0 5px 0 #c9c3ec; }
+	.stats span:nth-child(2) { background: var(--mint); color: var(--night); box-shadow: 0 5px 0 var(--mint-deep); }
 	.stats strong { display: block; margin-top: 0.35rem; color: var(--ink); font: 700 1.25rem var(--font-mono); }
 	.mode-choice { display: flex; align-items: center; gap: 0.55rem; margin: 1rem 0; color: var(--muted); font-size: 0.72rem; flex-wrap: wrap; }
-	.mode-choice button { padding: 0.45rem 0.7rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); cursor: pointer; }
-	.mode-choice button.active { border-color: var(--ink); background: var(--ink); color: white; }
+	.mode-choice button { padding: 0.5rem 0.75rem; border: 0; border-radius: 999px; background: var(--paper-deep); cursor: pointer; font-weight: 700; box-shadow: 0 4px 0 #c9c3ec; }
+	.mode-choice button.active { background: var(--indigo); color: #fff; box-shadow: 0 4px 0 var(--night); }
 	.actions { display: flex; align-items: center; gap: 1rem; margin-top: 1.4rem; flex-wrap: wrap; }
 	.actions a,
-	.text-action { color: var(--muted); font-size: 0.8rem; }
-	.primary { padding: 0.72rem 1.1rem; border: 1px solid var(--ink); border-radius: 999px; background: var(--ink); color: white; cursor: pointer; font-weight: 700; }
+	.text-action { display: inline-flex; min-height: 2.75rem; align-items: center; padding: 0.5rem 0.75rem; color: var(--muted); font-size: 0.8rem; }
+	.primary { padding: 0.75rem 1.1rem; border: 0; border-radius: 999px; background: var(--mint); color: var(--ink); cursor: pointer; font-weight: 800; box-shadow: 0 5px 0 var(--mint-deep); }
 	.text-action { border: 0; background: transparent; cursor: pointer; text-decoration: underline; text-underline-offset: 0.2rem; }
 	.profile-comparison { display: grid; gap: 0.55rem; margin: 1.5rem 0; }
-	.profile-row { display: grid; grid-template-columns: 2rem 3rem 1rem 1fr; align-items: center; gap: 0.7rem; padding: 0.7rem; border-bottom: 1px solid var(--line); font-size: 0.8rem; }
-	.profile-row kbd { display: grid; width: 2rem; height: 2rem; place-items: center; border: 1px solid var(--line-strong); border-radius: 0.4rem; background: var(--paper); font: 700 1rem var(--font-mono); }
+	.profile-row { display: grid; grid-template-columns: 2.4rem 3rem 1rem 1fr; align-items: center; gap: 0.7rem; padding: 0.75rem; border-radius: 0.9rem; background: var(--paper-deep); font-size: 0.8rem; }
+	.profile-row kbd { display: grid; width: 2.2rem; height: 2.2rem; place-items: center; border-radius: 0.6rem; background: #fff; font: 700 1rem var(--font-mono); box-shadow: 0 4px 0 var(--key-edge); }
 	.profile-row strong { font-size: 0.78rem; }
 	.error-card { margin-top: 1rem; border-color: var(--incorrect-line); }
-	@media (max-width: 680px) { .track-shell { width: min(calc(100% - 1.25rem), 62rem); padding-top: 6rem; } .stats { grid-template-columns: 1fr; } }
+	@media (max-width: 680px) { .track-shell { width: min(calc(100% - 1.25rem), 62rem); padding-top: 8.5rem; } .stats { grid-template-columns: 1fr; } .track-shell::before { top: -6rem; height: 12rem; } .track-shell::after { height: 9rem; } }
 </style>

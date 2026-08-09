@@ -1,56 +1,105 @@
 :root {
-	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-	color: #1c1b19;
-	background: #f6f5f2;
+	font-family: 'Nunito', 'Avenir Next Rounded', sans-serif;
+	color: #241b63;
+	background: #f2f0ff;
 	font-synthesis: none;
-	--font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-	--font-rounded: 'Baloo 2', 'Avenir Next Rounded', ui-rounded, sans-serif;
+	--font-sans: 'Nunito', 'Avenir Next Rounded', sans-serif;
+	--font-rounded: 'Fredoka', 'Baloo 2', ui-rounded, sans-serif;
 	--font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', monospace;
-	--paper: #f6f5f2;
+	--paper: #f2f0ff;
+	/* The quiet lavender tile behind metrics and secondary rows on white. */
+	--paper-deep: #e9e6fb;
 	--card: #fff;
-	--ink: #1c1b19;
-	--muted: #6b6862;
-	--line: #e3e1db;
-	--line-strong: #c8c5bd;
-	--focus: #fff3c4;
-	--focus-line: #e6c94d;
-	--correct-fill: #d5f2d0;
-	--correct-line: #8fd685;
-	--correct-ink: #2f8a24;
-	--incorrect-fill: #fff1ea;
-	--incorrect-line: #d9713f;
-	--incorrect-ink: #b8461f;
+	--ink: #241b63;
+	--muted: #625c8d;
+	/* Supporting copy on any saturated indigo field. */
+	--on-night: #cfc9ff;
+	--line: #d9d5f2;
+	--line-strong: #b7afe4;
+	--pencil-line: #c9c3ec;
+	/* Solid lower edges: keycaps, then the keyboard bed beneath them. */
+	--key-edge: #bbb4e7;
+	--key-edge-deep: #aaa1da;
+	--highlight: #fff1a6;
+	--correct-fill: #d8f7e8;
+	--correct-line: #70d7a5;
+	--correct-ink: #187951;
+	--incorrect-fill: #ffe0d8;
+	--incorrect-line: #ff7657;
+	--incorrect-ink: #b8352a;
+	--night: #21185f;
+	--indigo: #362d91;
+	--indigo-active: #4b44bd;
+	--lesson-blue: #5d83dd;
+	--sky: #9ec8ff;
+	--sun: #ffd54a;
+	--sun-deep: #f0a91d;
+	--coral: #ff7657;
+	--coral-deep: #d84a35;
+	--mint: #70d7a5;
+	--mint-deep: #238c65;
+	--shadow-paper: 0 18px 40px rgb(24 16 86 / 18%);
+	--shadow-card: 0 8px 0 rgb(80 68 167 / 18%), 0 18px 30px rgb(25 18 88 / 12%);
+	--shadow-key: 0 5px 0 var(--key-edge), 0 9px 14px rgb(33 24 95 / 16%);
+	--ease-pop: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 * {
 	box-sizing: border-box;
 }
 
+/*
+ * `overflow-x: clip` rather than `hidden` so the full-bleed landscape shapes can
+ * hang past the measure without ever producing a horizontal scrollbar, while
+ * sticky positioning keeps working.
+ */
 html {
 	min-width: 320px;
+	overflow-x: clip;
 	background: var(--paper);
+	scroll-behavior: smooth;
 }
 
+/*
+ * `body` deliberately has no background: `html` owns the canvas colour instead.
+ * An opaque body background paints over `z-index: -1` scene layers, which is how
+ * every route's landscape shapes are drawn.
+ */
 body {
 	margin: 0;
 	min-width: 320px;
 	min-height: 100vh;
-	background: var(--paper);
+	color: var(--ink);
+	font-family: var(--font-sans);
+	-webkit-font-smoothing: antialiased;
+}
+
+button,
+a,
+input {
+	font: inherit;
 }
 
 button,
 a {
-	font: inherit;
+	-webkit-tap-highlight-color: transparent;
 }
 
 button:focus-visible,
-a:focus-visible {
-	outline: 3px solid rgb(230 201 77 / 55%);
-	outline-offset: 3px;
+a:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+	outline: 3px solid var(--indigo-active);
+	outline-offset: 4px;
 }
 
 a {
 	color: inherit;
+}
+
+::selection {
+	background: var(--sun);
+	color: var(--night);
 }
 
 .sr-only {
@@ -63,4 +112,19 @@ a {
 	clip: rect(0, 0, 0, 0);
 	white-space: nowrap;
 	border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+
+	*,
+	*::before,
+	*::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+	}
 }

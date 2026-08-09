@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-09T17:35:00Z",
+  "title": "Design System: GetTyping",
+  "extensions": {
+    "colorMeta": {
+      "night-indigo": {
+        "role": "primary",
+        "displayName": "Night Indigo",
+        "canonical": "#21185f",
+        "tonalRamp": ["oklch(15% 0.1220 291.0)", "oklch(27% 0.1220 291.0)", "oklch(39% 0.1220 291.0)", "oklch(51% 0.1220 291.0)", "oklch(63% 0.1220 291.0)", "oklch(75% 0.1220 291.0)", "oklch(87% 0.1220 291.0)", "oklch(95% 0.1220 291.0)"]
+      },
+      "playground-indigo": {
+        "role": "primary",
+        "displayName": "Playground Indigo",
+        "canonical": "#362d91",
+        "tonalRamp": ["oklch(15% 0.1650 288.0)", "oklch(27% 0.1650 288.0)", "oklch(39% 0.1650 288.0)", "oklch(51% 0.1650 288.0)", "oklch(63% 0.1650 288.0)", "oklch(75% 0.1650 288.0)", "oklch(87% 0.1650 288.0)", "oklch(95% 0.1650 288.0)"]
+      },
+      "active-indigo": {
+        "role": "primary",
+        "displayName": "Active Indigo",
+        "canonical": "#4b44bd",
+        "tonalRamp": ["oklch(15% 0.1740 285.0)", "oklch(27% 0.1740 285.0)", "oklch(39% 0.1740 285.0)", "oklch(51% 0.1740 285.0)", "oklch(63% 0.1740 285.0)", "oklch(75% 0.1740 285.0)", "oklch(87% 0.1740 285.0)", "oklch(95% 0.1740 285.0)"]
+      },
+      "lesson-blue": {
+        "role": "secondary",
+        "displayName": "Lesson Blue",
+        "canonical": "#5d83dd",
+        "tonalRamp": ["oklch(15% 0.1290 271.0)", "oklch(27% 0.1290 271.0)", "oklch(39% 0.1290 271.0)", "oklch(51% 0.1290 271.0)", "oklch(63% 0.1290 271.0)", "oklch(75% 0.1290 271.0)", "oklch(87% 0.1290 271.0)", "oklch(95% 0.1290 271.0)"]
+      },
+      "sky-blue": {
+        "role": "secondary",
+        "displayName": "Sky Blue",
+        "canonical": "#9ec8ff",
+        "tonalRamp": ["oklch(15% 0.0870 259.0)", "oklch(27% 0.0870 259.0)", "oklch(39% 0.0870 259.0)", "oklch(51% 0.0870 259.0)", "oklch(63% 0.0870 259.0)", "oklch(75% 0.0870 259.0)", "oklch(87% 0.0870 259.0)", "oklch(95% 0.0870 259.0)"]
+      },
+      "sunshine": {
+        "role": "secondary",
+        "displayName": "Sunshine",
+        "canonical": "#ffd54a",
+        "tonalRamp": ["oklch(15% 0.1530 90.0)", "oklch(27% 0.1530 90.0)", "oklch(39% 0.1530 90.0)", "oklch(51% 0.1530 90.0)", "oklch(63% 0.1530 90.0)", "oklch(75% 0.1530 90.0)", "oklch(87% 0.1530 90.0)", "oklch(95% 0.1530 90.0)"]
+      },
+      "sunshine-deep": {
+        "role": "secondary",
+        "displayName": "Sunshine Deep",
+        "canonical": "#f0a91d",
+        "tonalRamp": ["oklch(15% 0.1590 76.0)", "oklch(27% 0.1590 76.0)", "oklch(39% 0.1590 76.0)", "oklch(51% 0.1590 76.0)", "oklch(63% 0.1590 76.0)", "oklch(75% 0.1590 76.0)", "oklch(87% 0.1590 76.0)", "oklch(95% 0.1590 76.0)"]
+      },
+      "sunshine-wash": {
+        "role": "secondary",
+        "displayName": "Sunshine Wash",
+        "canonical": "#fff1a6",
+        "tonalRamp": ["oklch(15% 0.0900 95.0)", "oklch(27% 0.0900 95.0)", "oklch(39% 0.0900 95.0)", "oklch(51% 0.0900 95.0)", "oklch(63% 0.0900 95.0)", "oklch(75% 0.0900 95.0)", "oklch(87% 0.0900 95.0)", "oklch(95% 0.0900 95.0)"]
+      },
+      "coral": {
+        "role": "warning",
+        "displayName": "Coral",
+        "canonical": "#ff7657",
+        "tonalRamp": ["oklch(15% 0.1610 32.0)", "oklch(27% 0.1610 32.0)", "oklch(39% 0.1610 32.0)", "oklch(51% 0.1610 32.0)", "oklch(63% 0.1610 32.0)", "oklch(75% 0.1610 32.0)", "oklch(87% 0.1610 32.0)", "oklch(95% 0.1610 32.0)"]
+      },
+      "coral-deep": {
+        "role": "error",
+        "displayName": "Coral Deep",
+        "canonical": "#d84a35",
+        "tonalRamp": ["oklch(15% 0.1780 30.0)", "oklch(27% 0.1780 30.0)", "oklch(39% 0.1780 30.0)", "oklch(51% 0.1780 30.0)", "oklch(63% 0.1780 30.0)", "oklch(75% 0.1780 30.0)", "oklch(87% 0.1780 30.0)", "oklch(95% 0.1780 30.0)"]
+      },
+      "mint": {
+        "role": "success",
+        "displayName": "Mint",
+        "canonical": "#70d7a5",
+        "tonalRamp": ["oklch(15% 0.1180 158.0)", "oklch(27% 0.1180 158.0)", "oklch(39% 0.1180 158.0)", "oklch(51% 0.1180 158.0)", "oklch(63% 0.1180 158.0)", "oklch(75% 0.1180 158.0)", "oklch(87% 0.1180 158.0)", "oklch(95% 0.1180 158.0)"]
+      },
+      "mint-deep": {
+        "role": "success",
+        "displayName": "Mint Deep",
+        "canonical": "#238c65",
+        "tonalRamp": ["oklch(15% 0.1160 160.0)", "oklch(27% 0.1160 160.0)", "oklch(39% 0.1160 160.0)", "oklch(51% 0.1160 160.0)", "oklch(63% 0.1160 160.0)", "oklch(75% 0.1160 160.0)", "oklch(87% 0.1160 160.0)", "oklch(95% 0.1160 160.0)"]
+      },
+      "paper-lavender": {
+        "role": "neutral",
+        "displayName": "Paper Lavender",
+        "canonical": "#f2f0ff",
+        "tonalRamp": ["oklch(15% 0.0250 288.0)", "oklch(27% 0.0250 288.0)", "oklch(39% 0.0250 288.0)", "oklch(51% 0.0250 288.0)", "oklch(63% 0.0250 288.0)", "oklch(75% 0.0250 288.0)", "oklch(87% 0.0250 288.0)", "oklch(95% 0.0250 288.0)"]
+      },
+      "paper-deep": {
+        "role": "neutral",
+        "displayName": "Paper Deep",
+        "canonical": "#e9e6fb",
+        "tonalRamp": ["oklch(15% 0.0330 288.0)", "oklch(27% 0.0330 288.0)", "oklch(39% 0.0330 288.0)", "oklch(51% 0.0330 288.0)", "oklch(63% 0.0330 288.0)", "oklch(75% 0.0330 288.0)", "oklch(87% 0.0330 288.0)", "oklch(95% 0.0330 288.0)"]
+      },
+      "surface-white": {
+        "role": "neutral",
+        "displayName": "Surface White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["oklch(15% 0 0)", "oklch(27% 0 0)", "oklch(39% 0 0)", "oklch(51% 0 0)", "oklch(63% 0 0)", "oklch(75% 0 0)", "oklch(87% 0 0)", "oklch(95% 0 0)"]
+      },
+      "ink-indigo": {
+        "role": "primary",
+        "displayName": "Ink Indigo",
+        "canonical": "#241b63",
+        "tonalRamp": ["oklch(15% 0.1290 289.0)", "oklch(27% 0.1290 289.0)", "oklch(39% 0.1290 289.0)", "oklch(51% 0.1290 289.0)", "oklch(63% 0.1290 289.0)", "oklch(75% 0.1290 289.0)", "oklch(87% 0.1290 289.0)", "oklch(95% 0.1290 289.0)"]
+      },
+      "muted-indigo": {
+        "role": "neutral",
+        "displayName": "Muted Indigo",
+        "canonical": "#625c8d",
+        "tonalRamp": ["oklch(15% 0.0670 288.0)", "oklch(27% 0.0670 288.0)", "oklch(39% 0.0670 288.0)", "oklch(51% 0.0670 288.0)", "oklch(63% 0.0670 288.0)", "oklch(75% 0.0670 288.0)", "oklch(87% 0.0670 288.0)", "oklch(95% 0.0670 288.0)"]
+      },
+      "on-night": {
+        "role": "neutral",
+        "displayName": "On Night",
+        "canonical": "#cfc9ff",
+        "tonalRamp": ["oklch(15% 0.0700 288.0)", "oklch(27% 0.0700 288.0)", "oklch(39% 0.0700 288.0)", "oklch(51% 0.0700 288.0)", "oklch(63% 0.0700 288.0)", "oklch(75% 0.0700 288.0)", "oklch(87% 0.0700 288.0)", "oklch(95% 0.0700 288.0)"]
+      },
+      "soft-line": {
+        "role": "neutral",
+        "displayName": "Soft Line",
+        "canonical": "#d9d5f2",
+        "tonalRamp": ["oklch(15% 0.0350 288.0)", "oklch(27% 0.0350 288.0)", "oklch(39% 0.0350 288.0)", "oklch(51% 0.0350 288.0)", "oklch(63% 0.0350 288.0)", "oklch(75% 0.0350 288.0)", "oklch(87% 0.0350 288.0)", "oklch(95% 0.0350 288.0)"]
+      },
+      "pencil-line": {
+        "role": "neutral",
+        "displayName": "Pencil Line",
+        "canonical": "#c9c3ec",
+        "tonalRamp": ["oklch(15% 0.0500 288.0)", "oklch(27% 0.0500 288.0)", "oklch(39% 0.0500 288.0)", "oklch(51% 0.0500 288.0)", "oklch(63% 0.0500 288.0)", "oklch(75% 0.0500 288.0)", "oklch(87% 0.0500 288.0)", "oklch(95% 0.0500 288.0)"]
+      },
+      "key-edge": {
+        "role": "neutral",
+        "displayName": "Key Edge",
+        "canonical": "#bbb4e7",
+        "tonalRamp": ["oklch(15% 0.0620 288.0)", "oklch(27% 0.0620 288.0)", "oklch(39% 0.0620 288.0)", "oklch(51% 0.0620 288.0)", "oklch(63% 0.0620 288.0)", "oklch(75% 0.0620 288.0)", "oklch(87% 0.0620 288.0)", "oklch(95% 0.0620 288.0)"]
+      },
+      "key-edge-deep": {
+        "role": "neutral",
+        "displayName": "Key Edge Deep",
+        "canonical": "#aaa1da",
+        "tonalRamp": ["oklch(15% 0.0730 288.0)", "oklch(27% 0.0730 288.0)", "oklch(39% 0.0730 288.0)", "oklch(51% 0.0730 288.0)", "oklch(63% 0.0730 288.0)", "oklch(75% 0.0730 288.0)", "oklch(87% 0.0730 288.0)", "oklch(95% 0.0730 288.0)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "usage": "One expressive statement per major arrival surface. Fredoka, tight tracking, solid indigo drop shadow on saturated fields." },
+      "headline": { "usage": "Page and state titles: Attempt headings, Stage outcomes, Speed Test results." },
+      "section": { "usage": "Band and panel headings inside a surface, such as the Learn and Speed columns of the home second fold." },
+      "title": { "usage": "Doors, cards, and Stage headings." },
+      "subtitle": { "usage": "Sub-headings inside a panel, such as the Weak-key Profile heading." },
+      "lead": { "usage": "The lead paragraph under a masthead headline. Caps at 52ch." },
+      "body": { "usage": "Instructions and explanations, generally within 58ch. Read surfaces run to 62ch at 0.98rem/1.7." },
+      "caption": { "usage": "Supporting notes under a heading or beside a Score." },
+      "label": { "usage": "Kickers and compact state names. Uppercase, 0.08em." },
+      "micro": { "usage": "Tile labels, badge text, and metadata inside coloured tiles. Takes Night Indigo on any saturated fill." },
+      "speed": { "usage": "Key data, WPM, accuracy, weak keys, and the whole Speed Track prompt. Never used as a costume for tone." }
+    },
+    "shadows": {
+      "paper-float": "0 18px 40px rgb(24 16 86 / 18%)",
+      "card-rest": "0 8px 0 rgb(80 68 167 / 18%), 0 18px 30px rgb(25 18 88 / 12%)",
+      "key-rest": "0 5px 0 var(--key-edge), 0 9px 14px rgb(33 24 95 / 16%)",
+      "door-rest": "inset 0 5px 0 rgb(255 255 255 / 38%), 0 10px 0 rgb(18 13 66 / 40%), 0 24px 36px rgb(20 13 75 / 28%)",
+      "door-press": "inset 0 5px 0 rgb(255 255 255 / 30%), 0 2px 0 rgb(18 13 66 / 36%), 0 10px 18px rgb(20 13 75 / 20%)",
+      "keyboard-bed": "inset 0 4px 0 rgb(255 255 255 / 58%), 0 10px 0 var(--key-edge-deep), 0 18px 28px rgb(33 24 95 / 14%)",
+      "tile-edge": "0 5px 0 var(--pencil-line)",
+      "trail-token": "0 6px 0 rgb(16 10 62 / 34%), 0 16px 26px rgb(16 10 62 / 26%)"
+    },
+    "motion": {
+      "ease-pop": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+      "press": "140ms",
+      "door-press": "150ms",
+      "scene-settle": "900ms",
+      "rule": "Interactive objects lift 2px on hover and translate down by their edge depth on press, dropping the solid offset. One authored arrival moment per page: the home hero de-blurs and settles once. Everything collapses to 0.01ms under prefers-reduced-motion."
+    },
+    "breakpoints": {
+      "wide": "1040px",
+      "stack": "820px",
+      "compact": "720px",
+      "narrow": "680px",
+      "tight": "620px",
+      "small": "560px",
+      "smallest": "430px"
+    }
+  },
+  "components": [
+    {
+      "name": "Track Door",
+      "kind": "link",
+      "refersTo": "button-primary",
+      "description": "The home page's signature control: a freestanding arched door planted on the paper terrain, with an icon medallion, direct first-person copy, a knob, and a visible pressed state.",
+      "html": "<a class=\"ds-door\" href=\"#\"><span class=\"ds-door-medallion\">⌨</span><span class=\"ds-door-copy\"><strong>I want to learn to type</strong><small>Start with Stage 1</small></span><span class=\"ds-door-arrow\">→</span><span class=\"ds-door-knob\"></span></a>",
+      "css": ".ds-door { position: relative; display: grid; width: 15rem; min-height: 17.5rem; padding: 1.2rem 1rem 1.4rem; align-content: start; place-items: center; border: 0.42rem solid #fff; border-radius: 7.5rem 7.5rem 1.7rem 1.7rem; background: #ffd54a; color: #21185f; text-align: center; text-decoration: none; box-shadow: inset 0 5px 0 rgb(255 255 255 / 38%), 0 10px 0 rgb(18 13 66 / 40%), 0 24px 36px rgb(20 13 75 / 28%); transition: transform 150ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 150ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-door:hover { transform: translateY(-8px) rotate(-1deg); } .ds-door:active { box-shadow: inset 0 5px 0 rgb(255 255 255 / 30%), 0 2px 0 rgb(18 13 66 / 36%), 0 10px 18px rgb(20 13 75 / 20%); transform: translateY(8px); } .ds-door:focus-visible { outline: 3px solid #fff; outline-offset: 5px; } .ds-door-medallion { display: grid; width: 4.4rem; height: 4.4rem; margin-bottom: 0.75rem; place-items: center; border-radius: 50%; background: #fff; font-size: 1.95rem; box-shadow: 0 5px 0 #bbb4e7, 0 9px 14px rgb(33 24 95 / 16%); } .ds-door-copy strong { display: block; max-width: 13ch; margin-inline: auto; font: 700 1.6rem Fredoka, ui-rounded, sans-serif; letter-spacing: -0.02em; line-height: 1.05; text-wrap: balance; } .ds-door-copy small { display: block; margin-top: 0.6rem; font: 800 0.72rem Nunito, sans-serif; } .ds-door-arrow { display: grid; width: 2.9rem; height: 2.9rem; margin-top: 0.8rem; place-items: center; border-radius: 50%; background: #fff; font-size: 1.4rem; box-shadow: 0 5px 0 #bbb4e7, 0 9px 14px rgb(33 24 95 / 16%); } .ds-door-knob { position: absolute; right: 0.75rem; bottom: 3.4rem; width: 0.85rem; height: 0.85rem; border-radius: 50%; background: #4b44bd; box-shadow: inset 0 -2px 0 rgb(16 10 62 / 40%); }"
+    },
+    {
+      "name": "Primary Learn Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Sunshine pill with a Sunshine Deep lower edge. The Learn Track's strongest action.",
+      "html": "<a class=\"ds-btn-learn\" href=\"#\">Start learning</a>",
+      "css": ".ds-btn-learn { display: inline-flex; align-items: center; padding: 0.78rem 1.25rem; border: 0; border-radius: 999px; background: #ffd54a; color: #241b63; cursor: pointer; font: 800 1rem Nunito, sans-serif; text-decoration: none; box-shadow: 0 5px 0 #f0a91d; transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-btn-learn:hover { transform: translateY(-2px); } .ds-btn-learn:active { box-shadow: none; transform: translateY(4px); } .ds-btn-learn:focus-visible { outline: 3px solid #4b44bd; outline-offset: 4px; }"
+    },
+    {
+      "name": "Primary Speed Button",
+      "kind": "button",
+      "refersTo": "button-speed",
+      "description": "Mint pill with a Mint Deep lower edge. Speed Test & Practice never leads with Sunshine.",
+      "html": "<a class=\"ds-btn-speed\" href=\"#\">Take a Speed Test</a>",
+      "css": ".ds-btn-speed { display: inline-flex; align-items: center; padding: 0.78rem 1.25rem; border: 0; border-radius: 999px; background: #70d7a5; color: #241b63; cursor: pointer; font: 800 1rem Nunito, sans-serif; text-decoration: none; box-shadow: 0 5px 0 #238c65; transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-btn-speed:hover { transform: translateY(-2px); } .ds-btn-speed:active { box-shadow: none; transform: translateY(4px); } .ds-btn-speed:focus-visible { outline: 3px solid #4b44bd; outline-offset: 4px; }"
+    },
+    {
+      "name": "Raised Secondary Control",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The white raised pill used for back controls, persistent utilities, and secondary actions. On Night Indigo its lower edge becomes a translucent white so the object still reads as pressable.",
+      "html": "<a class=\"ds-btn-raised\" href=\"#\">← Back home</a>",
+      "css": ".ds-btn-raised { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.6rem 1rem; border: 0; border-radius: 999px; background: #fff; color: #241b63; cursor: pointer; font: 800 0.8rem Nunito, sans-serif; text-decoration: none; box-shadow: 0 5px 0 #c9c3ec; transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-btn-raised:hover { transform: translateY(-2px); } .ds-btn-raised:active { box-shadow: none; transform: translateY(4px); } .ds-btn-raised:focus-visible { outline: 3px solid #4b44bd; outline-offset: 4px; }"
+    },
+    {
+      "name": "Task Masthead",
+      "kind": "nav",
+      "refersTo": "card",
+      "description": "The shared arrival band for every non-typing route. Full-bleed Night Indigo closed by a paper curve that rises into it. Never used on a typing surface.",
+      "html": "<header class=\"ds-masthead\"><div class=\"ds-masthead-inner\"><a class=\"ds-btn-raised\" href=\"#\">← Back home</a><p class=\"ds-masthead-label\">Progress over time</p><h1>Your typing history</h1><p class=\"ds-masthead-lead\">Each Track shows only the Scores that can be compared honestly.</p></div></header>",
+      "css": ".ds-masthead { position: relative; overflow: hidden; padding: 5rem 0 3.5rem; background: #21185f; color: #fff; } .ds-masthead::after { position: absolute; right: -8vw; bottom: -3.5rem; left: -8vw; height: 7rem; border-radius: 50% 50% 0 0 / 100% 100% 0 0; background: #f2f0ff; content: ''; } .ds-masthead-inner { position: relative; z-index: 2; width: min(100% - 2rem, 56rem); margin: 0 auto; } .ds-masthead-label { margin: 1.6rem 0 0.6rem; color: #ffd54a; font: 800 0.72rem Nunito, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; } .ds-masthead h1 { max-width: 16ch; margin: 0; font: 700 3.7rem Fredoka, ui-rounded, sans-serif; letter-spacing: -0.035em; line-height: 0.98; text-shadow: 0 4px 0 rgb(14 9 55 / 34%); text-wrap: balance; } .ds-masthead-lead { max-width: 52ch; margin: 0.9rem 0 0; color: #cfc9ff; font: 600 0.95rem Nunito, sans-serif; line-height: 1.55; }"
+    },
+    {
+      "name": "Stage Token",
+      "kind": "link",
+      "refersTo": "card",
+      "description": "A physical Stage on the paper trail. Cleared uses Mint and a check badge, current uses Sunshine at greater scale with a Next pill, locked uses pale indigo with an SVG lock. State is never carried by colour alone.",
+      "html": "<ol class=\"ds-trail\"><li><a class=\"ds-token ds-token-cleared\" href=\"#\" aria-label=\"Stage 1, Home row: F & J, cleared, replay\"><strong>1</strong><span class=\"ds-token-mark\">✓</span></a></li><li><a class=\"ds-token ds-token-current\" href=\"#\" aria-label=\"Stage 2, Home row: G & H, current\"><strong>2</strong><span class=\"ds-token-next\">Next</span></a></li><li><span class=\"ds-token ds-token-locked\" aria-label=\"Stage 3, Home row: D & K, locked\"><strong>3</strong></span></li></ol>",
+      "css": ".ds-trail { display: flex; gap: 1.75rem; padding: 0.35rem 0; margin: 0; list-style: none; } .ds-trail li { position: relative; display: grid; place-items: center; } .ds-token { position: relative; z-index: 1; display: grid; width: 4.15rem; height: 4.15rem; place-items: center; border-radius: 50%; background: #eae7f9; color: #625c8d; text-decoration: none; box-shadow: 0 5px 0 #c9c3ec; transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-token strong { font: 700 1.4rem Fredoka, ui-rounded, sans-serif; } .ds-token-cleared { background: #70d7a5; color: #21185f; box-shadow: 0 5px 0 #238c65; } .ds-token-current { background: #ffd54a; color: #21185f; box-shadow: 0 6px 0 #f0a91d; transform: scale(1.14); } .ds-token-mark { position: absolute; right: -0.15rem; bottom: -0.15rem; display: grid; width: 1.5rem; height: 1.5rem; place-items: center; border: 2px solid #fff; border-radius: 50%; background: #238c65; color: #fff; font: 800 0.7rem Nunito, sans-serif; } .ds-token-next { position: absolute; bottom: -1.1rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: #21185f; color: #fff; font: 800 0.58rem Nunito, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Typing Panel",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The operational centre: a raised white practice board on Paper Lavender. It is focusable, and focus lifts the panel and adds an Active Indigo ring rather than a browser outline.",
+      "html": "<div class=\"ds-typing-panel\" role=\"textbox\" tabindex=\"0\"><p class=\"ds-typing-instructions\">Start typing. Use Backspace to correct the previous character.</p></div>",
+      "css": ".ds-typing-panel { position: relative; padding: 2.4rem; border: 2px solid #d9d5f2; border-radius: 1.6rem; background: #fff; box-shadow: 0 8px 0 rgb(80 68 167 / 18%), 0 18px 30px rgb(25 18 88 / 12%); outline: none; transition: border-color 140ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1), transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-typing-panel:focus { border-color: #4b44bd; box-shadow: 0 8px 0 #aaa1da, 0 0 0 5px rgb(75 68 189 / 18%), 0 22px 34px rgb(33 24 95 / 16%); transform: translateY(-2px); } .ds-typing-instructions { margin: 0; color: #625c8d; font: 700 0.78rem Nunito, sans-serif; }"
+    },
+    {
+      "name": "Keycap",
+      "kind": "badge",
+      "refersTo": "keycap",
+      "description": "The on-screen keyboard's unit. The next expected key rises, takes Sunshine, and announces itself to screen readers.",
+      "html": "<div class=\"ds-keyboard\"><kbd class=\"ds-key\">f</kbd><kbd class=\"ds-key ds-key-next\">j</kbd><kbd class=\"ds-key\">k</kbd></div>",
+      "css": ".ds-keyboard { display: flex; gap: 0.42rem; padding: 1.2rem; border-radius: 1.4rem; background: #d9d5f2; box-shadow: inset 0 4px 0 rgb(255 255 255 / 58%), 0 10px 0 #aaa1da, 0 18px 28px rgb(33 24 95 / 14%); } .ds-key { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border: 0; border-radius: 0.72rem; background: #fff; color: #241b63; font: 500 0.72rem ui-monospace, SFMono-Regular, monospace; box-shadow: 0 4px 0 #bbb4e7, 0 7px 10px rgb(33 24 95 / 13%); } .ds-key-next { background: #fff1a6; font-weight: 700; box-shadow: 0 6px 0 #f0a91d, 0 10px 16px rgb(33 24 95 / 18%); transform: translateY(-4px) scale(1.06); }"
+    },
+    {
+      "name": "Nickname Token",
+      "kind": "button",
+      "refersTo": "card",
+      "description": "A curated Nickname as a raised token with a coloured medallion, not a card in a grid. The medallion palette rotates across the row.",
+      "html": "<button class=\"ds-nickname\"><span class=\"ds-nickname-medallion\">🦊</span><span class=\"ds-nickname-name\">SunnyFox</span></button>",
+      "css": ".ds-nickname { display: grid; min-height: 9rem; padding: 1.15rem 0.65rem 1.1rem; align-content: center; place-items: center; gap: 0.7rem; border: 2px solid #d9d5f2; border-radius: 1.35rem; background: #fff; color: #241b63; cursor: pointer; box-shadow: 0 7px 0 #c9c3ec, 0 14px 20px rgb(33 24 95 / 12%); transition: border-color 140ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1), transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-nickname-medallion { display: grid; width: 3.9rem; height: 3.9rem; place-items: center; border-radius: 50%; background: #ff7657; font-size: 2rem; line-height: 1; box-shadow: inset 0 -0.45rem 0.6rem rgb(20 13 75 / 14%); transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-nickname-name { font: 700 1.02rem Fredoka, ui-rounded, sans-serif; } .ds-nickname:hover { border-color: #70d7a5; box-shadow: 0 9px 0 #238c65, 0 18px 24px rgb(33 24 95 / 14%); transform: translateY(-4px) rotate(-1deg); } .ds-nickname:hover .ds-nickname-medallion { transform: scale(1.08) rotate(4deg); } .ds-nickname:active { box-shadow: 0 2px 0 #238c65; transform: translateY(5px); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Tall, rounded, and visibly tactile. Focus takes an Active Indigo border plus a soft outer ring; errors add Coral and explanatory text, never colour alone.",
+      "html": "<label class=\"ds-field\"><span>Nickname</span><input class=\"ds-input\" type=\"text\" placeholder=\"your nickname\" /></label>",
+      "css": ".ds-field span { display: block; margin-bottom: 0.45rem; font: 800 0.78rem Nunito, sans-serif; color: #241b63; } .ds-input { width: 100%; padding: 0.9rem 1rem; border: 2px solid #b7afe4; border-radius: 1rem; background: #fff; color: #241b63; font: 600 1.05rem Nunito, sans-serif; } .ds-input::placeholder { color: #625c8d; } .ds-input:focus { border-color: #4b44bd; outline: 4px solid rgb(75 68 189 / 18%); box-shadow: 0 5px 0 #b7afe4; }"
+    },
+    {
+      "name": "Metric Tile",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A Score value on a raised tile. Neutral tiles use Paper Deep with a Pencil Line edge; Mint and Coral tiles mark accuracy and errors, and their labels switch to Night Indigo so they stay above 4.5:1.",
+      "html": "<dl class=\"ds-metrics\"><div class=\"ds-metric ds-metric-success\"><dt>Accuracy</dt><dd>97.2%</dd></div><div class=\"ds-metric\"><dt>Gross WPM</dt><dd>37.4</dd></div></dl>",
+      "css": ".ds-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; margin: 0; } .ds-metric { padding: 1rem; border-radius: 1rem; background: #e9e6fb; box-shadow: 0 5px 0 #c9c3ec; } .ds-metric dt { color: #625c8d; font: 800 0.68rem Nunito, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; } .ds-metric dd { margin: 0.3rem 0 0; color: #241b63; font: 700 1.25rem ui-monospace, SFMono-Regular, monospace; } .ds-metric-success { background: #70d7a5; box-shadow: 0 5px 0 #238c65; } .ds-metric-success dt { color: #21185f; }"
+    },
+    {
+      "name": "Character Feedback",
+      "kind": "badge",
+      "refersTo": "keycap",
+      "description": "Per-character Attempt feedback. Correct, incorrect, current and pending always differ by more than hue: fill, outline style, scale and glyph all change.",
+      "html": "<p class=\"ds-feedback\"><span class=\"ds-char ds-char-correct\">f</span><span class=\"ds-char ds-char-incorrect\">r</span><span class=\"ds-char ds-char-current\">j</span><span class=\"ds-char\">a</span></p>",
+      "css": ".ds-feedback { display: flex; gap: 0.2rem; margin: 0; } .ds-char { display: grid; min-width: 1.6rem; padding: 0.2rem 0.15rem; place-items: center; border: 2px solid transparent; border-radius: 0.5rem; color: #241b63; font: 700 1.5rem Fredoka, ui-rounded, sans-serif; } .ds-char-correct { border-color: #70d7a5; background: #d8f7e8; color: #187951; } .ds-char-incorrect { border-style: dashed; border-color: #ff7657; background: #ffe0d8; color: #b8352a; } .ds-char-current { background: #fff1a6; box-shadow: 0 4px 0 #ffd54a; transform: translateY(-2px); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Learning Landscape",
+    "overview": "GetTyping is a school desk expanded into a world. A deep indigo room opens onto flowing periwinkle paper terrain populated by a keyboard, backpack, pencil, books, lamp, keys, and small plant forms. The interface feels authored for learners: vivid, dimensional, reassuring, and immediately understandable. Its energy comes from physical learning objects and bold composition, not badges or noisy reward mechanics.\n\nThe committed world is inspired by Club Baby EDU and the approved composition at docs/design/gettyping-redesign-approved.png. GetTyping uses that craft level — saturated educational colour, original soft 3D objects, organic boundaries, oversized playful lettering, and tactile white controls — while preserving its own two-Track mechanism. Learn is sunny, rounded, and adventurous. Speed Test & Practice belongs to the same room but becomes cooler, sharper, and more measured.\n\nEvery surface is either an arrival that opens with the Task Masthead's indigo room, or a typing surface that keeps only a shallow band overhead so the Attempt panel stays dominant. Both end on the same low Track-tinted dune, so the landscape is continuous from the home hero to the last route.",
+    "keyCharacteristics": [
+      "Committed indigo and periwinkle fields own large page regions.",
+      "Original schoolroom objects make the mechanism visible before explanation.",
+      "Learn uses Sunshine and soft arches; Speed uses Coral, Mint, Lesson Blue, and keycap geometry.",
+      "Controls feel pressable through layered edges, inset highlights, and short physical motion.",
+      "Organic paper-landscape boundaries pace dense and quiet areas, and the same curve joins every fold.",
+      "Operational clarity stays stronger than decoration on typing surfaces."
+    ],
+    "rules": [
+      "The Field, Not Fleck Rule. Indigo and periwinkle occupy regions. Do not reduce this world to colourful accents scattered over a neutral app shell.",
+      "The Track Temperature Rule. Learn leads with Sunshine; Speed leads with cooler blue and mint, using Coral for urgency and error — not as its entire identity.",
+      "The Tint Ink Rule. Text on Sunshine, Mint, or any saturated fill takes Night Indigo, never Muted Indigo.",
+      "The Painted Headline Rule. Display type may bend, stagger, overlap a field boundary, or carry a simple solid shadow; body copy and controls remain normally set.",
+      "The Pressable Edge Rule. Interactive objects get one solid lower edge and one ambient shadow. On press, translate down by the edge depth and remove that solid offset.",
+      "The Ground, Not Mark Rule. Sunshine Wash is a highlight ground at 1.14:1 against white; anything it marks must also change shape, weight, or elevation.",
+      "The Two-Ring Focus Rule. Active Indigo on pale fields; Surface White on indigo fields; White inside a Night Indigo outer ring on the periwinkle terrain and on any control that scrolls across both. Bind focus styling to :focus-visible — a scoped :focus rule silently outranks the global ring.",
+      "The Transparent Body Rule. body carries no background; html owns the canvas colour and overflow-x: clip. An opaque body background paints over every z-index: -1 landscape layer."
+    ],
+    "dos": [
+      "Let a saturated field or illustrated environment own every arrival surface.",
+      "Make GetTyping's two-Track mechanism visible as two materially distinct but related paths.",
+      "Preserve familiar controls and scan order inside expressive compositions.",
+      "Use original schoolroom objects and code-native paper, key, star, and trail motifs.",
+      "Keep Speed Test & Practice cooler, straighter, and more precise without leaving the shared world.",
+      "Reduce decorative density before reducing type or tap-target size on small screens.",
+      "Draw state glyphs such as the Stage lock as SVG, never as a font character."
+    ],
+    "donts": [
+      "Retreat to the old warm-paper minimalism or a neutral SaaS card grid.",
+      "Place core UI text or controls inside raster artwork.",
+      "Distribute tiny decorative icons evenly like confetti.",
+      "Invent accounts, testimonials, performance claims, pricing, Stage names, or capabilities.",
+      "Use gamification chrome — streaks, currencies, loot, or badges — to simulate motivation.",
+      "Let 3D illustration obscure state, focus, reading order, or keyboard operation.",
+      "Put a Task Masthead on a typing surface, or let page padding fail to clear the indigo band at any breakpoint."
+    ]
+  }
+}

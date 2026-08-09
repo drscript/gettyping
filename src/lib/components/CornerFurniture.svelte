@@ -40,50 +40,74 @@
 <style>
 	.corner-furniture {
 		position: fixed;
-		top: 1.1rem;
-		right: 1.1rem;
-		z-index: 50;
+		top: 1.25rem;
+		right: clamp(1rem, 3vw, 2.5rem);
+		z-index: 60;
 		display: flex;
 		align-items: center;
-		gap: 0.7rem;
+		gap: 0.6rem;
 	}
 
 	.grown-ups-link {
-		color: var(--muted);
+		display: inline-flex;
+		min-height: 2.65rem;
+		align-items: center;
+		padding: 0.55rem 1rem;
+		border-radius: 999px;
+		background: rgb(255 255 255 / 94%);
+		box-shadow: 0 5px 0 rgb(32 23 95 / 28%), 0 10px 22px rgb(25 18 88 / 20%);
+		color: var(--ink);
 		font-family: var(--font-sans);
-		font-size: 0.75rem;
-		letter-spacing: 0.01em;
-		text-underline-offset: 0.22rem;
-		transition: color 120ms ease;
+		font-size: 0.78rem;
+		font-weight: 800;
+		text-decoration: none;
+		transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop);
 	}
 
 	.grown-ups-link:hover {
-		color: var(--ink);
+		transform: translateY(-2px);
 	}
 
 	.mute-toggle {
 		display: grid;
-		width: 2.5rem;
-		height: 2.5rem;
+		width: 2.65rem;
+		height: 2.65rem;
 		padding: 0;
 		place-items: center;
-		border: 1px solid var(--line);
+		border: 0;
 		border-radius: 50%;
-		background: rgb(255 255 255 / 92%);
-		box-shadow: 0 0.15rem 0.7rem rgb(28 27 25 / 8%);
+		background: rgb(255 255 255 / 94%);
+		box-shadow: 0 5px 0 rgb(32 23 95 / 28%), 0 10px 22px rgb(25 18 88 / 20%);
 		cursor: pointer;
-		transition:
-			border-color 120ms ease,
-			transform 120ms ease;
+		font-size: 1.15rem;
+		line-height: 1;
+		transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop);
 	}
 
 	.mute-toggle:hover {
-		border-color: var(--line-strong);
-		transform: translateY(-1px);
+		transform: translateY(-2px);
+	}
+
+	.grown-ups-link:active,
+	.mute-toggle:active {
+		box-shadow: 0 1px 0 rgb(32 23 95 / 24%), 0 4px 10px rgb(25 18 88 / 14%);
+		transform: translateY(4px);
 	}
 
 	.mute-toggle[aria-pressed='true'] {
-		background: #eeece6;
+		background: var(--sun);
+	}
+
+	/*
+	 * These are fixed, so they pass over Night Indigo and Paper Lavender in the same
+	 * scroll. A white ring inside a Night Indigo ring reads on both; the default
+	 * Active Indigo ring reaches only 2.1:1 against the band.
+	 */
+	.grown-ups-link:focus-visible,
+	.mute-toggle:focus-visible {
+		outline: 3px solid #fff;
+		outline-offset: 3px;
+		box-shadow: 0 5px 0 rgb(32 23 95 / 28%), 0 10px 22px rgb(25 18 88 / 20%), 0 0 0 9px var(--night);
 	}
 
 	@media (max-width: 560px) {
@@ -93,7 +117,11 @@
 		}
 
 		.grown-ups-link {
-			font-size: 0.67rem;
+			min-height: 2.75rem;
+			padding-inline: 0.8rem;
+			font-size: 0.72rem;
 		}
+
+		.mute-toggle { width: 2.75rem; height: 2.75rem; }
 	}
 </style>

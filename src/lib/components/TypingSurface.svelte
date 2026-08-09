@@ -44,11 +44,11 @@
 
 <style>
 	.typing-panel {
-		padding: 1.5rem;
-		border: 1px solid var(--line);
-		border-radius: 0.875rem;
+		padding: clamp(1.25rem, 3vw, 2rem);
+		border: 2px solid var(--line);
+		border-radius: 1.5rem;
 		background: var(--card);
-		box-shadow: 0 1px 3px rgb(0 0 0 / 5%);
+		box-shadow: var(--shadow-card);
 	}
 
 	.panel-label {
@@ -58,7 +58,8 @@
 		margin-bottom: 0.9rem;
 		color: var(--muted);
 		font-family: var(--font-sans);
-		font-size: 0.72rem;
+		font-size: 0.74rem;
+		font-weight: 800;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 	}
@@ -67,7 +68,8 @@
 		margin: 1rem 0 0;
 		color: var(--muted);
 		font-family: var(--font-sans);
-		font-size: 0.78rem;
+		font-size: 0.8rem;
+		font-weight: 700;
 		text-align: center;
 	}
 
