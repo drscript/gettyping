@@ -8,6 +8,13 @@
 			"when": 1786269600000,
 			"tag": "0000_walking_skeleton",
 			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "6",
+			"when": 1786270000000,
+			"tag": "0001_stage_one_content",
+			"breakpoints": true
 		}
 	]
 }

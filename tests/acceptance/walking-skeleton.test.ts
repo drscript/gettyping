@@ -74,7 +74,10 @@ describe('walking skeleton', () => {
 			Array.from({ length: 21 }, (_, index) => ({
 				track: 'learn',
 				stageId: index + 1,
-				content: null
+				content:
+					index === 0
+						? 'fff jjj fjf jfj fff jjj fjf jfj fff jjj fjf jfj fff jjj fjf jfj fff jjj fjf jfj fff jjj fjf jfj ffff'
+						: null
 			}))
 		);
 		expect(exerciseSeeds[21]).toEqual({

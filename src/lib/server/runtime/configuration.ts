@@ -25,13 +25,14 @@ function numberFromEnvironment(
 }
 
 const isProbability = (value: number) => value >= 0 && value <= 1;
+const isDecayFactor = (value: number) => value > 0 && value < 1;
 const isPositive = (value: number) => value > 0;
 const isPositiveInteger = (value: number) => Number.isInteger(value) && value > 0;
 
 export function getRuntimeConfiguration(): RuntimeConfiguration {
 	return {
 		targetingAggressiveness: numberFromEnvironment('TARGETING_AGGRESSIVENESS', 0.75, isProbability),
-		weakKeyDecayFactor: numberFromEnvironment('WEAK_KEY_DECAY_FACTOR', 0.9, isProbability),
+		weakKeyDecayFactor: numberFromEnvironment('WEAK_KEY_DECAY_FACTOR', 0.9, isDecayFactor),
 		speedTestFloorWpm: numberFromEnvironment('SPEED_TEST_FLOOR_WPM', 15, isPositive),
 		consecutiveFailureCount: numberFromEnvironment(
 			'CONSECUTIVE_FAILURE_COUNT',
