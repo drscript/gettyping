@@ -1,0 +1,16 @@
+# Streams the SQLite volume to object storage for backup and disaster
+# recovery. Values come from Fly secrets set during deploy — see
+# docs/deploy.md. Litestream expands ${VAR} against the process environment;
+# it does not support shell-style ${VAR:-default} syntax, so region is a
+# literal rather than a fallback — Tigris (the bucket docs/deploy.md
+# provisions) always uses "auto".
+dbs:
+  - path: ${DATABASE_PATH}
+    replicas:
+      - type: s3
+        bucket: ${LITESTREAM_BUCKET}
+        path: gettyping
+        endpoint: ${LITESTREAM_ENDPOINT}
+        region: auto
+        access-key-id: ${AWS_ACCESS_KEY_ID}
+        secret-access-key: ${AWS_SECRET_ACCESS_KEY}

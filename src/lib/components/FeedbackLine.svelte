@@ -5,7 +5,7 @@
 	let { items }: { items: CharacterFeedbackItem[] } = $props();
 </script>
 
-<div class="feedback-line" aria-label="Typing feedback">
+<div class="feedback-line" role="group" aria-label="Typing feedback">
 	{#each items as item, index (`${index}-${item.character}`)}
 		<CharacterFeedback character={item.character} state={item.state} />
 	{/each}
@@ -18,11 +18,11 @@
 		align-items: center;
 		align-content: flex-start;
 		flex-wrap: wrap;
-		gap: 0.04em;
+		gap: 0.08em;
 		font-family: var(--track-font-family);
 		font-size: var(--track-font-size);
 		font-weight: 600;
-		line-height: 1.85;
+		line-height: 1.7;
 		word-spacing: 0.25em;
 	}
 </style>

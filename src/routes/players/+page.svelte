@@ -1,4 +1,6 @@
 <script lang="ts">
+	import TaskMasthead from '$lib/components/TaskMasthead.svelte';
+
 	let { data, form } = $props();
 </script>
 
@@ -8,101 +10,312 @@
 </svelte:head>
 
 <main>
-	<a class="back-link" href="/">← Back home</a>
-	<header>
-		<p class="eyebrow">This device</p>
-		<h1>Who is typing?</h1>
-		<p>Each Player keeps their own Stages, Scores, and Weak-key Profile.</p>
-	</header>
+	<TaskMasthead
+		back="/"
+		backLabel="Back home"
+		label="This device"
+		title="Who is typing?"
+		lead="Each Player keeps their own Stages, Scores, and Weak-key Profile."
+		keys={['P', 'L']}
+	/>
 
-	<section class="player-list" aria-label="Players on this device">
-		{#each data.players as player}
-			<form method="POST" action="?/switch">
-				<input type="hidden" name="playerId" value={player.id} />
-				<button type="submit" class:active={player.id === data.activePlayerId}>
-					<strong>{player.nickname}</strong>
-					<span>{player.id === data.activePlayerId ? 'Typing now' : 'Switch to this Player'}</span>
-				</button>
-			</form>
-		{/each}
-	</section>
-
-	{#if form?.message}<p class="form-message" role="alert">{form.message}</p>{/if}
-
-	<section class="add-player">
-		<h2>Add another Player</h2>
-		<p>Choose what they want to work on, then they can pick their Nickname.</p>
-		<div>
-			<a href="/nickname?track=learn">Learn to type</a>
-			<a href="/nickname?track=speed-test-practice">Get faster</a>
-		</div>
-	</section>
-
-	<section class="rename-player">
-		<h2>Change your Nickname</h2>
-		<p>Earlier Scores keep the Nickname you used when you set them.</p>
-		{#if data.nicknameUnavailable}
-			<p class="rename-notice" role="alert">Let's use a different Nickname.</p>
-		{:else if data.nicknameRenamed}
-			<p class="rename-notice success" aria-live="polite">Your new Nickname is ready.</p>
-		{/if}
-		<form class="typed-rename" method="POST" action="?/rename">
-			<input type="hidden" name="source" value="typed" />
-			<label for="rename-nickname">Type a new Nickname</label>
-			<div>
-				<input id="rename-nickname" name="nickname" maxlength="24" autocomplete="off" required />
-				<button type="submit">Save</button>
-			</div>
-			<small>Use a public Nickname that is not your real name.</small>
-		</form>
-		<div class="curated-renames" aria-label="Curated Nicknames">
-			{#each data.candidates as candidate}
-				<form method="POST" action="?/rename">
-					<input type="hidden" name="source" value="curated" />
-					<button type="submit" name="nickname" value={candidate.nickname}>
-						<span aria-hidden="true">{candidate.icon}</span>
-						{candidate.nickname}
+	<div class="task-body">
+		<section class="player-list" aria-label="Players on this device">
+			{#each data.players as player}
+				<form method="POST" action="?/switch">
+					<input type="hidden" name="playerId" value={player.id} />
+					<button type="submit" class:active={player.id === data.activePlayerId}>
+						<span class="player-avatar" aria-hidden="true">{player.nickname.slice(0, 1)}</span>
+						<strong>{player.nickname}</strong>
+						<span class="player-state">{player.id === data.activePlayerId ? 'Typing now' : 'Switch to this Player'}</span>
 					</button>
 				</form>
+			{:else}
+				<p class="empty-players">
+					No Players on this device yet. Add one below and they can pick their Nickname.
+				</p>
 			{/each}
-		</div>
-	</section>
+		</section>
+
+		{#if form?.message}<p class="form-message" role="alert">{form.message}</p>{/if}
+
+		<section class="panel">
+			<h2>Add another Player</h2>
+			<p>Choose what they want to work on, then they can pick their Nickname.</p>
+			<div class="track-links">
+				<a class="learn-link" href="/nickname?track=learn">Learn to type</a>
+				<a class="speed-link" href="/nickname?track=speed-test-practice">Get faster</a>
+			</div>
+		</section>
+
+		<section class="panel">
+			<h2>Change your Nickname</h2>
+			<p>Earlier Scores keep the Nickname you used when you set them.</p>
+
+			{#if data.nicknameUnavailable}
+				<p class="rename-notice" role="alert">Let's use a different Nickname.</p>
+			{:else if data.nicknameRenamed}
+				<p class="rename-notice success" aria-live="polite">Your new Nickname is ready.</p>
+			{/if}
+
+			<form class="typed-rename" method="POST" action="?/rename">
+				<input type="hidden" name="source" value="typed" />
+				<label for="rename-nickname">Type a new Nickname</label>
+				<div class="rename-row">
+					<input id="rename-nickname" name="nickname" maxlength="24" autocomplete="off" required />
+					<button type="submit">Save</button>
+				</div>
+				<small>Use a public Nickname that is not your real name.</small>
+			</form>
+
+			<div class="curated-renames" role="group" aria-label="Curated Nicknames">
+				{#each data.candidates as candidate}
+					<form method="POST" action="?/rename">
+						<input type="hidden" name="source" value="curated" />
+						<button type="submit" name="nickname" value={candidate.nickname}>
+							<span aria-hidden="true">{candidate.icon}</span>
+							{candidate.nickname}
+						</button>
+					</form>
+				{/each}
+			</div>
+		</section>
+	</div>
 </main>
 
 <style>
-	main { width: min(calc(100% - 2rem), 42rem); margin: 0 auto; padding: 5.5rem 0 5rem; }
-	.back-link { color: var(--muted); font-size: 0.8rem; text-underline-offset: 0.22rem; }
-	header { margin: 2.2rem 0 1.5rem; }
-	.eyebrow { margin: 0 0 0.5rem; color: var(--muted); font: 700 0.72rem var(--font-mono); letter-spacing: 0.09em; text-transform: uppercase; }
-	h1 { margin: 0; font-family: var(--font-rounded); font-size: clamp(2rem, 7vw, 3rem); }
-	header > p:last-child,
-	.add-player p { color: var(--muted); font-size: 0.86rem; line-height: 1.5; }
-	.player-list { display: grid; gap: 0.65rem; }
+	main {
+		--task-width: 44rem;
+
+		display: flex;
+		min-height: 100vh;
+		flex-direction: column;
+		overflow: hidden;
+		background: var(--paper);
+	}
+
+	.task-body {
+		position: relative;
+		width: min(calc(100% - 2rem), var(--task-width));
+		flex: 1;
+		padding: 2.5rem 0 5rem;
+		margin: 0 auto;
+	}
+
+	.task-body::before {
+		position: absolute;
+		z-index: 0;
+		right: -22vw;
+		bottom: -2.5rem;
+		left: -22vw;
+		height: 10rem;
+		border-radius: 50%;
+		background: var(--lesson-blue);
+		content: '';
+		opacity: 0.24;
+		transform: rotate(-2deg);
+	}
+
+	.task-body > * { position: relative; z-index: 1; }
+
+	.empty-players {
+		margin: 0;
+		padding: 1.1rem 1.2rem;
+		border-radius: 1.25rem;
+		background: #fff;
+		color: var(--muted);
+		font-size: 0.88rem;
+		line-height: 1.55;
+		box-shadow: var(--shadow-paper);
+	}
+
+	/* Each Player is a nameplate you press, with the active one clearly seated. */
+	.player-list { display: grid; gap: 0.75rem; }
 	.player-list form { margin: 0; }
-	.player-list button { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.1rem; border: 1px solid var(--line); border-radius: 0.85rem; background: var(--card); color: var(--ink); cursor: pointer; text-align: left; }
-	.player-list button.active { border-color: var(--focus-line); background: var(--focus); }
-	.player-list strong { font-family: var(--font-rounded); font-size: 1.05rem; }
-	.player-list span { color: var(--muted); font-size: 0.72rem; }
-	.add-player,
-	.rename-player { margin-top: 2.2rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
-	.add-player h2,
-	.rename-player h2 { margin: 0; font-size: 1rem; }
-	.add-player div { display: flex; gap: 0.7rem; flex-wrap: wrap; margin-top: 0.9rem; }
-	.add-player a { padding: 0.65rem 0.9rem; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--ink); font-size: 0.78rem; text-decoration: none; }
-	.rename-player > p { color: var(--muted); font-size: 0.8rem; }
-	.rename-notice { padding: 0.65rem 0.8rem; border: 1px solid var(--incorrect-line); border-radius: 0.65rem; background: var(--incorrect-fill); color: var(--incorrect-ink) !important; }
-	.rename-notice.success { border-color: var(--correct-line); background: var(--correct-fill); color: var(--correct-ink) !important; }
-	.typed-rename { margin-top: 1rem; }
-	.typed-rename label,
-	.typed-rename small { display: block; color: var(--muted); font-size: 0.72rem; }
-	.typed-rename > div { display: flex; gap: 0.5rem; margin: 0.35rem 0; }
-	.typed-rename input { flex: 1; min-width: 0; padding: 0.68rem 0.8rem; border: 1px solid var(--line-strong); border-radius: 0.65rem; background: var(--card); }
-	.typed-rename button,
-	.curated-renames button { border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--ink); cursor: pointer; }
-	.typed-rename button { padding: 0.65rem 0.9rem; border-color: var(--ink); background: var(--ink); color: white; font-weight: 700; }
-	.curated-renames { display: flex; gap: 0.45rem; margin-top: 1rem; flex-wrap: wrap; }
-	.curated-renames button { padding: 0.5rem 0.7rem; font-size: 0.72rem; }
-	.curated-renames span { margin-right: 0.2rem; }
-	.form-message { color: var(--incorrect-ink); font-size: 0.8rem; }
-	@media (max-width: 560px) { main { width: min(calc(100% - 1.25rem), 42rem); padding-top: 5rem; } .player-list button { align-items: flex-start; flex-direction: column; } }
+
+	.player-list button {
+		display: grid;
+		width: 100%;
+		align-items: center;
+		grid-template-columns: 3.1rem 1fr auto;
+		gap: 0.35rem 1rem;
+		padding: 0.95rem 1.1rem;
+		border: 2px solid var(--line);
+		border-radius: 1.25rem;
+		background: #fff;
+		color: var(--ink);
+		cursor: pointer;
+		text-align: left;
+		box-shadow: 0 6px 0 var(--pencil-line);
+		transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop);
+	}
+
+	.player-list button:hover { transform: translateY(-2px); }
+	.player-list button:active { box-shadow: none; transform: translateY(5px); }
+
+	.player-avatar {
+		display: grid;
+		width: 3.1rem;
+		height: 3.1rem;
+		place-items: center;
+		border-radius: 50%;
+		background: var(--sky);
+		color: var(--night);
+		font: 700 1.35rem var(--font-rounded);
+		grid-row: span 2;
+		text-transform: uppercase;
+	}
+
+	.player-list strong { align-self: end; font-family: var(--font-rounded); font-size: 1.2rem; }
+	.player-state { align-self: start; grid-column: 2 / -1; color: var(--muted); font-size: 0.76rem; font-weight: 700; }
+
+	.player-list button.active {
+		border-color: var(--sun-deep);
+		background: var(--highlight);
+		box-shadow: 0 6px 0 var(--sun-deep);
+	}
+
+	.player-list button.active .player-avatar { background: var(--sun); }
+	.player-list button.active .player-state { color: var(--night); }
+
+	.panel {
+		padding: clamp(1.25rem, 3.5vw, 1.75rem);
+		border-radius: 1.6rem;
+		margin-top: 1.25rem;
+		background: #fff;
+		box-shadow: var(--shadow-paper);
+	}
+
+	.panel h2 {
+		margin: 0;
+		font-family: var(--font-rounded);
+		font-size: 1.3rem;
+		letter-spacing: -0.02em;
+	}
+
+	.panel > p {
+		max-width: 46ch;
+		margin: 0.4rem 0 0;
+		color: var(--muted);
+		font-size: 0.86rem;
+		line-height: 1.55;
+	}
+
+	.track-links { display: flex; gap: 0.75rem; margin-top: 1.1rem; flex-wrap: wrap; }
+
+	.track-links a {
+		padding: 0.72rem 1.1rem;
+		border-radius: 999px;
+		color: var(--ink);
+		font-size: 0.82rem;
+		font-weight: 800;
+		text-decoration: none;
+		transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop);
+	}
+
+	.learn-link { background: var(--sun); box-shadow: 0 5px 0 var(--sun-deep); }
+	.speed-link { background: var(--mint); box-shadow: 0 5px 0 var(--mint-deep); }
+	.track-links a:hover { transform: translateY(-2px); }
+	.track-links a:active { box-shadow: none; transform: translateY(4px); }
+
+	.rename-notice {
+		margin: 1.1rem 0 0;
+		padding: 0.75rem 0.95rem;
+		border: 2px solid var(--incorrect-line);
+		border-radius: 0.9rem;
+		background: var(--incorrect-fill);
+		color: var(--incorrect-ink) !important;
+		font-size: 0.85rem;
+		font-weight: 700;
+	}
+
+	.rename-notice.success {
+		border-color: var(--correct-line);
+		background: var(--correct-fill);
+		color: var(--correct-ink) !important;
+	}
+
+	.typed-rename { margin-top: 1.2rem; }
+
+	.typed-rename label {
+		display: block;
+		margin-bottom: 0.45rem;
+		font-size: 0.76rem;
+		font-weight: 800;
+	}
+
+	.typed-rename small { display: block; margin-top: 0.5rem; color: var(--muted); font-size: 0.74rem; }
+
+	.rename-row { display: flex; gap: 0.6rem; }
+
+	.typed-rename input {
+		flex: 1;
+		min-width: 0;
+		padding: 0.8rem 0.95rem;
+		border: 2px solid var(--line-strong);
+		border-radius: 0.9rem;
+		background: var(--card);
+		color: var(--ink);
+		font: 600 1rem var(--font-sans);
+	}
+
+	/* `:focus-visible`, not `:focus` — a scoped `:focus` rule outranks the global ring. */
+	.typed-rename input:focus-visible {
+		border-color: var(--indigo-active);
+		outline: 3px solid var(--indigo-active);
+		outline-offset: 3px;
+	}
+
+	.typed-rename button {
+		padding: 0.75rem 1.15rem;
+		border: 0;
+		border-radius: 999px;
+		background: var(--indigo);
+		color: #fff;
+		cursor: pointer;
+		font-weight: 800;
+		box-shadow: 0 5px 0 var(--night);
+		transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop);
+	}
+
+	.typed-rename button:hover { transform: translateY(-2px); }
+	.typed-rename button:active { box-shadow: none; transform: translateY(4px); }
+
+	.curated-renames { display: flex; gap: 0.55rem; margin-top: 1.35rem; flex-wrap: wrap; }
+
+	.curated-renames button {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.55rem 0.85rem;
+		border: 2px solid var(--line);
+		border-radius: 999px;
+		background: #fff;
+		color: var(--ink);
+		cursor: pointer;
+		font-size: 0.78rem;
+		font-weight: 800;
+		box-shadow: 0 4px 0 var(--pencil-line);
+		transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop);
+	}
+
+	.curated-renames button:hover { transform: translateY(-2px); }
+	.curated-renames button:active { box-shadow: none; transform: translateY(4px); }
+
+	.form-message {
+		margin: 1rem 0 0;
+		padding: 0.75rem 0.95rem;
+		border-radius: 0.9rem;
+		background: var(--incorrect-fill);
+		color: var(--incorrect-ink);
+		font-size: 0.84rem;
+		font-weight: 700;
+	}
+
+	@media (max-width: 560px) {
+		.task-body { width: min(calc(100% - 1.5rem), var(--task-width)); }
+		.task-body::before { height: 8rem; }
+		.rename-row { align-items: stretch; flex-direction: column; }
+		.typed-rename button { width: 100%; }
+	}
 </style>

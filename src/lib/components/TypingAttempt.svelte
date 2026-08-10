@@ -141,7 +141,7 @@
 		<h1>{heading}</h1>
 		<p>Accuracy and speed are measured from the same keystrokes.</p>
 	</div>
-	<div class="live-speed" aria-label={`Advisory live speed: ${liveWpm.toFixed(0)} words per minute`}>
+	<div class="live-speed" role="group" aria-label={`Advisory live speed: ${liveWpm.toFixed(0)} words per minute`}>
 		<strong>{liveWpm.toFixed(0)}</strong>
 		<span>live WPM</span>
 		<small>advisory</small>
@@ -170,66 +170,75 @@
 <style>
 	.attempt-header {
 		display: flex;
-		align-items: flex-end;
+		align-items: center;
 		justify-content: space-between;
 		gap: 2rem;
-		margin-bottom: 1.4rem;
+		margin-bottom: 1.6rem;
 	}
 
 	.eyebrow {
-		margin: 0 0 0.55rem;
-		color: var(--muted);
-		font: 700 0.72rem var(--font-mono);
-		letter-spacing: 0.1em;
+		width: fit-content;
+		padding: 0.42rem 0.7rem;
+		margin: 0 0 0.65rem;
+		border-radius: 999px;
+		background: var(--indigo);
+		color: #fff;
+		font: 800 0.7rem var(--font-sans);
+		letter-spacing: 0.08em;
 		text-transform: uppercase;
 	}
 
 	h1 {
 		margin: 0;
 		font-family: var(--track-font-family);
-		font-size: clamp(1.55rem, 4vw, 2.35rem);
-		line-height: 1.12;
+		font-size: clamp(2rem, 5vw, 3.5rem);
+		letter-spacing: -0.025em;
+		line-height: 1;
 	}
 
 	.attempt-header p:last-child {
 		margin: 0.55rem 0 0;
 		color: var(--muted);
-		font-size: 0.88rem;
+		font-size: 0.9rem;
+		font-weight: 600;
 		line-height: 1.5;
 	}
 
 	.live-speed {
 		display: grid;
-		min-width: 7.5rem;
-		padding: 0.8rem 1rem;
-		border: 1px solid var(--line);
-		border-radius: 0.8rem;
-		background: var(--card);
+		min-width: 8.5rem;
+		padding: 1rem 1.2rem;
+		border-radius: 1.25rem;
+		background: var(--indigo);
+		color: #fff;
+		box-shadow: 0 7px 0 var(--night), 0 14px 24px rgb(33 24 95 / 20%);
 		text-align: right;
 	}
 
-	.live-speed strong { font: 700 1.45rem var(--font-mono); }
+	.live-speed strong { font: 700 1.8rem var(--font-mono); }
 	.live-speed span,
-	.live-speed small { color: var(--muted); font-size: 0.66rem; text-transform: uppercase; }
+	.live-speed small { color: var(--on-night); font-size: 0.66rem; font-weight: 800; text-transform: uppercase; }
 
 	.typing-panel {
-		padding: clamp(1.1rem, 4vw, 1.75rem);
-		border: 1px solid var(--line);
-		border-radius: 1rem;
+		position: relative;
+		padding: clamp(1.4rem, 4vw, 2.4rem);
+		border: 2px solid var(--line);
+		border-radius: 1.6rem;
 		background: var(--card);
-		box-shadow: 0 1px 3px rgb(0 0 0 / 5%);
+		box-shadow: var(--shadow-card);
 		outline: none;
-		transition: border-color 120ms ease, box-shadow 120ms ease;
+		transition: border-color 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop), transform 140ms var(--ease-pop);
 	}
 
-	.typing-panel:focus { border-color: var(--focus-line); box-shadow: 0 0 0 3px rgb(230 201 77 / 20%); }
+	.typing-panel:focus { border-color: var(--indigo-active); box-shadow: 0 8px 0 var(--key-edge-deep), 0 0 0 5px rgb(75 68 189 / 18%), 0 22px 34px rgb(33 24 95 / 16%); transform: translateY(-2px); }
 	.typing-panel.is-submitting { opacity: 0.72; }
 	.typing-instructions,
-	.saving { margin: 0 0 1rem; color: var(--muted); font-size: 0.75rem; }
+	.saving { margin: 0 0 1.15rem; color: var(--muted); font-size: 0.78rem; font-weight: 700; }
 	.saving { margin: 1rem 0 0; }
 
 	@media (max-width: 680px) {
 		.attempt-header { align-items: stretch; flex-direction: column; gap: 1rem; }
 		.live-speed { align-self: flex-start; text-align: left; }
+		.typing-panel { padding: 1.15rem; border-radius: 1.2rem; }
 	}
 </style>

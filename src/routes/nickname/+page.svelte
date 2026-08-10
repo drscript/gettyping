@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CuratedNicknameCards from '$lib/components/CuratedNicknameCards.svelte';
+	import TaskMasthead from '$lib/components/TaskMasthead.svelte';
 
 	let { data } = $props();
 
@@ -11,7 +12,10 @@
 		...data.candidates.slice(0, candidateOffset)
 	]);
 
+	let canShuffle = $derived(data.candidates.length > 6);
+
 	function shuffleCandidates() {
+		if (data.candidates.length === 0) return;
 		candidateOffset = (candidateOffset + 6) % data.candidates.length;
 	}
 </script>
@@ -21,173 +25,182 @@
 </svelte:head>
 
 <main class:learn={isLearn}>
-	<a class="back-link" href="/" aria-label="Back to Track choice">← Back</a>
+	<TaskMasthead
+		back="/"
+		backLabel="Back"
+		label={isLearn ? 'Learn' : 'Speed Test & Practice'}
+		title={isLearn ? 'Pick a Nickname' : 'Choose a Nickname'}
+		lead={isLearn
+			? 'Tap one you like. There is nothing to type before you start learning.'
+			: 'This is the Nickname people will see when you complete the Speed Test.'}
+		tone={isLearn ? 'learn' : 'speed'}
+		keys={isLearn ? ['A', 'B', 'C'] : ['W', 'P', 'M']}
+	/>
 
-	<header>
-		<p class="eyebrow">{isLearn ? 'Learn' : 'Speed Test & Practice'}</p>
-		<h1>{isLearn ? 'Pick a Nickname' : 'Choose a Nickname'}</h1>
-		<p>
-			{isLearn
-				? 'Tap one you like. There is nothing to type before you start learning.'
-				: 'This is the Nickname people will see when you complete the Speed Test.'}
-		</p>
-	</header>
+	<div class="task-body">
+		{#if data.nicknameUnavailable}
+			<section class="unavailable-notice" aria-live="polite">
+				<h2>Let's use a different Nickname</h2>
+				<p>Choose one of these, or try another of your own.</p>
+				<CuratedNicknameCards candidates={candidates.slice(0, 3)} track={data.track} compact />
+			</section>
+		{/if}
 
-	{#if data.nicknameUnavailable}
-		<section class="unavailable-notice" aria-live="polite">
-			<h2>Let's use a different Nickname</h2>
-			<p>Choose one of these, or try another of your own.</p>
-			<CuratedNicknameCards candidates={candidates.slice(0, 3)} track={data.track} compact />
-		</section>
-	{/if}
+		{#if isLearn && !showTypedNickname}
+			<section aria-label="Curated Nicknames">
+				<CuratedNicknameCards candidates={candidates.slice(0, 6)} track={data.track} />
 
-	{#if isLearn && !showTypedNickname}
-		<section aria-label="Curated Nicknames">
-			<CuratedNicknameCards candidates={candidates.slice(0, 6)} track={data.track} />
-
-			<div class="row-actions">
-				<button class="secondary-button" type="button" onclick={shuffleCandidates}>↻ Different ones</button>
-				<button class="text-button" type="button" onclick={() => (showTypedNickname = true)}>
-					Type your own instead
-				</button>
-			</div>
-		</section>
-	{:else}
-		<form class="typed-form" method="POST" action="?/create">
-			<input type="hidden" name="track" value={data.track} />
-			<input type="hidden" name="source" value="typed" />
-
-			<label for="nickname">Nickname</label>
-			<input
-				id="nickname"
-				name="nickname"
-				type="text"
-				autocomplete="off"
-				maxlength="24"
-				required
-				placeholder="your nickname"
-			/>
-			<p class="public-warning">
-				Your Nickname is public on Leaderboards, so pick something that isn't your real name.
-			</p>
-
-			<div class="row-actions">
-				<button class="primary-button" type="submit">Start</button>
-				{#if isLearn}
-					<button class="text-button" type="button" onclick={() => (showTypedNickname = false)}>
-						Pick one instead
+				<div class="row-actions">
+					{#if canShuffle}
+						<button class="secondary-button" type="button" onclick={shuffleCandidates}>↻ Different ones</button>
+					{/if}
+					<button class="text-button" type="button" onclick={() => (showTypedNickname = true)}>
+						Type your own instead
 					</button>
-				{/if}
-			</div>
-		</form>
-	{/if}
+				</div>
+			</section>
+		{:else}
+			<form class="typed-form" method="POST" action="?/create">
+				<input type="hidden" name="track" value={data.track} />
+				<input type="hidden" name="source" value="typed" />
+
+				<label for="nickname">Nickname</label>
+				<input
+					id="nickname"
+					name="nickname"
+					type="text"
+					autocomplete="off"
+					maxlength="24"
+					required
+					placeholder="your nickname"
+				/>
+				<p class="public-warning">
+					Your Nickname is public on Leaderboards, so pick something that isn't your real name.
+				</p>
+
+				<div class="row-actions">
+					<button class="primary-button" type="submit">Start</button>
+					{#if isLearn}
+						<button class="text-button" type="button" onclick={() => (showTypedNickname = false)}>
+							Pick one instead
+						</button>
+					{/if}
+				</div>
+			</form>
+		{/if}
+	</div>
 </main>
 
 <style>
 	main {
-		width: min(calc(100% - 2rem), 46rem);
+		--task-width: 50rem;
+
+		display: flex;
+		min-height: 100vh;
+		flex-direction: column;
+		overflow: hidden;
+		background: var(--paper);
+	}
+
+	.task-body {
+		position: relative;
+		width: min(calc(100% - 2rem), var(--task-width));
+		flex: 1;
+		padding: 2.5rem 0 5rem;
 		margin: 0 auto;
-		padding: 5.5rem 0 5rem;
 	}
 
-	main.learn {
-		font-family: var(--font-rounded);
+	/* A low Track-coloured dune closes the page instead of leaving flat paper. */
+	.task-body::before {
+		position: absolute;
+		z-index: 0;
+		right: -18vw;
+		bottom: -2.5rem;
+		left: -18vw;
+		height: 10rem;
+		border-radius: 50%;
+		background: var(--mint);
+		content: '';
+		opacity: 0.28;
+		transform: rotate(-2deg);
 	}
 
-	.back-link {
-		display: inline-block;
-		margin-bottom: 2.5rem;
-		color: var(--muted);
-		font-family: var(--font-sans);
-		font-size: 0.8rem;
-		text-underline-offset: 0.22rem;
-	}
+	main.learn .task-body::before { background: var(--sun); opacity: 0.34; }
 
-	header {
-		max-width: 39rem;
-		margin-bottom: 1.7rem;
-	}
-
-	.eyebrow {
-		margin: 0 0 0.55rem;
-		color: var(--muted);
-		font-family: var(--font-mono);
-		font-size: 0.7rem;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-	}
-
-	h1 {
-		margin: 0;
-		font-size: clamp(2rem, 7vw, 3rem);
-		line-height: 1.05;
-	}
-
-	header > p:last-child {
-		margin: 0.65rem 0 0;
-		color: var(--muted);
-		font-family: var(--font-sans);
-		font-size: 0.92rem;
-		line-height: 1.55;
-	}
+	.task-body > * { position: relative; z-index: 1; }
 
 	.unavailable-notice {
-		margin: 0 0 1.4rem;
-		padding: 1rem;
-		border: 1px solid #ece0b0;
-		border-radius: 0.8rem;
-		background: #fffbe9;
+		margin: 0 0 1.6rem;
+		padding: 1.15rem;
+		border: 2px solid var(--incorrect-line);
+		border-radius: 1.35rem;
+		background: var(--incorrect-fill);
+		box-shadow: 0 6px 0 var(--coral-deep);
 	}
 
 	.unavailable-notice h2 {
 		margin: 0;
-		font-family: var(--font-sans);
-		font-size: 1rem;
+		font-family: var(--font-rounded);
+		font-size: 1.15rem;
 	}
 
 	.unavailable-notice > p {
-		margin: 0.3rem 0 0.85rem;
-		color: var(--muted);
-		font-family: var(--font-sans);
-		font-size: 0.8rem;
+		margin: 0.3rem 0 0.95rem;
+		color: var(--incorrect-ink);
+		font-size: 0.82rem;
 	}
 
 	.row-actions {
 		display: flex;
 		align-items: center;
-		gap: 0.8rem;
-		margin-top: 1.1rem;
+		gap: 0.9rem;
+		margin-top: 1.4rem;
 		flex-wrap: wrap;
 	}
 
 	.secondary-button,
 	.primary-button,
 	.text-button {
+		border: 0;
 		border-radius: 999px;
 		cursor: pointer;
+		font-weight: 800;
+		transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop);
 	}
 
 	.secondary-button,
 	.primary-button {
-		padding: 0.65rem 1.05rem;
+		padding: 0.7rem 1.15rem;
 	}
 
 	.secondary-button {
-		border: 1px solid var(--line);
-		background: var(--card);
+		background: #fff;
+		color: var(--ink);
+		box-shadow: 0 5px 0 var(--line-strong);
 	}
 
+	/* Learn leads with Sunshine; Speed Test & Practice stays on the cooler mint. */
 	.primary-button {
-		border: 1px solid var(--ink);
-		background: var(--ink);
-		color: #fff;
-		font-weight: 700;
+		background: var(--mint);
+		color: var(--ink);
+		box-shadow: 0 5px 0 var(--mint-deep);
 	}
+
+	main.learn .primary-button {
+		background: var(--sun);
+		box-shadow: 0 5px 0 var(--sun-deep);
+	}
+
+	.secondary-button:hover,
+	.primary-button:hover { transform: translateY(-2px); }
+	.secondary-button:active,
+	.primary-button:active { box-shadow: none; transform: translateY(4px); }
 
 	.text-button {
-		padding: 0.45rem;
-		border: 0;
+		display: inline-flex;
+		min-height: 2.75rem;
+		align-items: center;
+		padding: 0.5rem 0.75rem;
 		background: transparent;
 		color: var(--muted);
 		font-size: 0.8rem;
@@ -197,43 +210,48 @@
 
 	.typed-form {
 		max-width: 34rem;
+		padding: clamp(1.4rem, 4vw, 2rem);
+		border-radius: 1.5rem;
+		background: #fff;
+		box-shadow: var(--shadow-card);
 	}
 
 	.typed-form label {
 		display: block;
 		margin-bottom: 0.45rem;
-		font-family: var(--font-sans);
 		font-size: 0.78rem;
-		font-weight: 700;
+		font-weight: 800;
 	}
 
 	.typed-form input[type='text'] {
 		width: 100%;
-		padding: 0.85rem 1rem;
-		border: 1px solid var(--line-strong);
-		border-radius: 0.7rem;
+		padding: 0.9rem 1rem;
+		border: 2px solid var(--line-strong);
+		border-radius: 1rem;
 		background: var(--card);
 		color: var(--ink);
-		font: 1.05rem var(--font-sans);
+		font: 600 1.05rem var(--font-sans);
 	}
 
-	.typed-form input[type='text']:focus {
-		border-color: var(--focus-line);
-		outline: 3px solid rgb(230 201 77 / 24%);
+	.typed-form input[type='text']::placeholder { color: var(--muted); }
+
+	/* `:focus-visible`, not `:focus` — a scoped `:focus` rule outranks the global ring. */
+	.typed-form input[type='text']:focus-visible {
+		border-color: var(--indigo-active);
+		outline: 3px solid var(--indigo-active);
+		outline-offset: 3px;
+		box-shadow: 0 5px 0 var(--line-strong);
 	}
 
 	.public-warning {
-		margin: 0.55rem 0 0;
+		margin: 0.6rem 0 0;
 		color: var(--muted);
-		font-family: var(--font-sans);
-		font-size: 0.75rem;
+		font-size: 0.78rem;
 		line-height: 1.5;
 	}
 
 	@media (max-width: 620px) {
-		main {
-			width: min(calc(100% - 1.25rem), 46rem);
-		}
-
+		.task-body { width: min(calc(100% - 1.5rem), var(--task-width)); }
+		.task-body::before { height: 8rem; }
 	}
 </style>

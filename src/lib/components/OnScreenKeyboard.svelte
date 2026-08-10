@@ -41,7 +41,7 @@
 	];
 </script>
 
-<div class="keyboard" aria-label={`On-screen keyboard. Next key: ${isSpaceKey(nextKey) ? 'space' : nextKey}`}>
+<div class="keyboard" role="img" aria-label={`On-screen keyboard. Next key: ${isSpaceKey(nextKey) ? 'space' : nextKey}`}>
 	{#each rows as row}
 		<div class="keyboard-row">
 			{#each row as keyboardKey}
@@ -56,48 +56,65 @@
 </div>
 
 <style>
+	/*
+	 * Keys are sized against the keyboard's own width, not the viewport, so eleven
+	 * columns always fit whatever gutters the shell around it happens to use.
+	 */
 	.keyboard {
 		display: grid;
-		gap: clamp(0.18rem, 1vw, 0.38rem);
+		container-type: inline-size;
+		gap: clamp(0.28rem, 1vw, 0.48rem);
+		padding: clamp(0.75rem, 2vw, 1.2rem);
 		margin-top: 1.65rem;
+		border-radius: 1.4rem;
+		background: #d9d5f2;
+		box-shadow: inset 0 4px 0 rgb(255 255 255 / 58%), 0 10px 0 var(--key-edge-deep), 0 18px 28px rgb(33 24 95 / 14%);
 	}
 
 	.keyboard-row {
 		display: flex;
 		justify-content: center;
-		gap: clamp(0.18rem, 1vw, 0.38rem);
+		gap: min(0.42rem, 0.85cqw);
 	}
 
 	kbd {
 		display: grid;
-		width: clamp(1.35rem, 6vw, 2.25rem);
-		height: clamp(1.55rem, 6vw, 2.25rem);
+		width: min(2.25rem, 8cqw);
+		height: min(2.25rem, 8cqw);
 		place-items: center;
-		border: 1px solid var(--line);
-		border-radius: 0.5rem;
+		border: 0;
+		border-radius: 0.72rem;
 		background: var(--card);
-		box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
+		box-shadow: 0 4px 0 var(--key-edge), 0 7px 10px rgb(33 24 95 / 13%);
+		color: var(--ink);
 		font-family: var(--font-mono);
-		font-size: clamp(0.48rem, 1.5vw, 0.72rem);
+		font-size: min(0.75rem, max(0.6rem, 3cqw));
 		font-weight: 500;
 		white-space: nowrap;
 	}
 
+	/* DESIGN.md commits the next key to Sunshine; the pale --highlight tint read at 1.14:1
+	   against the neighbouring white caps, which is not a teaching affordance. */
 	kbd.is-next {
-		border-color: var(--focus-line);
-		background: var(--focus);
-		box-shadow: 0 0 0 2px rgb(230 201 77 / 30%);
+		background: var(--sun);
+		box-shadow: 0 6px 0 var(--sun-deep), 0 10px 16px rgb(33 24 95 / 18%);
 		font-weight: 700;
+		transform: translateY(-4px) scale(1.06);
 	}
 
 	kbd.is-wide {
-		width: min(12.5rem, 42vw);
+		width: min(12.5rem, 42cqw);
 		color: var(--muted);
-		font-size: 0.6rem;
+		font-size: min(0.6rem, max(0.55rem, 2.6cqw));
 		letter-spacing: 0.06em;
 	}
 
 	.keyboard-row:nth-child(4) kbd.is-wide {
-		width: clamp(2.8rem, 12vw, 4.75rem);
+		width: min(4.75rem, 11cqw);
+	}
+
+	@media (max-width: 560px) {
+		.keyboard { padding: 0.6rem 0.45rem; border-radius: 1rem; }
+		kbd { border-radius: 0.5rem; }
 	}
 </style>

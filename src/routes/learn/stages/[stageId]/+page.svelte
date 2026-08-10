@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { untrack } from 'svelte';
 	import TrackFrame from '$lib/components/TrackFrame.svelte';
 	import TypingAttempt, {
 		type AttemptToType,
@@ -28,14 +28,31 @@
 	let loading = $state(true);
 	let message = $state('');
 	const endpoint = $derived(`/api/attempts/learn/${data.stageId}`);
+	// "Next Stage" navigates within this same route, so the component is reused and
+	// only the loaded Stage id changes. Every load is numbered so a slow response
+	// for an abandoned Stage cannot overwrite the Stage the Player is now on.
+	let currentLoad = 0;
 
 	async function startStage(): Promise<void> {
+		const load = ++currentLoad;
+		const stageEndpoint = endpoint;
 		loading = true;
 		message = '';
+		attempt = undefined;
 		score = undefined;
 		result = undefined;
 		leaderboard = undefined;
-		const response = await fetch(endpoint);
+		let response: Response;
+		try {
+			response = await fetch(stageEndpoint);
+		} catch {
+			// A rejected fetch must not strand the Player on the loading state forever.
+			if (load !== currentLoad) return;
+			loading = false;
+			message = 'This Stage is not ready yet.';
+			return;
+		}
+		if (load !== currentLoad) return;
 		if (response.status === 401) {
 			window.location.assign('/');
 			return;
@@ -45,11 +62,16 @@
 			message = response.status === 403 ? 'This Stage is not open yet.' : 'This Stage is not ready yet.';
 			return;
 		}
-		attempt = (await response.json()) as LearnAttempt;
+		const loaded = (await response.json()) as LearnAttempt;
+		if (load !== currentLoad) return;
+		attempt = loaded;
 		loading = false;
 	}
 
-	onMount(() => void startStage());
+	$effect(() => {
+		data.stageId;
+		untrack(() => void startStage());
+	});
 </script>
 
 <svelte:head>
@@ -138,29 +160,43 @@
 </main>
 
 <style>
-	.learn-shell { width: min(calc(100% - 2rem), 62rem); margin: 0 auto; padding: clamp(6.5rem, 12vh, 8rem) 0 4rem; font-family: var(--font-rounded); }
+	/*
+	 * Task surfaces keep the room overhead and the terrain underfoot, but the
+	 * Attempt panel stays the dominant object: no masthead competes with it.
+	 */
+	.learn-shell { position: relative; width: min(calc(100% - 2rem), 62rem); min-height: 100vh; margin: 0 auto; padding: clamp(9rem, 15vh, 11rem) 0 6rem; font-family: var(--font-sans); }
+	.learn-shell::before { position: absolute; z-index: -1; top: -6rem; left: calc(50% - 50vw); width: 100vw; height: 14rem; border-radius: 0 0 50% 50% / 0 0 3rem 3rem; background: var(--night); content: ''; }
+	.learn-shell::after { position: absolute; z-index: -1; right: -20vw; bottom: 0; left: -20vw; height: 12rem; border-radius: 50%; background: var(--sun); content: ''; opacity: 0.34; transform: rotate(-2deg); }
 	.card,
-	.error-card { max-width: 46rem; margin: 0 auto; padding: clamp(1.25rem, 5vw, 2rem); border: 1px solid var(--line); border-radius: 1.2rem; background: var(--card); box-shadow: 0 1px 3px rgb(0 0 0 / 5%); }
+	.error-card { position: relative; max-width: 46rem; margin: 0 auto; padding: clamp(1.4rem, 5vw, 2.4rem); border: 2px solid var(--line); border-radius: 1.6rem; background: var(--card); box-shadow: var(--shadow-card); overflow: hidden; }
+	.card > * { position: relative; z-index: 1; }
+	/* The outcome tints the card as terrain rising into it, not as a diagonal wedge. */
+	.failure-card::after,
+	.cleared-card::after { position: absolute; z-index: 0; right: -12%; bottom: -3.5rem; left: -12%; height: 9rem; border-radius: 50%; content: ''; }
 	.failure-card { border-color: var(--incorrect-line); }
+	.failure-card::after { background: var(--incorrect-fill); }
 	.cleared-card { border-color: var(--correct-line); }
-	.eyebrow { margin: 0 0 0.55rem; color: var(--muted); font: 700 0.72rem var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; }
-	h1 { margin: 0; font-size: clamp(2rem, 8vw, 4.25rem); line-height: 1; }
+	.cleared-card::after { background: var(--correct-fill); }
+	.eyebrow { width: fit-content; padding: 0.4rem 0.7rem; margin: 0 0 0.7rem; border-radius: 999px; background: var(--indigo); color: #fff; font: 800 0.7rem var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; }
+	h1 { max-width: 13ch; margin: 0; font: 700 clamp(2.4rem, 8vw, 5rem)/0.95 var(--font-rounded); letter-spacing: -0.035em; }
 	.target { margin: 0.65rem 0 0; font-size: clamp(1.15rem, 3vw, 1.45rem); }
-	.speed-note { color: var(--muted); font-family: var(--font-sans); font-size: 0.82rem; line-height: 1.5; }
+	.speed-note { max-width: 58ch; color: var(--muted); font-family: var(--font-sans); font-size: 0.86rem; font-weight: 600; line-height: 1.55; }
 	.adult-help { margin: 1.6rem 0 0; color: var(--muted); font: 0.78rem/1.5 var(--font-sans); }
 	.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; margin: 1.5rem 0; }
-	.stats span { padding: 0.9rem; border: 1px solid var(--line); border-radius: 0.75rem; color: var(--muted); font: 0.7rem var(--font-sans); text-transform: uppercase; }
-	.stats strong { display: block; margin-top: 0.3rem; color: var(--ink); font: 700 1.25rem var(--font-rounded); }
+	.stats span { padding: 1rem; border-radius: 1rem; background: var(--paper-deep); color: var(--muted); font: 800 0.68rem var(--font-sans); text-transform: uppercase; box-shadow: 0 5px 0 #c9c3ec; }
+	.stats span:nth-child(1) { background: var(--mint); color: var(--night); box-shadow: 0 5px 0 var(--mint-deep); }
+	.stats span:nth-child(2) { background: var(--sun); color: var(--night); box-shadow: 0 5px 0 var(--sun-deep); }
+	.stats strong { display: block; margin-top: 0.35rem; color: var(--ink); font: 700 1.4rem var(--font-rounded); }
 	.actions,
 	.error-card { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 	.actions { margin-top: 1.5rem; }
 	.actions a,
-	.error-card a { color: var(--muted); font: 0.82rem var(--font-sans); }
+	.error-card a { display: inline-flex; min-height: 2.75rem; align-items: center; padding: 0.5rem 0.75rem; color: var(--muted); font: 0.82rem var(--font-sans); }
 	.primary,
-	.error-card button { padding: 0.78rem 1.25rem; border: 1px solid var(--ink); border-radius: 999px; background: var(--ink); color: white; cursor: pointer; font-weight: 700; }
+	.error-card button { padding: 0.78rem 1.25rem; border: 0; border-radius: 999px; background: var(--sun); color: var(--ink); cursor: pointer; font-weight: 800; box-shadow: 0 5px 0 var(--sun-deep); }
 	.link-button { text-decoration: none; }
-	.actions .link-button { color: white; }
+	.actions .link-button { color: var(--ink); }
 	.error-card { max-width: 46rem; border-color: var(--incorrect-line); }
 	.error-card p { width: 100%; margin: 0; }
-	@media (max-width: 680px) { .learn-shell { width: min(calc(100% - 1.25rem), 62rem); padding-top: 6rem; } .stats { grid-template-columns: 1fr; } }
+	@media (max-width: 680px) { .learn-shell { width: min(calc(100% - 1.25rem), 62rem); padding-top: 8.5rem; } .stats { grid-template-columns: 1fr; } .learn-shell::before { top: -6rem; height: 12rem; } .learn-shell::after { height: 9rem; } }
 </style>

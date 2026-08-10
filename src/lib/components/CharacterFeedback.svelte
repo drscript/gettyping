@@ -37,28 +37,29 @@
 		padding: 0.03em 0.12em;
 		align-items: center;
 		justify-content: center;
-		border: 1px solid transparent;
-		border-radius: 0.28em;
+		border: 2px solid transparent;
+		border-radius: 0.32em;
 		line-height: 1.35;
 		white-space: pre;
 	}
 
 	.feedback-character[data-state='correct'] {
-		border-style: solid;
 		border-color: var(--correct-line);
 		background: var(--correct-fill);
+		box-shadow: 0 0.12em 0 var(--mint-deep);
 	}
 
 	.feedback-character[data-state='incorrect'] {
 		border-style: dashed;
 		border-color: var(--incorrect-line);
 		background: var(--incorrect-fill);
+		box-shadow: 0 0.12em 0 var(--coral-deep);
 	}
 
 	.feedback-character[data-state='current'] {
-		text-decoration: underline;
-		text-decoration-thickness: 0.1em;
-		text-underline-offset: 0.22em;
+		border-color: var(--sun);
+		background: var(--highlight);
+		box-shadow: 0 0.12em 0 var(--sun-deep);
 	}
 
 	.state-glyph {
@@ -86,7 +87,7 @@
 	.feedback-character.is-space[data-state='incorrect'] {
 		border-color: var(--incorrect-line);
 		background: var(--incorrect-fill);
-		box-shadow: inset 0 0 0 1px var(--incorrect-line);
+		box-shadow: inset 0 0 0 1px var(--incorrect-line), 0 0.12em 0 var(--coral-deep);
 	}
 
 	.feedback-character.is-space .state-glyph {

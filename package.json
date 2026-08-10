@@ -7,11 +7,15 @@
     "build": "vite build",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "dev": "vite dev",
+    "migrate": "node scripts/migrate.mjs",
     "test": "npm run build && vitest run",
-    "test:acceptance": "npm run build && vitest run tests/acceptance"
+    "test:acceptance": "npm run build && vitest run tests/acceptance",
+    "test:deploy": "vitest run tests/deploy"
   },
   "dependencies": {
     "@fontsource/baloo-2": "^5.2.8",
+    "@fontsource/fredoka": "^5.3.0",
+    "@fontsource/nunito": "^5.3.0",
     "@sveltejs/adapter-node": "^5.2.12",
     "@sveltejs/kit": "^2.37.0",
     "better-sqlite3": "^12.2.0",
