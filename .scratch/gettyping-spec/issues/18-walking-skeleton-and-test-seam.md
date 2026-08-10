@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: none — can start immediately
-Status: ready-for-agent
+Status: done
 
 ## What to build
 

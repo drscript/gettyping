@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: 27
-Status: ready-for-agent
+Status: done
 
 ## What to build
 
@@ -18,10 +18,10 @@ A replay that goes badly gets the **ordinary result screen, not the failure stat
 
 ## Acceptance criteria
 
-- [ ] The home screen shows all 21 Stages with cleared, current and locked states.
-- [ ] Locked Stages are visible, not hidden.
-- [ ] The three states are distinguishable by shape and glyph with hue removed, and read as icons rather than a table.
-- [ ] Any cleared Stage can be replayed from the list.
-- [ ] A sub-threshold replay of a cleared Stage returns the ordinary result screen.
-- [ ] A sub-threshold replay does not re-lock that Stage or any later one.
-- [ ] A worse replay writes a Score and does not displace the Player's earlier best.
+- [x] The home screen shows all 21 Stages with cleared, current and locked states.
+- [x] Locked Stages are visible, not hidden.
+- [x] The three states are distinguishable by shape and glyph with hue removed, and read as icons rather than a table.
+- [x] Any cleared Stage can be replayed from the list.
+- [x] A sub-threshold replay of a cleared Stage returns the ordinary result screen.
+- [x] A sub-threshold replay does not re-lock that Stage or any later one.
+- [x] A worse replay writes a Score and does not displace the Player's earlier best.

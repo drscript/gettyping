@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: 26, 32
-Status: ready-for-agent
+Status: done
 
 ## What to build
 
@@ -18,10 +18,10 @@ Everything else about the board — suppression, the appended own row, the not-r
 
 ## Acceptance criteria
 
-- [ ] A sub-threshold Score never appears on a Learn board, however fast it was.
-- [ ] The exclusion is a query predicate; the eligibility flag is untouched by it.
-- [ ] Clearing a Stage reveals its board.
-- [ ] Missing the gate reveals no board anywhere on the screen.
-- [ ] Replaying a cleared Stage below the threshold reveals the board, with the Player's earlier best still holding the row.
-- [ ] Suppression, the appended own row and the not-ranked marking behave on a Learn board exactly as on the Speed Test's.
-- [ ] The Speed Test board applies no accuracy predicate.
+- [x] A sub-threshold Score never appears on a Learn board, however fast it was.
+- [x] The exclusion is a query predicate; the eligibility flag is untouched by it.
+- [x] Clearing a Stage reveals its board.
+- [x] Missing the gate reveals no board anywhere on the screen.
+- [x] Replaying a cleared Stage below the threshold reveals the board, with the Player's earlier best still holding the row.
+- [x] Suppression, the appended own row and the not-ranked marking behave on a Learn board exactly as on the Speed Test's.
+- [x] The Speed Test board applies no accuracy predicate.

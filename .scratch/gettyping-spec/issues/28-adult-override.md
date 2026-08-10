@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: 20, 27
-Status: ready-for-agent
+Status: done
 
 ## What to build
 
@@ -18,9 +18,9 @@ Reading that record as "**this Stage counts as resolved**" rather than "the next
 
 ## Acceptance criteria
 
-- [ ] The adult-voiced line appears only after the configured number of consecutive failures, and that count is config.
-- [ ] No skip appears anywhere a child can reach, at any failure count.
-- [ ] An adult can resolve a Stage from the grown-ups page.
-- [ ] A Stage resolved by override counts as resolved and opens the next, with no qualifying Score.
-- [ ] The override works on Stage 21 and completes the Track.
-- [ ] The accuracy threshold is unchanged for every Stage before and after an override.
+- [x] The adult-voiced line appears only after the configured number of consecutive failures, and that count is config.
+- [x] No skip appears anywhere a child can reach, at any failure count.
+- [x] An adult can resolve a Stage from the grown-ups page.
+- [x] A Stage resolved by override counts as resolved and opens the next, with no qualifying Score.
+- [x] The override works on Stage 21 and completes the Track.
+- [x] The accuracy threshold is unchanged for every Stage before and after an override.

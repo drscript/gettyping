@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: 24, 26, 32
-Status: ready-for-agent
+Status: done
 
 ## What to build
 
@@ -22,10 +22,10 @@ This needs **no schema change**. It gives a reader to two pieces the schema alre
 
 ## Acceptance criteria
 
-- [ ] History is reachable from the home screen's secondary row and is not behind the grown-ups route.
-- [ ] The Speed Test section plots Net WPM over time and lists every retake.
-- [ ] An ineligible Speed Test Score is listed and marked, but absent from the plotted line.
-- [ ] The Learn section lists the best Score per cleared Stage and nothing for uncleared ones.
-- [ ] The Practice section shows an aggregate plus the current Profile, and lists no individual generated Attempt.
-- [ ] A Player with no Attempts on a Track gets an honest empty state rather than a broken section.
-- [ ] No migration is needed.
+- [x] History is reachable from the home screen's secondary row and is not behind the grown-ups route.
+- [x] The Speed Test section plots Net WPM over time and lists every retake.
+- [x] An ineligible Speed Test Score is listed and marked, but absent from the plotted line.
+- [x] The Learn section lists the best Score per cleared Stage and nothing for uncleared ones.
+- [x] The Practice section shows an aggregate plus the current Profile, and lists no individual generated Attempt.
+- [x] A Player with no Attempts on a Track gets an honest empty state rather than a broken section.
+- [x] No migration is needed.

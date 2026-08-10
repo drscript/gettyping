@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: 24
-Status: ready-for-agent
+Status: done
 
 ## What to build
 

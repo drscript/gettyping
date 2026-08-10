@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: 29
-Status: ready-for-agent
+Status: done
 
 ## What to build
 
@@ -14,8 +14,8 @@ The home screen needs **no new rule**. Its continue action was already "the next
 
 ## Acceptance criteria
 
-- [ ] Clearing Stage 21 shows a distinct completion screen, not the ordinary Stage-clear result.
-- [ ] Its dominant action is the Speed Test.
-- [ ] A graduate's home screen leads with the Speed Test through the existing continue rule, with no special case added.
-- [ ] The Stage list remains on the graduate's home screen and every Stage remains replayable.
-- [ ] Completing the Track via the adult override on Stage 21 reaches the same completion state.
+- [x] Clearing Stage 21 shows a distinct completion screen, not the ordinary Stage-clear result.
+- [x] Its dominant action is the Speed Test.
+- [x] A graduate's home screen leads with the Speed Test through the existing continue rule, with no special case added.
+- [x] The Stage list remains on the graduate's home screen and every Stage remains replayable.
+- [x] Completing the Track via the adult override on Stage 21 reaches the same completion state.

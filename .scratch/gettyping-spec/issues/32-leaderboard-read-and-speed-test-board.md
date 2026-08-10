@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: 22
-Status: ready-for-agent
+Status: done
 
 ## What to build
 
@@ -31,12 +31,12 @@ An **ineligible Score** appears on that row **marked as not ranked, with no expl
 
 ## Acceptance criteria
 
-- [ ] A board returns each Player's best eligible Score, at most ten rows.
-- [ ] Repeated reads of a board containing tied Net WPMs return identical order, with the earlier Score first.
-- [ ] The board is not shown during an Attempt, and is revealed when it ends.
-- [ ] A Player outside the top ten sees their own row appended below the ten with their true rank.
-- [ ] The appended row shows the Player's best, not their latest.
-- [ ] The personal-best marker fires only on the Attempt that became the best.
-- [ ] An ineligible Score is shown marked as not ranked, with no explanation, and occupies no rank.
-- [ ] Below the configured distinct-Player threshold no rows are shown and the personal panel stands alone; the threshold is config.
-- [ ] Stats are shown whether or not the board is suppressed.
+- [x] A board returns each Player's best eligible Score, at most ten rows.
+- [x] Repeated reads of a board containing tied Net WPMs return identical order, with the earlier Score first.
+- [x] The board is not shown during an Attempt, and is revealed when it ends.
+- [x] A Player outside the top ten sees their own row appended below the ten with their true rank.
+- [x] The appended row shows the Player's best, not their latest.
+- [x] The personal-best marker fires only on the Attempt that became the best.
+- [x] An ineligible Score is shown marked as not ranked, with no explanation, and occupies no rank.
+- [x] Below the configured distinct-Player threshold no rows are shown and the personal panel stands alone; the threshold is config.
+- [x] Stats are shown whether or not the board is suppressed.

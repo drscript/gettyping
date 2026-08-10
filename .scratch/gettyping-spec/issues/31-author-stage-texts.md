@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: 26
-Status: ready-for-agent
+Status: done
 
 ## What to build
 
@@ -18,9 +18,9 @@ Length should be comfortably reachable at 90% accuracy by a beginner typing slow
 
 ## Acceptance criteria
 
-- [ ] Every Stage from 2 to 21 has authored Exercise text.
-- [ ] No Stage's text contains a key not yet taught by that Stage.
-- [ ] Each Stage's text uses its own new keys more heavily than the keys inherited from earlier Stages.
-- [ ] Every Stage's text also draws on earlier keys rather than only the new ones.
-- [ ] The Shift Stage's text requires capitalisation, and the punctuation and number Stages exercise the characters they teach.
-- [ ] A test asserts the taught-keys-only constraint across all 21 Stages, rather than it being checked by inspection.
+- [x] Every Stage from 2 to 21 has authored Exercise text.
+- [x] No Stage's text contains a key not yet taught by that Stage.
+- [x] Each Stage's text uses its own new keys more heavily than the keys inherited from earlier Stages.
+- [x] Every Stage's text also draws on earlier keys rather than only the new ones.
+- [x] The Shift Stage's text requires capitalisation, and the punctuation and number Stages exercise the characters they teach.
+- [x] A test asserts the taught-keys-only constraint across all 21 Stages, rather than it being checked by inspection.

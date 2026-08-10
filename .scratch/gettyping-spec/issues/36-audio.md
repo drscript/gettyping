@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: 21, 27
-Status: ready-for-agent
+Status: done
 
 ## What to build
 
@@ -22,11 +22,11 @@ Authors the sounds themselves, to those constraints.
 
 ## Acceptance criteria
 
-- [ ] A mistyped key plays a short, soft tick; a correct key plays nothing.
-- [ ] Ten consecutive errors play ten identical ticks — no escalation in volume, pitch or density.
-- [ ] The tick attenuates as the Attempt's accuracy rises.
-- [ ] Clearing something plays a short sound.
-- [ ] Missing the gate plays no sound at all.
-- [ ] Muting mid-Attempt takes effect immediately and does not end, pause or invalidate the Attempt.
-- [ ] Mute persists on the device across Player switches.
-- [ ] Every state that produces a sound is fully legible with sound off, and a blocked audio context changes nothing visible.
+- [x] A mistyped key plays a short, soft tick; a correct key plays nothing.
+- [x] Ten consecutive errors play ten identical ticks — no escalation in volume, pitch or density.
+- [x] The tick attenuates as the Attempt's accuracy rises.
+- [x] Clearing something plays a short sound.
+- [x] Missing the gate plays no sound at all.
+- [x] Muting mid-Attempt takes effect immediately and does not end, pause or invalidate the Attempt.
+- [x] Mute persists on the device across Player switches.
+- [x] Every state that produces a sound is fully legible with sound off, and a blocked audio context changes nothing visible.

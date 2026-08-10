@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: 21
-Status: ready-for-agent
+Status: done
 
 ## What to build
 
@@ -16,10 +16,10 @@ A **Nickname can also be changed later**, because a name picked at five should n
 
 ## Acceptance criteria
 
-- [ ] "Not you?" on the home screen switches to another Player on this device without losing either one.
-- [ ] It can also mint a new Player through the Nickname step.
-- [ ] Two Players on one cookie keep separate Stage progression and separate Weak-key Profiles.
-- [ ] A Player can change their Nickname.
-- [ ] Scores set before a rename still show the old Nickname on boards and in history.
-- [ ] Scores set after it show the new one.
-- [ ] A free-text rename goes through the same submit-time profanity check; picking from the curated cards does not.
+- [x] "Not you?" on the home screen switches to another Player on this device without losing either one.
+- [x] It can also mint a new Player through the Nickname step.
+- [x] Two Players on one cookie keep separate Stage progression and separate Weak-key Profiles.
+- [x] A Player can change their Nickname.
+- [x] Scores set before a rename still show the old Nickname on boards and in history.
+- [x] Scores set after it show the new one.
+- [x] A free-text rename goes through the same submit-time profanity check; picking from the curated cards does not.

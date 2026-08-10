@@ -2,7 +2,7 @@
 
 Type: task
 Blocked by: 18
-Status: ready-for-agent
+Status: ready-for-human
 
 ## What to build
 
@@ -20,7 +20,11 @@ Turso is the documented upgrade path if write volume or a multi-region need ever
 
 - [ ] The app deploys to a single Fly.io VM and serves over HTTPS.
 - [ ] The SQLite file lives on a persistent volume and survives a redeploy with its data intact.
-- [ ] Migrations run as part of deploy.
+- [x] Migrations run as part of deploy.
 - [ ] Litestream streams the database to object storage, and a restore has been performed at least once to prove the backup is real.
-- [ ] A redeploy does not destroy in-flight Attempt handshake records.
-- [ ] The Turso upgrade path is recorded where a future reader will find it.
+- [x] A redeploy does not destroy in-flight Attempt handshake records.
+- [x] The Turso upgrade path is recorded where a future reader will find it.
+
+## Implementation note
+
+`Dockerfile`, `fly.toml`, `litestream.yml`, `scripts/docker-entrypoint.sh` and `docs/deploy.md` are in place and cover the migration-on-deploy and volume-preserving-redeploy behaviour (proven at the script level by `tests/deploy/migrate.test.ts`). The three unchecked criteria need an actual `fly deploy` against a real Fly.io account plus a real Litestream restore, per `docs/deploy.md`'s own "not optional" callout — live-infrastructure work no coding session can complete or fake. Left `ready-for-human` rather than `done` until someone with Fly.io access runs it and reports back.
