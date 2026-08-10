@@ -11,6 +11,17 @@ Every Exercise has its own per-Exercise Leaderboard (there's no single global ra
 
 `CONTEXT.md` at the repo root defines the full domain vocabulary (Track, Stage, Exercise, Attempt, Score, Player, Nickname, Leaderboard, Weak-key Profile) — read it before working on anything that touches these concepts.
 
+## Screenshots
+
+| | |
+| --- | --- |
+| ![Track choice landing screen](docs/screenshots/landing.png) | ![Picking a curated Nickname](docs/screenshots/nickname.png) |
+| First visit — choose a Track by intent, not age | Learn's Nickname step: tap a curated card, nothing to type |
+| ![Home screen with the 21-Stage path](docs/screenshots/home-stages.png) | ![Learn Stage typing surface](docs/screenshots/learn-stage.png) |
+| Returning Player's home screen and Stage path | Mid-Stage: per-character feedback and the on-screen keyboard |
+| ![Speed Test typing surface](docs/screenshots/speed-test.png) | |
+| Speed Test — the same mechanics, a tighter type scale | |
+
 ## Stack
 
 - [SvelteKit](https://svelte.dev/docs/kit) on `adapter-node`
