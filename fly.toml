@@ -1,34 +1,34 @@
-# Renamed by `fly launch` on first run — see docs/deploy.md for the full
-# provisioning walkthrough (volume, object storage, secrets).
-app = "gettyping"
-primary_region = "iad"
+# fly.toml app configuration file generated for gettyping on 2026-08-10T09:08:32+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-[build]
+app = 'gettyping'
+primary_region = 'iad'
 
 [env]
-  DATABASE_PATH = "/data/gettyping.sqlite"
-  NODE_ENV = "production"
-  # ORIGIN must be set once the app's real hostname is known — e.g.
-  # `fly secrets set ORIGIN=https://gettyping.fly.dev`. SvelteKit's CSRF
-  # check rejects form submissions without it.
+  DATABASE_PATH = '/data/gettyping.sqlite'
+  NODE_ENV = 'production'
 
 [[mounts]]
-  source = "gettyping_data"
-  destination = "/data"
+  source = 'gettyping_data'
+  destination = '/data'
 
 [http_service]
   internal_port = 8080
   force_https = true
-  # A single always-on machine: no stop/start churn re-running restore and
-  # migrate on every wake, and no interrupted in-flight typing Attempts.
-  # Single-writer SQLite at this scale doesn't call for more (see ADR 0004).
-  auto_stop_machines = false
+  auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
 
   [[http_service.checks]]
-    grace_period = "10s"
-    interval = "15s"
-    method = "GET"
-    timeout = "5s"
-    path = "/"
+    interval = '15s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/'
+
+[[vm]]
+  memory = '1gb'
+  cpus = 1
+  memory_mb = 1024
