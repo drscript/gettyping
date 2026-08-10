@@ -60,13 +60,21 @@ describe('the standalone deploy-time migration script', () => {
 		expect(stageCount.count).toBe(21);
 	});
 
-	test('running it again against an already-migrated volume keeps existing data intact', () => {
+	test('running it again against an already-migrated volume keeps existing data intact, including an in-flight Attempt handshake', () => {
 		expect(runMigrateScript({ DATABASE_PATH: databasePath }).status).toBe(0);
 
 		const database = new Database(databasePath);
 		database
 			.prepare('INSERT INTO players (id, nickname, created_at) VALUES (?, ?, ?)')
 			.run('a-player-id', 'BraveOtter', Date.now());
+		// A handshake for a Stage the Player is mid-typing right now — the
+		// property this deploy script must never disturb (ticket 37).
+		database
+			.prepare(
+				'INSERT INTO attempt_tokens (id, player_id, exercise_id, generated_content, served_at) ' +
+					'VALUES (?, ?, NULL, NULL, ?)'
+			)
+			.run('a-handshake-token', 'a-player-id', Date.now());
 		database.close();
 
 		const second = runMigrateScript({ DATABASE_PATH: databasePath });
@@ -76,9 +84,13 @@ describe('the standalone deploy-time migration script', () => {
 		const player = verify
 			.prepare('SELECT nickname FROM players WHERE id = ?')
 			.get('a-player-id');
+		const handshake = verify
+			.prepare('SELECT player_id AS playerId FROM attempt_tokens WHERE id = ?')
+			.get('a-handshake-token');
 		verify.close();
 
 		expect(player).toEqual({ nickname: 'BraveOtter' });
+		expect(handshake).toEqual({ playerId: 'a-player-id' });
 	});
 
 	test('fails clearly when DATABASE_PATH is not set, exactly as a stray migration run should', () => {
