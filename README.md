@@ -11,6 +11,10 @@ Every Exercise has its own per-Exercise Leaderboard (there's no single global ra
 
 `CONTEXT.md` at the repo root defines the full domain vocabulary (Track, Stage, Exercise, Attempt, Score, Player, Nickname, Leaderboard, Weak-key Profile) — read it before working on anything that touches these concepts.
 
+## Admin
+
+A gated `/admin` page for the site operator: aggregate, Nickname-free usage statistics — Player growth, Attempt engagement, the Learn-Track funnel across all 21 Stages, Speed Test & Practice performance, and content popularity. Nothing else in GetTyping has accounts or passwords, so this is deliberately its own thing — a single shared `ADMIN_TOKEN` gates the whole `/admin/*` subtree via an httpOnly session cookie. Locally, see `ADMIN_TOKEN` under [Getting started](#getting-started); in production it's a Fly secret (see [Deploying](#deploying)).
+
 ## Screenshots
 
 | | |
