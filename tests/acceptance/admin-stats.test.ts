@@ -100,7 +100,7 @@ function statPattern(label: string, value: string | number): RegExp {
 // Matches a <tr> of <td> cells, same class-agnostic reasoning as statPattern.
 function rowPattern(...cells: Array<string | number>): RegExp {
 	const tds = cells.map((cell) => `<td[^>]*>${escapeRegex(String(cell))}</td>`).join('');
-	return new RegExp(`<tr>${tds}</tr>`);
+	return new RegExp(`<tr[^>]*>${tds}</tr>`);
 }
 
 describe('Admin statistics', () => {

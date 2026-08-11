@@ -21,7 +21,8 @@
 
 <main>
 	<header>
-		<h1>Admin</h1>
+		<p class="kicker">GetTyping — Admin</p>
+		<h1>Statistics</h1>
 		<p class="generated-at">Generated {new Date(stats.generatedAt).toLocaleString()}</p>
 	</header>
 
@@ -76,48 +77,57 @@
 		max-width: 56rem;
 		margin: 0 auto;
 		padding: 2.5rem 1.5rem 4rem;
-		color: #241b63;
-		font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
 	}
 
 	header {
 		margin-bottom: 2rem;
 	}
 
+	.kicker {
+		margin: 0 0 0.4rem;
+		color: var(--muted);
+		font-size: 0.75rem;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
 	h1 {
 		margin: 0;
-		font-size: 1.75rem;
+		color: var(--ink);
+		font-size: 1.5rem;
 	}
 
 	.generated-at {
-		margin: 0.25rem 0 0;
-		color: #625c8d;
+		margin: 0.35rem 0 0;
+		color: var(--muted);
 		font-size: 0.875rem;
 	}
 
 	h2 {
 		margin: 0 0 0.75rem;
-		font-size: 1.1rem;
+		color: var(--ink);
+		font-size: 1.05rem;
 	}
 
 	section {
-		margin-bottom: 2rem;
+		margin-bottom: 2.25rem;
 	}
 
 	.tiles {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 1rem;
-		margin-bottom: 2rem;
+		margin-bottom: 2.25rem;
 	}
 
 	.tile {
 		flex: 1 1 14rem;
 		margin-bottom: 0;
 		padding: 1.25rem;
-		border: 1px solid #d9d5f2;
-		border-radius: 0.5rem;
-		background: #fbfaff;
+		border: 1px solid var(--line);
+		border-radius: 0.75rem;
+		background: var(--card);
 	}
 
 	.stats {
@@ -128,8 +138,8 @@
 		display: flex;
 		justify-content: space-between;
 		gap: 1rem;
-		padding: 0.3rem 0;
-		border-bottom: 1px solid #ece9f9;
+		padding: 0.35rem 0;
+		border-bottom: 1px solid var(--line);
 	}
 
 	.stat-row:last-child {
@@ -137,31 +147,43 @@
 	}
 
 	dt {
-		color: #625c8d;
+		color: var(--muted);
 		font-size: 0.875rem;
 	}
 
 	dd {
 		margin: 0;
-		font-weight: 600;
+		color: var(--ink);
+		font-weight: 700;
 	}
 
 	table {
 		width: 100%;
 		border-collapse: collapse;
+		border: 1px solid var(--line);
+		border-radius: 0.75rem;
+		background: var(--card);
 		font-size: 0.9rem;
 	}
 
 	th,
 	td {
-		padding: 0.4rem 0.6rem;
-		border-bottom: 1px solid #ece9f9;
+		padding: 0.5rem 0.75rem;
+		border-bottom: 1px solid var(--line);
 		text-align: left;
 	}
 
+	tbody tr:last-child td {
+		border-bottom: none;
+	}
+
 	th {
-		color: #625c8d;
-		font-weight: 600;
+		color: var(--muted);
+		font-weight: 700;
+	}
+
+	td {
+		color: var(--ink);
 	}
 
 	.numeric {
@@ -170,6 +192,6 @@
 	}
 
 	.empty {
-		color: #625c8d;
+		color: var(--muted);
 	}
 </style>
