@@ -87,6 +87,22 @@ async function fetchAdminPage(server: TestServer, cookie: string): Promise<strin
 	return response.text();
 }
 
+function escapeRegex(value: string): string {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Matches a <dt>/<dd> stat pair regardless of Svelte's generated CSS-scoping class, so tests don't
+// break every time the component's styles change.
+function statPattern(label: string, value: string | number): RegExp {
+	return new RegExp(`<dt[^>]*>${escapeRegex(label)}</dt><dd[^>]*>${escapeRegex(String(value))}</dd>`);
+}
+
+// Matches a <tr> of <td> cells, same class-agnostic reasoning as statPattern.
+function rowPattern(...cells: Array<string | number>): RegExp {
+	const tds = cells.map((cell) => `<td[^>]*>${escapeRegex(String(cell))}</td>`).join('');
+	return new RegExp(`<tr>${tds}</tr>`);
+}
+
 describe('Admin statistics', () => {
 	let server: TestServer;
 	let cookie: string;
@@ -142,18 +158,18 @@ describe('Admin statistics', () => {
 
 		const page = await fetchAdminPage(server, cookie);
 
-		expect(page).toContain('Total Players: 3');
-		expect(page).toContain('New Players (last 7 days): 2');
-		expect(page).toContain('Total Attempts: 5');
-		expect(page).toContain('Attempts (last 7 days): 3');
-		expect(page).toContain('Average Attempts per Player: 1.67');
+		expect(page).toMatch(statPattern('Total Players', 3));
+		expect(page).toMatch(statPattern('New Players, last 7 days', 2));
+		expect(page).toMatch(statPattern('Total Attempts', 5));
+		expect(page).toMatch(statPattern('Attempts, last 7 days', 3));
+		expect(page).toMatch(statPattern('Average Attempts per Player', '1.67'));
 
 		// Only the Speed Test and Practice Attempts count toward practice performance — the two
 		// failing Learn Attempts on exercise 1 are excluded.
-		expect(page).toContain('Speed Test &amp; Practice performance');
-		expect(page).toContain('Attempts: 2');
-		expect(page).toContain('Average net WPM: 55.0');
-		expect(page).toContain('Average accuracy: 100.0%');
+		expect(page).toContain('Speed Test &amp; Practice');
+		expect(page).toMatch(statPattern('Attempts', 2));
+		expect(page).toMatch(statPattern('Average net WPM', '55.0'));
+		expect(page).toMatch(statPattern('Average accuracy', '100.0%'));
 	});
 
 	test('the Learn funnel counts Players cleared per Stage via a qualifying Score or an explicit grown-up unlock', async () => {
@@ -173,9 +189,9 @@ describe('Admin statistics', () => {
 
 		const page = await fetchAdminPage(server, cookie);
 
-		expect(page).toContain('Stage 3 (Home row: D &amp; K): 1 Players cleared');
-		expect(page).toContain('Stage 5 (Home row: A &amp; ;): 1 Players cleared');
-		expect(page).toContain('Stage 9 (Top row: W &amp; O): 0 Players cleared');
+		expect(page).toMatch(rowPattern('3. Home row: D &amp; K', 1));
+		expect(page).toMatch(rowPattern('5. Home row: A &amp; ;', 1));
+		expect(page).toMatch(rowPattern('9. Top row: W &amp; O', 0));
 	});
 
 	test('weakest keys aggregate weak-key stats across every Player, and content popularity ranks Exercises by Attempts', async () => {
@@ -207,12 +223,13 @@ describe('Admin statistics', () => {
 		);
 
 		// 'q' has a 50% aggregate error rate (10 errors across 20 attempts), ranked above 'p' at 10%.
-		expect(weakestKeysSection.indexOf('q: 50.0%')).toBeGreaterThanOrEqual(0);
-		expect(weakestKeysSection.indexOf('p: 10.0%')).toBeGreaterThan(
-			weakestKeysSection.indexOf('q: 50.0%')
-		);
+		const qRow = rowPattern('q', '50.0%', '20.0').exec(weakestKeysSection);
+		const pRow = rowPattern('p', '10.0%', '10.0').exec(weakestKeysSection);
+		expect(qRow).not.toBeNull();
+		expect(pRow).not.toBeNull();
+		expect(pRow!.index).toBeGreaterThan(qRow!.index);
 
-		expect(page).toContain('Exercise 10 (Top row: Q &amp; P): 2 Attempts, 2 distinct Players');
-		expect(page).toContain('Exercise 15 (Punctuation: comma &amp; period): 0 Attempts, 0 distinct Players');
+		expect(page).toMatch(rowPattern('Top row: Q &amp; P', 2, 2));
+		expect(page).toMatch(rowPattern('Punctuation: comma &amp; period', 0, 0));
 	});
 });

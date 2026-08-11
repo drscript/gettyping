@@ -1,6 +1,18 @@
 <script lang="ts">
 	let { data } = $props();
 	let stats = $derived(data.stats);
+
+	function formatWpm(value: number | null): string {
+		return value === null ? '—' : value.toFixed(1);
+	}
+
+	function formatPercent(value: number | null): string {
+		return value === null ? '—' : `${(value * 100).toFixed(1)}%`;
+	}
+
+	function exerciseLabel(row: { track: 'learn' | 'speed_test'; stageName: string | null }): string {
+		return row.stageName ?? (row.track === 'speed_test' ? 'Speed Test' : row.track);
+	}
 </script>
 
 <svelte:head>
@@ -8,73 +20,156 @@
 </svelte:head>
 
 <main>
-	<h1>Admin</h1>
-	<p>Raw numbers for now — a real layout lands in a later ticket.</p>
+	<header>
+		<h1>Admin</h1>
+		<p class="generated-at">Generated {new Date(stats.generatedAt).toLocaleString()}</p>
+	</header>
 
-	<section>
-		<h2>Growth</h2>
-		<ul>
-			<li>Total Players: {stats.growth.totalPlayers}</li>
-			<li>New Players (last 7 days): {stats.growth.newPlayersLast7Days}</li>
-		</ul>
-	</section>
+	<div class="tiles">
+		<section class="tile">
+			<h2>Growth</h2>
+			<dl class="stats"><div class="stat-row"><dt>Total Players</dt><dd>{stats.growth.totalPlayers}</dd></div><div class="stat-row"><dt>New Players, last 7 days</dt><dd>{stats.growth.newPlayersLast7Days}</dd></div></dl>
+		</section>
 
-	<section>
-		<h2>Engagement</h2>
-		<ul>
-			<li>Total Attempts: {stats.engagement.totalAttempts}</li>
-			<li>Attempts (last 7 days): {stats.engagement.attemptsLast7Days}</li>
-			<li>Average Attempts per Player: {stats.engagement.averageAttemptsPerPlayer.toFixed(2)}</li>
-		</ul>
-	</section>
+		<section class="tile">
+			<h2>Engagement</h2>
+			<dl class="stats"><div class="stat-row"><dt>Total Attempts</dt><dd>{stats.engagement.totalAttempts}</dd></div><div class="stat-row"><dt>Attempts, last 7 days</dt><dd>{stats.engagement.attemptsLast7Days}</dd></div><div class="stat-row"><dt>Average Attempts per Player</dt><dd>{stats.engagement.averageAttemptsPerPlayer.toFixed(2)}</dd></div></dl>
+		</section>
+
+		<section class="tile">
+			<h2>Speed Test &amp; Practice</h2>
+			<dl class="stats"><div class="stat-row"><dt>Attempts</dt><dd>{stats.practicePerformance.attempts}</dd></div><div class="stat-row"><dt>Average net WPM</dt><dd>{formatWpm(stats.practicePerformance.averageNetWpm)}</dd></div><div class="stat-row"><dt>Average accuracy</dt><dd>{formatPercent(stats.practicePerformance.averageAccuracy)}</dd></div></dl>
+		</section>
+	</div>
 
 	<section>
 		<h2>Learn funnel</h2>
-		<ul>
-			{#each stats.learnFunnel as stage (stage.stageId)}
-				<li>Stage {stage.stageId} ({stage.name}): {stage.playersCleared} Players cleared</li>
-			{/each}
-		</ul>
+		<table>
+			<thead><tr><th scope="col">Stage</th><th scope="col" class="numeric">Players cleared</th></tr></thead>
+			<tbody>{#each stats.learnFunnel as stage (stage.stageId)}<tr><td>{stage.stageId}. {stage.name}</td><td class="numeric">{stage.playersCleared}</td></tr>{/each}</tbody>
+		</table>
 	</section>
 
 	<section>
-		<h2>Speed Test & Practice performance</h2>
-		<ul>
-			<li>Attempts: {stats.practicePerformance.attempts}</li>
-			<li>
-				Average net WPM: {stats.practicePerformance.averageNetWpm === null
-					? '—'
-					: stats.practicePerformance.averageNetWpm.toFixed(1)}
-			</li>
-			<li>
-				Average accuracy: {stats.practicePerformance.averageAccuracy === null
-					? '—'
-					: (stats.practicePerformance.averageAccuracy * 100).toFixed(1) + '%'}
-			</li>
-		</ul>
-		<h3>Weakest keys</h3>
-		<ul>
-			{#each stats.practicePerformance.weakestKeys as row (row.key)}
-				<li>{row.key}: {(row.errorRate * 100).toFixed(1)}% error rate ({row.totalAttempts.toFixed(1)} attempts)</li>
-			{/each}
-		</ul>
+		<h2>Weakest keys</h2>
+		{#if stats.practicePerformance.weakestKeys.length === 0}
+			<p class="empty">No weak-key data yet.</p>
+		{:else}
+			<table>
+				<thead><tr><th scope="col">Key</th><th scope="col" class="numeric">Error rate</th><th scope="col" class="numeric">Weighted Attempts</th></tr></thead>
+				<tbody>{#each stats.practicePerformance.weakestKeys as row (row.key)}<tr><td>{row.key === ' ' ? '(space)' : row.key === '' ? '(unrecognized)' : row.key}</td><td class="numeric">{formatPercent(row.errorRate)}</td><td class="numeric">{row.totalAttempts.toFixed(1)}</td></tr>{/each}</tbody>
+			</table>
+		{/if}
 	</section>
 
 	<section>
 		<h2>Content popularity</h2>
-		<ul>
-			{#each stats.contentPopularity as row (row.exerciseId)}
-				<li>Exercise {row.exerciseId} ({row.stageName ?? row.track}): {row.attempts} Attempts, {row.distinctPlayers} distinct Players</li>
-			{/each}
-		</ul>
+		<table>
+			<thead><tr><th scope="col">Exercise</th><th scope="col" class="numeric">Attempts</th><th scope="col" class="numeric">Distinct Players</th></tr></thead>
+			<tbody>{#each stats.contentPopularity as row (row.exerciseId)}<tr><td>{exerciseLabel(row)}</td><td class="numeric">{row.attempts}</td><td class="numeric">{row.distinctPlayers}</td></tr>{/each}</tbody>
+		</table>
 	</section>
 </main>
 
 <style>
 	main {
-		max-width: 40rem;
-		margin: 3rem auto;
-		padding: 0 1.5rem;
-		font-family: system-ui, sans-serif;
+		max-width: 56rem;
+		margin: 0 auto;
+		padding: 2.5rem 1.5rem 4rem;
+		color: #241b63;
+		font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+	}
+
+	header {
+		margin-bottom: 2rem;
+	}
+
+	h1 {
+		margin: 0;
+		font-size: 1.75rem;
+	}
+
+	.generated-at {
+		margin: 0.25rem 0 0;
+		color: #625c8d;
+		font-size: 0.875rem;
+	}
+
+	h2 {
+		margin: 0 0 0.75rem;
+		font-size: 1.1rem;
+	}
+
+	section {
+		margin-bottom: 2rem;
+	}
+
+	.tiles {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		margin-bottom: 2rem;
+	}
+
+	.tile {
+		flex: 1 1 14rem;
+		margin-bottom: 0;
+		padding: 1.25rem;
+		border: 1px solid #d9d5f2;
+		border-radius: 0.5rem;
+		background: #fbfaff;
+	}
+
+	.stats {
+		margin: 0;
+	}
+
+	.stat-row {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.3rem 0;
+		border-bottom: 1px solid #ece9f9;
+	}
+
+	.stat-row:last-child {
+		border-bottom: none;
+	}
+
+	dt {
+		color: #625c8d;
+		font-size: 0.875rem;
+	}
+
+	dd {
+		margin: 0;
+		font-weight: 600;
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.9rem;
+	}
+
+	th,
+	td {
+		padding: 0.4rem 0.6rem;
+		border-bottom: 1px solid #ece9f9;
+		text-align: left;
+	}
+
+	th {
+		color: #625c8d;
+		font-weight: 600;
+	}
+
+	.numeric {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.empty {
+		color: #625c8d;
 	}
 </style>
