@@ -109,6 +109,7 @@
 		if (event.key === 'Backspace') {
 			if (cursor === 0) return;
 			event.preventDefault();
+			if (event.repeat) return;
 			events.push({ expected: content[cursor - 1], received: 'Backspace', timestampOffsetMs });
 			cursor -= 1;
 			typedCharacters = typedCharacters.slice(0, cursor);
@@ -117,6 +118,7 @@
 
 		if ([...event.key].length !== 1 || cursor >= content.length) return;
 		event.preventDefault();
+		if (event.repeat) return;
 		const expected = content[cursor];
 		events.push({ expected, received: event.key, timestampOffsetMs });
 		typedKeyCount += 1;
