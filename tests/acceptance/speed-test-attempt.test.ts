@@ -223,7 +223,7 @@ describe('Speed Test Attempt', () => {
 		expect(eventTable).toBeUndefined();
 	});
 
-	test('counts a corrected mistake in accuracy but not as an uncorrected error', async () => {
+	test('counts a corrected mistake in accuracy and as an error', async () => {
 		const cookie = await createSpeedTestPlayer(server, 'BrightBadger');
 		const startResponse = await fetch(`${server.baseUrl}/api/attempts/speed-test`, {
 			headers: { cookie }
@@ -248,12 +248,12 @@ describe('Speed Test Attempt', () => {
 		expect(await response.json()).toMatchObject({
 			score: {
 				id: expect.any(Number),
-				netWpm: 28.6,
+				netWpm: 27.6,
 				grossWpm: 28.6,
 				accuracy: 0.993006993006993,
 				elapsedMs: 60_000,
 				charCount: 143,
-				errorCount: 0
+				errorCount: 1
 			}
 		});
 	});

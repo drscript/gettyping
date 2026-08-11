@@ -39,6 +39,23 @@ function eventsWithErrors(content: string, errorCount: number): KeystrokeEvent[]
 	}));
 }
 
+function eventsWithCorrectedError(content: string): KeystrokeEvent[] {
+	const characters = [...content];
+	const wrongFirstCharacter = characters[0] === 'f' ? 'j' : 'f';
+	const events: KeystrokeEvent[] = [
+		{ expected: characters[0], received: wrongFirstCharacter, timestampOffsetMs: 1 },
+		{ expected: characters[0], received: 'Backspace', timestampOffsetMs: 2 }
+	];
+	characters.forEach((character, index) => {
+		events.push({
+			expected: character,
+			received: character,
+			timestampOffsetMs: Math.round(((index + 1) / characters.length) * 60_000) + 2
+		});
+	});
+	return events;
+}
+
 async function startStage(
 	server: TestServer,
 	cookie: string,
@@ -190,6 +207,24 @@ describe('Learn Stage gate', () => {
 			},
 			leaderboard: { exerciseId: 21, personal: { accuracy: 0.9 } }
 		});
+	});
+
+	test('a mistake corrected with Backspace still counts as an error', async () => {
+		const cookie = await createLearnPlayer(server, 'CorrectingCrane');
+		const started = await startStage(server, cookie);
+
+		const response = await fetch(`${server.baseUrl}/api/attempts/learn/1`, {
+			method: 'POST',
+			headers: { cookie, 'content-type': 'application/json' },
+			body: JSON.stringify({
+				token: started.token,
+				events: eventsWithCorrectedError(started.exercise.content)
+			})
+		});
+		expect(response.status).toBe(200);
+		const body = (await response.json()) as Record<string, unknown>;
+
+		expect(body).toMatchObject({ score: { errorCount: 1 } });
 	});
 
 	test('89% enters the same quiet failure state on every retry and records every Score', async () => {

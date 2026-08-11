@@ -109,9 +109,9 @@ function deriveScore(
 ): Omit<DerivedScore, 'id'> | undefined {
 	if (events.length === 0 || events.length > eventCountCeiling) return undefined;
 
-	const finalCharacters: string[] = [];
 	let correctKeystrokes = 0;
 	let characterCount = 0;
+	let errorCount = 0;
 	let cursor = 0;
 	let previousTimestamp = -1;
 
@@ -129,24 +129,19 @@ function deriveScore(
 		if (event.received === 'Backspace') {
 			if (cursor === 0 || event.expected !== content[cursor - 1]) return undefined;
 			cursor -= 1;
-			finalCharacters.pop();
 			continue;
 		}
 
 		if ([...event.received].length !== 1 || event.expected !== content[cursor]) return undefined;
 		characterCount += 1;
 		if (event.received === event.expected) correctKeystrokes += 1;
-		finalCharacters.push(event.received);
+		else errorCount += 1;
 		cursor += 1;
 	}
 
 	const elapsedMs = events.at(-1)?.timestampOffsetMs ?? 0;
 	if (cursor !== content.length || elapsedMs <= 0 || characterCount === 0) return undefined;
 	const elapsedMinutes = elapsedMs / 60_000;
-	const errorCount = finalCharacters.reduce(
-		(total, character, index) => total + (character === content[index] ? 0 : 1),
-		0
-	);
 	const grossWpm = characterCount / 5 / elapsedMinutes;
 	const netWpm = Math.max(0, grossWpm - errorCount / elapsedMinutes);
 
