@@ -41,6 +41,12 @@ DATABASE_PATH=./gettyping-dev.sqlite npm run dev
 
 `DATABASE_PATH` names the SQLite file and is required — there's no default. `npm run migrate` creates the schema and seeds the 21 Stages and 22 Exercises (content included) before the first `npm run dev`.
 
+Set `ADMIN_TOKEN` to reach `/admin` locally — it has no default, so `/admin` stays unreachable until it's set:
+
+```bash
+ADMIN_TOKEN=dev-token DATABASE_PATH=./gettyping-dev.sqlite npm run dev
+```
+
 ## Scripts
 
 | Command                  | What it does                                                       |

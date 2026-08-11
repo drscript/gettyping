@@ -41,6 +41,12 @@ Set `ORIGIN` once you know the app's real hostname — SvelteKit's CSRF check re
 fly secrets set ORIGIN=https://<your-app-name>.fly.dev
 ```
 
+Set `ADMIN_TOKEN` to gate `/admin` — pick a long random value, there's no default and `/admin` is unreachable until this is set:
+
+```bash
+fly secrets set ADMIN_TOKEN=<a long random value>
+```
+
 ## Deploying
 
 ```bash
