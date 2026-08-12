@@ -49,9 +49,12 @@
 			<section>
 				<h2>Progress lives in this browser</h2>
 				<p class="warning">
-					There is no way to recover progress. Clearing this browser's cookies, moving to another
-					browser, or changing device starts a new Player. Previous Scores can remain on Leaderboards,
-					but they cannot be reclaimed.
+					Clearing this browser's cookies, moving to another browser, or changing device normally
+					starts a brand new Player. To bring an existing Player along, generate a short transfer
+					code from <a href="/players">/players</a> and type it in on the new device — that links the
+					same Player, with their Scores, Stage unlocks, and Weak-key Profile intact. It's a
+					deliberate, one-time action, not automatic syncing, and it still asks for no account,
+					password, or personal information.
 				</p>
 			</section>
 

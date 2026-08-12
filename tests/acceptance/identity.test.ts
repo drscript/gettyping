@@ -157,7 +157,8 @@ describe('Player identity', () => {
 		expect(grownUpsPage).toContain("There's no account");
 		expect(grownUpsPage).toContain('no personal information');
 		expect(grownUpsPage).toContain('Progress lives in this browser');
-		expect(grownUpsPage).toContain('no way to recover progress');
+		expect(grownUpsPage).toContain('generate a short transfer code');
+		expect(grownUpsPage).toContain('href="/players"');
 		expect(grownUpsPage).toContain('Nicknames are public');
 		expect(grownUpsPage).toContain('public Leaderboards');
 
@@ -165,7 +166,7 @@ describe('Player identity', () => {
 			expect(page).toContain('href="/grown-ups"');
 		}
 		expect(firstVisit).not.toContain("There's no account");
-		expect(firstVisit).not.toContain('no way to recover progress');
+		expect(firstVisit).not.toContain('transfer code');
 	});
 
 	test('a shared device keeps every Player while switching the active Player', async () => {
