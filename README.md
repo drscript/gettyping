@@ -13,7 +13,7 @@ Every Exercise has its own per-Exercise Leaderboard (there's no single global ra
 
 ## Admin
 
-A gated `/admin` page for the site operator: aggregate, Nickname-free usage statistics — Player growth, Attempt engagement, the Learn-Track funnel across all 21 Stages, Speed Test & Practice performance, and content popularity. Nothing else in GetTyping has accounts or passwords, so this is deliberately its own thing — a single shared `ADMIN_TOKEN` gates the whole `/admin/*` subtree via an httpOnly session cookie. Locally, see `ADMIN_TOKEN` under [Getting started](#getting-started); in production it's a Fly secret (see [Deploying](#deploying)).
+A gated `/admin` page for the site operator: aggregate, Nickname-free usage statistics — Player growth, Attempt engagement, the Learn-Track funnel across all 21 Stages, Speed Test & Practice performance, and content popularity. Nothing else in GetTyping has accounts or passwords, so this is deliberately its own thing — a single shared `ADMIN_TOKEN` gates the whole `/admin/*` subtree via an httpOnly session cookie. Locally, see `ADMIN_TOKEN` under [Getting started](#getting-started); in production it's a Fly secret (see [Deploying](#deploying)). Login attempts are rate-limited per source IP — 5 failed attempts locks that IP out for 15 minutes (`429`, resets on a correct login) — to blunt brute-forcing of the token.
 
 ## Screenshots
 

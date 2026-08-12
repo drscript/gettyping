@@ -9,6 +9,7 @@ primary_region = 'iad'
 [env]
   DATABASE_PATH = '/data/gettyping.sqlite'
   NODE_ENV = 'production'
+  ADDRESS_HEADER = 'Fly-Client-IP'
 
 [[mounts]]
   source = 'gettyping_data'
