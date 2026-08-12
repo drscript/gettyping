@@ -8,6 +8,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "dev": "vite dev",
     "migrate": "node scripts/migrate.mjs",
+    "prototype:corpus-tiers": "node src/lib/server/prototype/corpus-tiers-tui.ts",
     "test": "npm run build && vitest run",
     "test:acceptance": "npm run build && vitest run tests/acceptance",
     "test:deploy": "vitest run tests/deploy"
