@@ -5,10 +5,13 @@
 .claude/settings.local.json
 .claude/launch.json
 
+.cursor/
+
 # Generated application and test artifacts
 .svelte-kit/
 build/
 node_modules/
+graphify-out/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal

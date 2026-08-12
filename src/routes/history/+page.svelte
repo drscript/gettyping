@@ -1,7 +1,13 @@
 <script lang="ts">
 	import TaskMasthead from '$lib/components/TaskMasthead.svelte';
+	import VariantA from '$lib/prototype/VariantA.svelte';
+	import VariantB from '$lib/prototype/VariantB.svelte';
+	import VariantC from '$lib/prototype/VariantC.svelte';
+	import PrototypeSwitcher from '$lib/prototype/PrototypeSwitcher.svelte';
+	import { page } from '$app/stores';
 
 	let { data } = $props();
+	let currentVariant = $derived($page.url.searchParams.get('variant') ?? 'A');
 	let plottedScores = $derived(data.speedTestScores.filter((score) => score.leaderboardEligible));
 	let plottedMinimum = $derived(Math.min(...plottedScores.map((score) => score.netWpm)));
 	let plottedMaximum = $derived(Math.max(...plottedScores.map((score) => score.netWpm)));
@@ -128,17 +134,28 @@
 			{/if}
 
 			<h3>Current Weak-key Profile</h3>
-			{#if data.practice.weakKeys.length > 0}
-				<div class="weak-keys">
-					{#each data.practice.weakKeys as key}
-						<div data-weak-key={key.key}><kbd>{key.key}</kbd><span>{Math.round(key.weakness * 100)}% weak</span></div>
-					{/each}
-				</div>
+
+			<!-- PROTOTYPE: Heat map keyboard variants -->
+			{#if currentVariant === 'A'}
+				<VariantA />
+			{:else if currentVariant === 'B'}
+				<VariantB />
+			{:else if currentVariant === 'C'}
+				<VariantC />
 			{:else}
 				<p class="empty-profile">The Profile is still gathering enough samples to identify a weak key.</p>
 			{/if}
 		</section>
 	</div>
+
+	<PrototypeSwitcher
+		variants={['A', 'B', 'C']}
+		labels={{
+			A: 'Full QWERTY Grid',
+			B: 'Compact Heat Strip',
+			C: 'Zone-Ranked List'
+		}}
+	/>
 </main>
 
 <style>

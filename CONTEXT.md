@@ -16,6 +16,10 @@ _Avoid_: Level, Lesson, Unit
 A single typing activity a Player can attempt, with its own Leaderboard. A Stage presents one or more Exercises; the Speed Test & Practice Track includes the Speed Test itself plus Exercises generated on demand from a Player's Weak-key Profile.
 _Avoid_: Test (except when naming the Speed Test specifically), Drill, Challenge
 
+**Finger stretch**:
+Generated practice over the keys taught so far in a Stage, offered on the gate-failure screen to a stuck Player so they can warm up for another Attempt. Carries no Leaderboard and counts for nothing — it is not an Exercise and not a bypass; the gate and its retry stay untouched.
+_Avoid_: Drill, Challenge, Warm-up drill
+
 **Speed Test**:
 The specific diagnostic Exercise in the Speed Test & Practice Track that measures a Player's current WPM and accuracy, used to seed their Weak-key Profile before any targeted practice is generated.
 _Avoid_: Placement test, Assessment
