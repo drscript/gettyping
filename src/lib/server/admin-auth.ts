@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import type { Cookies } from '@sveltejs/kit';
+import { createFixedWindowRateLimiter } from './rate-limiter';
 
 export const adminSessionCookieName = 'gettyping_admin_session';
 export const adminLoginPath = '/admin/login';
@@ -17,42 +18,22 @@ export function isValidAdminToken(candidate: string | undefined | null): boolean
 	return timingSafeEqual(expectedBuffer, candidateBuffer);
 }
 
-const loginRateLimitWindowMs = 15 * 60 * 1000;
-const loginRateLimitMaxAttempts = 5;
-
-interface LoginAttemptWindow {
-	count: number;
-	windowStart: number;
-}
-
-const failedLoginAttemptsByIp = new Map<string, LoginAttemptWindow>();
+const loginRateLimiter = createFixedWindowRateLimiter({
+	windowMs: 15 * 60 * 1000,
+	maxAttempts: 5
+});
 
 /** Seconds until the caller's failed-attempt window resets, or null if they're not currently limited. */
 export function adminLoginRateLimitStatus(ip: string): number | null {
-	const attempt = failedLoginAttemptsByIp.get(ip);
-	if (!attempt) return null;
-
-	const elapsedMs = Date.now() - attempt.windowStart;
-	if (elapsedMs >= loginRateLimitWindowMs) return null;
-	if (attempt.count < loginRateLimitMaxAttempts) return null;
-
-	return Math.ceil((loginRateLimitWindowMs - elapsedMs) / 1000);
+	return loginRateLimiter.status(ip);
 }
 
 export function recordFailedAdminLogin(ip: string): void {
-	const now = Date.now();
-	const attempt = failedLoginAttemptsByIp.get(ip);
-
-	if (!attempt || now - attempt.windowStart >= loginRateLimitWindowMs) {
-		failedLoginAttemptsByIp.set(ip, { count: 1, windowStart: now });
-		return;
-	}
-
-	attempt.count += 1;
+	loginRateLimiter.recordFailure(ip);
 }
 
 export function recordSuccessfulAdminLogin(ip: string): void {
-	failedLoginAttemptsByIp.delete(ip);
+	loginRateLimiter.recordSuccess(ip);
 }
 
 export function hasValidAdminSession(cookies: Cookies): boolean {
