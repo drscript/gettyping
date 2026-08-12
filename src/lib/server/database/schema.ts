@@ -97,3 +97,13 @@ export const attemptTokens = sqliteTable(
 	},
 	(table) => [index('attempt_tokens_player_served_at_idx').on(table.playerId, table.servedAt)]
 );
+
+export const transferCodes = sqliteTable(
+	'transfer_codes',
+	{
+		code: text('code').primaryKey(),
+		playerId: text('player_id').notNull().references(() => players.id),
+		createdAt: integer('created_at').notNull()
+	},
+	(table) => [index('transfer_codes_player_id_idx').on(table.playerId)]
+);

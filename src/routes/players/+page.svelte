@@ -1,7 +1,39 @@
 <script lang="ts">
 	import TaskMasthead from '$lib/components/TaskMasthead.svelte';
+	import { formatTransferCodeForDisplay } from '$lib/transfer-code';
 
 	let { data, form } = $props();
+
+	let pickerDialog: HTMLDialogElement | undefined = $state();
+	let codeDialog: HTMLDialogElement | undefined = $state();
+	let copied = $state(false);
+
+	function openPicker(): void {
+		copied = false;
+		pickerDialog?.showModal();
+	}
+
+	async function copyCode(code: string): Promise<void> {
+		try {
+			await navigator.clipboard.writeText(code);
+			copied = true;
+		} catch {
+			copied = false;
+		}
+	}
+
+	function closeOnBackdropClick(dialog: HTMLDialogElement | undefined) {
+		return (event: MouseEvent) => {
+			if (event.target === dialog) dialog?.close();
+		};
+	}
+
+	$effect(() => {
+		if (form?.code && codeDialog && !codeDialog.open) {
+			pickerDialog?.close();
+			codeDialog.showModal();
+		}
+	});
 </script>
 
 <svelte:head>
@@ -20,6 +52,14 @@
 	/>
 
 	<div class="task-body">
+		{#if data.players.length > 0}
+			<section class="panel transfer-cta">
+				<h2>Move to another device</h2>
+				<p>Generate a short code, then enter it on the other device to bring a Player along.</p>
+				<button type="button" class="transfer-cta-button" onclick={openPicker}>Get a code</button>
+			</section>
+		{/if}
+
 		<section class="player-list" aria-label="Players on this device">
 			{#each data.players as player}
 				<form method="POST" action="?/switch">
@@ -82,6 +122,48 @@
 		</section>
 	</div>
 </main>
+
+<dialog
+	bind:this={pickerDialog}
+	class="transfer-dialog"
+	aria-labelledby="transfer-picker-title"
+	onclick={closeOnBackdropClick(pickerDialog)}
+>
+	<h2 id="transfer-picker-title">Get a code for…</h2>
+	<p>Pick which Player you want to move to another device.</p>
+	<ul class="transfer-picker-list">
+		{#each data.players as player}
+			<li>
+				<form method="POST" action="?/generate">
+					<input type="hidden" name="playerId" value={player.id} />
+					<button type="submit">{player.nickname}</button>
+				</form>
+			</li>
+		{/each}
+	</ul>
+	<button type="button" class="transfer-dialog-close" onclick={() => pickerDialog?.close()}>
+		Cancel
+	</button>
+</dialog>
+
+<dialog
+	bind:this={codeDialog}
+	class="transfer-dialog"
+	aria-labelledby="transfer-code-title"
+	onclick={closeOnBackdropClick(codeDialog)}
+>
+	{#if form?.code}
+		<h2 id="transfer-code-title">{form.nickname}'s code</h2>
+		<p>Enter this on the other device within 10 minutes.</p>
+		<p class="transfer-code" aria-live="polite">{formatTransferCodeForDisplay(form.code)}</p>
+		<button type="button" class="transfer-copy" onclick={() => copyCode(form?.code ?? '')}>
+			{copied ? 'Copied!' : 'Copy code'}
+		</button>
+	{/if}
+	<button type="button" class="transfer-dialog-close" onclick={() => codeDialog?.close()}>
+		Done
+	</button>
+</dialog>
 
 <style>
 	main {
@@ -199,6 +281,90 @@
 		color: var(--muted);
 		font-size: 0.86rem;
 		line-height: 1.55;
+	}
+
+	.transfer-cta { margin-top: 0; margin-bottom: 1.25rem; }
+
+	.transfer-cta-button {
+		padding: 0.75rem 1.15rem;
+		border: 0;
+		border-radius: 999px;
+		margin-top: 1.1rem;
+		background: var(--indigo);
+		color: #fff;
+		cursor: pointer;
+		font-weight: 800;
+		box-shadow: 0 5px 0 var(--night);
+		transition: transform 140ms var(--ease-pop), box-shadow 140ms var(--ease-pop);
+	}
+
+	.transfer-cta-button:hover { transform: translateY(-2px); }
+	.transfer-cta-button:active { box-shadow: none; transform: translateY(4px); }
+
+	.transfer-dialog {
+		width: min(92vw, 26rem);
+		padding: 1.5rem;
+		border: 0;
+		border-radius: 1.5rem;
+		background: var(--card);
+		color: var(--ink);
+		box-shadow: var(--shadow-paper);
+	}
+
+	.transfer-dialog::backdrop { background: rgb(33 24 95 / 45%); }
+
+	.transfer-dialog h2 { margin: 0; font-family: var(--font-rounded); font-size: 1.2rem; }
+	.transfer-dialog > p { margin: 0.5rem 0 0; color: var(--muted); font-size: 0.86rem; line-height: 1.5; }
+
+	.transfer-picker-list { display: grid; gap: 0.6rem; padding: 0; margin: 1.1rem 0 0; list-style: none; }
+	.transfer-picker-list form { margin: 0; }
+
+	.transfer-picker-list button {
+		width: 100%;
+		padding: 0.75rem 1rem;
+		border: 2px solid var(--line);
+		border-radius: 1rem;
+		background: #fff;
+		color: var(--ink);
+		cursor: pointer;
+		font-weight: 700;
+		text-align: left;
+	}
+
+	.transfer-code {
+		padding: 0.9rem 1rem;
+		border-radius: 1rem;
+		margin: 1rem 0 0;
+		background: var(--paper-deep);
+		color: var(--ink);
+		font: 700 1.4rem var(--font-mono);
+		letter-spacing: 0.08em;
+		text-align: center;
+	}
+
+	.transfer-copy {
+		width: 100%;
+		padding: 0.75rem 1.15rem;
+		border: 0;
+		border-radius: 999px;
+		margin-top: 1rem;
+		background: var(--mint);
+		color: var(--night);
+		cursor: pointer;
+		font-weight: 800;
+		box-shadow: 0 5px 0 var(--mint-deep);
+	}
+
+	.transfer-dialog-close {
+		width: 100%;
+		padding: 0.65rem 1rem;
+		border: 2px solid var(--line);
+		border-radius: 999px;
+		margin-top: 0.75rem;
+		background: transparent;
+		color: var(--muted);
+		cursor: pointer;
+		font-weight: 700;
 	}
 
 	.track-links { display: flex; gap: 0.75rem; margin-top: 1.1rem; flex-wrap: wrap; }

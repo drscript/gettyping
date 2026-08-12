@@ -9,6 +9,7 @@ const expectedTables = [
 	'scores',
 	'stage_unlocks',
 	'stages',
+	'transfer_codes',
 	'weak_key_stats'
 ];
 
