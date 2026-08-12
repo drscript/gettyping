@@ -3,8 +3,27 @@ import { eq, lt } from 'drizzle-orm';
 import { transferCodeAlphabet, transferCodeLength } from '$lib/transfer-code';
 import { getDatabase } from './database';
 import { transferCodes } from './database/schema';
+import { createFixedWindowRateLimiter } from './rate-limiter';
 
 export const transferCodeTtlMs = 10 * 60 * 1000;
+
+const redeemRateLimiter = createFixedWindowRateLimiter({
+	windowMs: 60 * 1000,
+	maxAttempts: 10
+});
+
+/** Seconds until the caller's failed-attempt window resets, or null if they're not currently limited. */
+export function redeemRateLimitStatus(ip: string): number | null {
+	return redeemRateLimiter.status(ip);
+}
+
+export function recordFailedRedeem(ip: string): void {
+	redeemRateLimiter.recordFailure(ip);
+}
+
+export function recordSuccessfulRedeem(ip: string): void {
+	redeemRateLimiter.recordSuccess(ip);
+}
 
 type Transaction = Parameters<Parameters<ReturnType<typeof getDatabase>['transaction']>[0]>[0];
 

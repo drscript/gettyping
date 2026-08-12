@@ -11,7 +11,14 @@ import {
 	type IdentityCookie
 } from '$lib/server/identity';
 import { acceptedNicknameChoice } from '$lib/server/nickname-policy';
-import { consumeTransferCode, findTransferCode, generateTransferCode } from '$lib/server/transfer-codes';
+import {
+	consumeTransferCode,
+	findTransferCode,
+	generateTransferCode,
+	recordFailedRedeem,
+	recordSuccessfulRedeem,
+	redeemRateLimitStatus
+} from '$lib/server/transfer-codes';
 import type { Actions, PageServerLoad } from './$types';
 
 const invalidOrExpiredCodeMessage = 'That code is invalid or has expired.';
@@ -104,23 +111,37 @@ export const actions: Actions = {
 		const code = generateTransferCode(lookup.player.id);
 		return { code, nickname: lookup.player.nickname };
 	},
-	redeem: async ({ cookies, request, url }) => {
+	redeem: async ({ cookies, request, url, getClientAddress, setHeaders }) => {
 		const identity = readIdentity(cookies);
 		if (!identity) redirect(303, '/');
+
+		const ip = getClientAddress();
+		const retryAfterSeconds = redeemRateLimitStatus(ip);
+		if (retryAfterSeconds !== null) {
+			setHeaders({ 'retry-after': String(retryAfterSeconds) });
+			return fail(429, {
+				redeemError: `Too many attempts. Try again in ${Math.ceil(retryAfterSeconds / 60)} minute(s).`
+			});
+		}
 
 		const data = await request.formData();
 		const code = data.get('code');
 		if (typeof code !== 'string' || !isWellFormedTransferCode(code)) {
+			recordFailedRedeem(ip);
 			return fail(400, { redeemError: invalidOrExpiredCodeMessage });
 		}
 
 		const found = findTransferCode(code);
-		if (!found) return fail(400, { redeemError: invalidOrExpiredCodeMessage });
+		if (!found) {
+			recordFailedRedeem(ip);
+			return fail(400, { redeemError: invalidOrExpiredCodeMessage });
+		}
 
 		if (!deviceHasRoomForAnotherPlayer(identity)) {
 			return fail(400, { redeemError: deviceFullMessage });
 		}
 
+		recordSuccessfulRedeem(ip);
 		consumeTransferCode(code);
 		const linkedPlayers = identity.players.includes(found.playerId)
 			? identity.players
