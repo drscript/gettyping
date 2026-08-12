@@ -10,6 +10,12 @@ export interface IdentityCookie {
 
 const fiveYearsInSeconds = 60 * 60 * 24 * 365 * 5;
 
+export const identityPlayerCap = 20;
+
+export function deviceHasRoomForAnotherPlayer(identity: IdentityCookie): boolean {
+	return identity.players.length < identityPlayerCap;
+}
+
 function isIdentityCookie(value: unknown): value is IdentityCookie {
 	if (!value || typeof value !== 'object') return false;
 

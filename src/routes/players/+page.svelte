@@ -1,16 +1,26 @@
 <script lang="ts">
 	import TaskMasthead from '$lib/components/TaskMasthead.svelte';
-	import { formatTransferCodeForDisplay } from '$lib/transfer-code';
+	import { formatTransferCodeForDisplay, transferCodeLength } from '$lib/transfer-code';
 
 	let { data, form } = $props();
 
 	let pickerDialog: HTMLDialogElement | undefined = $state();
 	let codeDialog: HTMLDialogElement | undefined = $state();
+	let redeemDialog: HTMLDialogElement | undefined = $state();
 	let copied = $state(false);
+	let redeemDigits = $state<string[]>(Array(transferCodeLength).fill(''));
+	let redeemInputs: (HTMLInputElement | undefined)[] = [];
+
+	const enteredCode = $derived(redeemDigits.join(''));
 
 	function openPicker(): void {
 		copied = false;
 		pickerDialog?.showModal();
+	}
+
+	function openRedeemPicker(): void {
+		redeemDialog?.showModal();
+		redeemInputs[0]?.focus();
 	}
 
 	async function copyCode(code: string): Promise<void> {
@@ -28,10 +38,32 @@
 		};
 	}
 
+	function handleRedeemDigitInput(index: number) {
+		return (event: Event) => {
+			const input = event.currentTarget as HTMLInputElement;
+			const value = input.value.toUpperCase().slice(-1);
+			redeemDigits[index] = value;
+			if (value && index < redeemDigits.length - 1) redeemInputs[index + 1]?.focus();
+		};
+	}
+
+	function handleRedeemDigitKeydown(index: number) {
+		return (event: KeyboardEvent) => {
+			if (event.key !== 'Backspace' || redeemDigits[index] || index === 0) return;
+			event.preventDefault();
+			redeemDigits[index - 1] = '';
+			redeemInputs[index - 1]?.focus();
+		};
+	}
+
 	$effect(() => {
 		if (form?.code && codeDialog && !codeDialog.open) {
 			pickerDialog?.close();
 			codeDialog.showModal();
+		}
+		if (form?.redeemError && redeemDialog && !redeemDialog.open) {
+			redeemDialog.showModal();
+			redeemInputs[0]?.focus();
 		}
 	});
 </script>
@@ -56,7 +88,12 @@
 			<section class="panel transfer-cta">
 				<h2>Move to another device</h2>
 				<p>Generate a short code, then enter it on the other device to bring a Player along.</p>
-				<button type="button" class="transfer-cta-button" onclick={openPicker}>Get a code</button>
+				<div class="transfer-cta-actions">
+					<button type="button" class="transfer-cta-button" onclick={openPicker}>Get a code</button>
+					<button type="button" class="transfer-cta-button secondary" onclick={openRedeemPicker}>
+						I have a code
+					</button>
+				</div>
 			</section>
 		{/if}
 
@@ -162,6 +199,44 @@
 	{/if}
 	<button type="button" class="transfer-dialog-close" onclick={() => codeDialog?.close()}>
 		Done
+	</button>
+</dialog>
+
+<dialog
+	bind:this={redeemDialog}
+	class="transfer-dialog"
+	aria-labelledby="transfer-redeem-title"
+	onclick={closeOnBackdropClick(redeemDialog)}
+>
+	<h2 id="transfer-redeem-title">I have a code</h2>
+	<p>Enter the 8-character code from the other device.</p>
+	{#if form?.redeemError}<p class="redeem-error" role="alert">{form.redeemError}</p>{/if}
+	<form method="POST" action="?/redeem">
+		<input type="hidden" name="code" value={enteredCode} />
+		<div class="code-boxes" role="group" aria-label="8-character transfer code">
+			{#each redeemDigits as digit, index}
+				<input
+					class="code-box"
+					type="text"
+					inputmode="text"
+					autocapitalize="characters"
+					autocomplete="off"
+					spellcheck="false"
+					maxlength="1"
+					value={digit}
+					bind:this={redeemInputs[index]}
+					oninput={handleRedeemDigitInput(index)}
+					onkeydown={handleRedeemDigitKeydown(index)}
+					aria-label={`Character ${index + 1} of 8`}
+				/>
+			{/each}
+		</div>
+		<button type="submit" class="transfer-cta-button" disabled={enteredCode.length < transferCodeLength}>
+			Redeem code
+		</button>
+	</form>
+	<button type="button" class="transfer-dialog-close" onclick={() => redeemDialog?.close()}>
+		Cancel
 	</button>
 </dialog>
 
@@ -300,6 +375,47 @@
 
 	.transfer-cta-button:hover { transform: translateY(-2px); }
 	.transfer-cta-button:active { box-shadow: none; transform: translateY(4px); }
+	.transfer-cta-button:disabled { cursor: not-allowed; opacity: 0.5; transform: none; box-shadow: 0 5px 0 var(--night); }
+
+	.transfer-cta-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.1rem; }
+	.transfer-cta-actions .transfer-cta-button { margin-top: 0; }
+
+	.transfer-cta-button.secondary {
+		background: #fff;
+		color: var(--indigo);
+		box-shadow: 0 5px 0 var(--line-strong);
+	}
+
+	.code-boxes { display: flex; gap: 0.5rem; margin: 1.1rem 0; justify-content: center; }
+
+	.code-box {
+		width: 2.4rem;
+		height: 2.9rem;
+		padding: 0;
+		border: 2px solid var(--line-strong);
+		border-radius: 0.75rem;
+		background: var(--card);
+		color: var(--ink);
+		font: 700 1.3rem var(--font-mono);
+		text-align: center;
+		text-transform: uppercase;
+	}
+
+	.code-box:focus-visible {
+		border-color: var(--indigo-active);
+		outline: 3px solid var(--indigo-active);
+		outline-offset: 2px;
+	}
+
+	.redeem-error {
+		padding: 0.75rem 0.95rem;
+		border-radius: 0.9rem;
+		margin: 1rem 0 0;
+		background: var(--incorrect-fill);
+		color: var(--incorrect-ink);
+		font-size: 0.85rem;
+		font-weight: 700;
+	}
 
 	.transfer-dialog {
 		width: min(92vw, 26rem);

@@ -1,12 +1,21 @@
 import { eq, inArray } from 'drizzle-orm';
 import { fail, redirect } from '@sveltejs/kit';
 import { curatedNicknames } from '$lib/nicknames';
+import { isWellFormedTransferCode } from '$lib/transfer-code';
 import { getDatabase } from '$lib/server/database';
 import { players } from '$lib/server/database/schema';
-import { readIdentity, writeIdentity, type IdentityCookie } from '$lib/server/identity';
+import {
+	deviceHasRoomForAnotherPlayer,
+	readIdentity,
+	writeIdentity,
+	type IdentityCookie
+} from '$lib/server/identity';
 import { acceptedNicknameChoice } from '$lib/server/nickname-policy';
-import { generateTransferCode } from '$lib/server/transfer-codes';
+import { consumeTransferCode, findTransferCode, generateTransferCode } from '$lib/server/transfer-codes';
 import type { Actions, PageServerLoad } from './$types';
+
+const invalidOrExpiredCodeMessage = 'That code is invalid or has expired.';
+const deviceFullMessage = 'This device already has the maximum number of Players.';
 
 type PlayerLookup = { player: { id: string; nickname: string } } | { error: string };
 
@@ -94,5 +103,33 @@ export const actions: Actions = {
 
 		const code = generateTransferCode(lookup.player.id);
 		return { code, nickname: lookup.player.nickname };
+	},
+	redeem: async ({ cookies, request, url }) => {
+		const identity = readIdentity(cookies);
+		if (!identity) redirect(303, '/');
+
+		const data = await request.formData();
+		const code = data.get('code');
+		if (typeof code !== 'string' || !isWellFormedTransferCode(code)) {
+			return fail(400, { redeemError: invalidOrExpiredCodeMessage });
+		}
+
+		const found = findTransferCode(code);
+		if (!found) return fail(400, { redeemError: invalidOrExpiredCodeMessage });
+
+		if (!deviceHasRoomForAnotherPlayer(identity)) {
+			return fail(400, { redeemError: deviceFullMessage });
+		}
+
+		consumeTransferCode(code);
+		const linkedPlayers = identity.players.includes(found.playerId)
+			? identity.players
+			: [...identity.players, found.playerId];
+		writeIdentity(
+			cookies,
+			{ ...identity, players: linkedPlayers, active: found.playerId },
+			url.protocol === 'https:'
+		);
+		redirect(303, '/');
 	}
 };
