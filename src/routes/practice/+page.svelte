@@ -103,7 +103,7 @@
 								<kbd>{item.key}</kbd>
 								<span>{Math.round(item.before * 100)}%</span>
 								<span aria-hidden="true">→</span>
-								<strong>{item.after === null ? 'below the sample floor' : `${Math.round(item.after * 100)}%`}</strong>
+								<strong>{item.after === null ? 'not enough tries yet' : `${Math.round(item.after * 100)}%`}</strong>
 							</div>
 						{/each}
 					</div>
