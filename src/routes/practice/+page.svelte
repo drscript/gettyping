@@ -6,11 +6,11 @@
 		type TypedScore
 	} from '$lib/components/TypingAttempt.svelte';
 
-	type PracticeMode = 'word-bank' | 'bigram';
+	type PracticeMode = 'sentence' | 'bigram';
 	interface WeakKeyProfileItem { key: string; weakness: number }
 	interface PracticeAttempt extends AttemptToType { exercise: { content: string; mode: PracticeMode } }
 
-	let mode = $state<PracticeMode>('word-bank');
+	let mode = $state<PracticeMode>('sentence');
 	let attempt = $state<PracticeAttempt>();
 	let score = $state<TypedScore>();
 	let startingWeakKeyProfile = $state<WeakKeyProfileItem[]>([]);
@@ -126,8 +126,8 @@
 				</div>
 				<div class="mode-choice" role="group" aria-label="Next Practice style">
 					<span>Next style</span>
-					<button class:active={mode === 'word-bank'} aria-pressed={mode === 'word-bank'} type="button" onclick={() => (mode = 'word-bank')}>Readable words</button>
-					<button class:active={mode === 'bigram'} aria-pressed={mode === 'bigram'} type="button" onclick={() => (mode = 'bigram')}>Intense bigrams</button>
+					<button class:active={mode === 'sentence'} aria-pressed={mode === 'sentence'} type="button" onclick={() => (mode = 'sentence')}>Sentences</button>
+					<button class:active={mode === 'bigram'} aria-pressed={mode === 'bigram'} type="button" onclick={() => (mode = 'bigram')}>Focused bigrams</button>
 				</div>
 				<div class="actions">
 					<button class="primary" type="button" onclick={startPractice}>Next Exercise →</button>
@@ -140,7 +140,7 @@
 					{attempt}
 					endpoint="/api/attempts/practice"
 					track="speed-test-practice"
-					label={`Practice · ${attempt.exercise.mode === 'word-bank' ? 'readable words' : 'focused bigrams'}`}
+					label={`Practice · ${attempt.exercise.mode === 'sentence' ? 'sentences' : 'focused bigrams'}`}
 					heading="Work on what slows you down"
 					oncomplete={(body) => {
 						score = body.score;

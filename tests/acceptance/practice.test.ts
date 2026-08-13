@@ -4,7 +4,7 @@ import { startTestServer, type TestServer } from './server';
 
 interface StartedPracticeAttempt {
 	token: string;
-	exercise: { content: string; mode: 'word-bank' | 'bigram' };
+	exercise: { content: string; mode: 'sentence' | 'bigram' };
 }
 
 interface KeystrokeEvent {
@@ -49,6 +49,49 @@ function completeSpeedTest(databasePath: string, nickname: string): void {
 	database.close();
 }
 
+function recordLearnScore(
+	databasePath: string,
+	nickname: string,
+	stageId: number,
+	accuracy: number
+): void {
+	const database = new Database(databasePath);
+	const player = database
+		.prepare('SELECT id FROM players WHERE nickname = ?')
+		.get(nickname) as { id: string };
+	database
+		.prepare(
+			`INSERT INTO scores
+			 (player_id, exercise_id, nickname, net_wpm, gross_wpm, accuracy, elapsed_ms,
+			  char_count, error_count, leaderboard_eligible, created_at)
+			 VALUES (?, ?, ?, 20, 20, ?, 60000, 100, 0, 1, ?)`
+		)
+		.run(player.id, stageId, nickname, accuracy, Date.now());
+	database.close();
+}
+
+function clearLearnStages(databasePath: string, nickname: string, throughStageId: number): void {
+	for (let stageId = 1; stageId <= throughStageId; stageId += 1) {
+		recordLearnScore(databasePath, nickname, stageId, 1);
+	}
+}
+
+async function anyDrawMatches(
+	server: TestServer,
+	cookie: string,
+	pattern: RegExp,
+	attempts = 15
+): Promise<boolean> {
+	for (let attempt = 0; attempt < attempts; attempt += 1) {
+		const response = await fetch(`${server.baseUrl}/api/attempts/practice?mode=sentence`, {
+			headers: { cookie }
+		});
+		const started = (await response.json()) as StartedPracticeAttempt;
+		if (pattern.test(started.exercise.content)) return true;
+	}
+	return false;
+}
+
 function perfectEvents(content: string): KeystrokeEvent[] {
 	return [...content].map((character, index) => ({
 		expected: character,
@@ -71,7 +114,7 @@ describe('Practice', () => {
 		await server?.stop();
 	});
 
-	test('serves readable generated text from a server-side handshake without creating an Exercise', async () => {
+	test('serves readable Sentence-mode text from a server-side handshake without creating an Exercise, drawn from the full-alphabet fallback pool', async () => {
 		const cookie = await createPlayer(server, 'PracticePika');
 		completeSpeedTest(server.databasePath, 'PracticePika');
 		const databaseBefore = new Database(server.databasePath, { readonly: true });
@@ -80,14 +123,15 @@ describe('Practice', () => {
 			.get() as { count: number };
 		databaseBefore.close();
 
-		const response = await fetch(`${server.baseUrl}/api/attempts/practice?mode=word-bank`, {
+		const response = await fetch(`${server.baseUrl}/api/attempts/practice?mode=sentence`, {
 			headers: { cookie }
 		});
 		const started = (await response.json()) as StartedPracticeAttempt;
 
 		expect(response.status).toBe(200);
-		expect(started.exercise.mode).toBe('word-bank');
-		expect(started.exercise.content).toMatch(/^[a-z]+(?: [a-z]+){7,}$/);
+		expect(started.exercise.mode).toBe('sentence');
+		// No Learn Scores yet -> full lowercase alphabet only: no capitals, digits, or punctuation.
+		expect(started.exercise.content).toMatch(/^[a-z]+(?: [a-z]+)+$/);
 
 		const database = new Database(server.databasePath, { readonly: true });
 		const handshake = database
@@ -103,6 +147,77 @@ describe('Practice', () => {
 
 		expect(handshake).toEqual({ exerciseId: null, generatedContent: started.exercise.content });
 		expect(exerciseCountAfter).toEqual(exerciseCountBefore);
+	});
+
+	test('rejects the retired word-bank mode', async () => {
+		const cookie = await createPlayer(server, 'RetiredRaven');
+		completeSpeedTest(server.databasePath, 'RetiredRaven');
+
+		const response = await fetch(`${server.baseUrl}/api/attempts/practice?mode=word-bank`, {
+			headers: { cookie }
+		});
+
+		expect(response.status).toBe(400);
+	});
+
+	test('a Player who started Learn but cleared nothing gets a Stage-1-only pool', async () => {
+		const nickname = 'StuckStarling';
+		const cookie = await createPlayer(server, nickname);
+		completeSpeedTest(server.databasePath, nickname);
+		recordLearnScore(server.databasePath, nickname, 1, 0.2); // failing Stage 1 Attempt
+
+		const response = await fetch(`${server.baseUrl}/api/attempts/practice?mode=sentence`, {
+			headers: { cookie }
+		});
+		const started = (await response.json()) as StartedPracticeAttempt;
+
+		expect(response.status).toBe(200);
+		// Stage 1's cumulative key set is exactly {f, j}: no sentences are playable yet,
+		// so this retires to the Stage-1 letters entries.
+		expect(started.exercise.content).toMatch(/^[fj]+(?: [fj]+)+$/);
+	});
+
+	test('capital-bearing sentences appear only once Stage 14 is cleared', async () => {
+		const nickname = 'ClearedCrane';
+		const cookie = await createPlayer(server, nickname);
+		completeSpeedTest(server.databasePath, nickname);
+		clearLearnStages(server.databasePath, nickname, 14);
+
+		const response = await fetch(`${server.baseUrl}/api/attempts/practice?mode=sentence`, {
+			headers: { cookie }
+		});
+		const started = (await response.json()) as StartedPracticeAttempt;
+
+		expect(response.status).toBe(200);
+		// Stage 15 ({',', '.'}) and 16 ({"'", '?', '!'}) aren't cleared/current yet; no digits either.
+		expect(started.exercise.content).not.toMatch(/[,.'?!0-9]/);
+		// Shift is cleared/current, so capital-bearing entries are reachable across enough draws.
+		expect(await anyDrawMatches(server, cookie, /[A-Z]/)).toBe(true);
+	});
+
+	test('comma/period appear only once Stage 15 is cleared, apostrophe/?/! only once Stage 16 is cleared', async () => {
+		const throughStage15 = 'PunctuatedPigeon';
+		const cookieAt15 = await createPlayer(server, throughStage15);
+		completeSpeedTest(server.databasePath, throughStage15);
+		clearLearnStages(server.databasePath, throughStage15, 15);
+
+		expect(await anyDrawMatches(server, cookieAt15, /[,.]/)).toBe(true);
+
+		const throughStage16 = 'QuizzicalQuail';
+		const cookieAt16 = await createPlayer(server, throughStage16);
+		completeSpeedTest(server.databasePath, throughStage16);
+		clearLearnStages(server.databasePath, throughStage16, 16);
+
+		expect(await anyDrawMatches(server, cookieAt16, /['?!]/)).toBe(true);
+	});
+
+	test('digits appear once their Stage is cleared', async () => {
+		const nickname = 'FinishedFalcon';
+		const cookie = await createPlayer(server, nickname);
+		completeSpeedTest(server.databasePath, nickname);
+		clearLearnStages(server.databasePath, nickname, 21);
+
+		expect(await anyDrawMatches(server, cookie, /[0-9]/)).toBe(true);
 	});
 
 	test('submits generated text through the shared Attempt path and updates the Profile', async () => {
@@ -170,18 +285,20 @@ describe('Practice', () => {
 		database.close();
 
 		await server.restart();
-		const firstResponse = await fetch(`${server.baseUrl}/api/attempts/practice?mode=word-bank`, {
+		const firstResponse = await fetch(`${server.baseUrl}/api/attempts/practice?mode=sentence`, {
 			headers: { cookie }
 		});
 		const first = (await firstResponse.json()) as StartedPracticeAttempt;
 		await server.restart();
-		const secondResponse = await fetch(`${server.baseUrl}/api/attempts/practice?mode=word-bank`, {
+		const secondResponse = await fetch(`${server.baseUrl}/api/attempts/practice?mode=sentence`, {
 			headers: { cookie }
 		});
 		const second = (await secondResponse.json()) as StartedPracticeAttempt;
 
 		expect(first.exercise.content).toBe(second.exercise.content);
-		expect(first.exercise.content.split(' ').every((word) => word.includes('q'))).toBe(true);
+		// targetingAggressiveness is 1 for this server, so the first draw is guaranteed
+		// to be an entry containing the weakest key ('q' outranks 'z' here).
+		expect(first.exercise.content).toContain('q');
 	});
 });
 

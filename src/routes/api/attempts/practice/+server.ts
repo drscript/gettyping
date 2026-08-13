@@ -2,8 +2,10 @@ import { and, eq } from 'drizzle-orm';
 import { error, json } from '@sveltejs/kit';
 import { requireActivePlayer } from '$lib/server/active-player';
 import { completeAttempt, createAttemptHandshake } from '$lib/server/attempts';
+import { cumulativeKeySet } from '$lib/server/cumulative-key-set';
 import { getDatabase } from '$lib/server/database';
 import { scores, weakKeyStats } from '$lib/server/database/schema';
+import { corpus } from '$lib/server/practice-corpus';
 import {
 	generatePracticeContent,
 	type PracticeMode
@@ -14,7 +16,7 @@ import { scoreWeakKeyProfile } from '$lib/server/weak-key-profile';
 import type { RequestHandler } from './$types';
 
 function readMode(value: string | null): PracticeMode {
-	if (value === null || value === 'word-bank') return 'word-bank';
+	if (value === null || value === 'sentence') return 'sentence';
 	if (value === 'bigram') return value;
 	error(400, 'Unknown Practice mode');
 }
@@ -53,7 +55,9 @@ export const GET: RequestHandler = ({ cookies, url }) => {
 		mode,
 		weaknessByKey,
 		runtime.targetingAggressiveness,
-		generationRandom
+		generationRandom,
+		corpus,
+		cumulativeKeySet(database, player.id)
 	);
 
 	const token = createAttemptHandshake(player.id, { kind: 'generated', content });
