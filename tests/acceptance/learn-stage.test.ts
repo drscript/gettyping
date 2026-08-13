@@ -241,7 +241,8 @@ describe('Learn Stage gate', () => {
 				achievedAccuracy: 0.89,
 				requiredAccuracy: 0.9,
 				nextStageId: null,
-				adultHelpAvailable: false
+				adultHelpAvailable: false,
+				stretchAvailable: false
 			}
 		});
 		expect(firstBody).not.toHaveProperty('leaderboard');
@@ -258,7 +259,8 @@ describe('Learn Stage gate', () => {
 			achievedAccuracy: 0.89,
 			requiredAccuracy: 0.9,
 			nextStageId: null,
-			adultHelpAvailable: true
+			adultHelpAvailable: true,
+			stretchAvailable: true
 		});
 		const database = new Database(server.databasePath, { readonly: true });
 		const scoreCount = database

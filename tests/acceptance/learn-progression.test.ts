@@ -101,6 +101,7 @@ describe('Learn progression, replay, completion, and authored content', () => {
 	beforeAll(async () => {
 		server = await startTestServer({
 			CONSECUTIVE_FAILURE_COUNT: '2',
+			STRETCH_OFFER_COUNT: '1',
 			LEADERBOARD_DISPLAY_THRESHOLD: '1',
 			NET_WPM_CEILING: '100'
 		});

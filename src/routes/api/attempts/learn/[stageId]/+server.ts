@@ -70,10 +70,12 @@ export const POST: RequestHandler = async ({ cookies, params, request }) => {
 	);
 	const cleared = alreadyResolved || completed.score.accuracy >= learnAccuracyThreshold;
 	const completedTrack = cleared && stageId === 21;
-	const adultHelpAvailable =
-		!cleared &&
-		consecutiveStageFailures(getDatabase(), completed.playerId, stageId) >=
-			getRuntimeConfiguration().consecutiveFailureCount;
+	const runtime = getRuntimeConfiguration();
+	const failureStreak = cleared
+		? 0
+		: consecutiveStageFailures(getDatabase(), completed.playerId, stageId);
+	const adultHelpAvailable = !cleared && failureStreak >= runtime.consecutiveFailureCount;
+	const stretchAvailable = !cleared && failureStreak >= runtime.stretchOfferCount;
 	return json({
 		score: completed.score,
 		...(cleared && completed.exerciseId !== null
@@ -90,7 +92,7 @@ export const POST: RequestHandler = async ({ cookies, params, request }) => {
 			achievedAccuracy: completed.score.accuracy,
 			requiredAccuracy: learnAccuracyThreshold,
 			nextStageId: cleared && stageId < 21 ? stageId + 1 : null,
-			...(!cleared ? { adultHelpAvailable } : {})
+			...(!cleared ? { adultHelpAvailable, stretchAvailable } : {})
 		}
 	});
 };

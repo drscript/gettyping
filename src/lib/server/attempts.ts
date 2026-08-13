@@ -29,7 +29,7 @@ export interface DerivedScore {
 	errorCount: number;
 }
 
-export type AttemptKind = 'speed-test' | 'practice' | 'learn';
+export type AttemptKind = 'speed-test' | 'practice' | 'learn' | 'stretch';
 
 interface AttemptSubmission {
 	token: string;
@@ -159,17 +159,35 @@ function handshakeMatchesKind(
 	kind: AttemptKind,
 	handshake: { exerciseId: number | null; track: 'learn' | 'speed_test' | null }
 ): boolean {
-	if (kind === 'practice') return handshake.exerciseId === null;
+	// Practice and Stretch are both generated, non-exercise content and are
+	// genuinely indistinguishable at this row's shape (zero schema change,
+	// per the Finger-stretch decision) — a token served by one is technically
+	// redeemable at the other. Accepted: neither touches Stage progression or
+	// a Leaderboard, so the worst case is a scoreless/scored mismatch.
+	if (kind === 'practice' || kind === 'stretch') return handshake.exerciseId === null;
 	if (kind === 'speed-test') return handshake.track === 'speed_test';
 	return handshake.track === 'learn';
 }
 
-export async function completeAttempt(
+interface ResolvedAttempt {
+	handshake: {
+		id: string;
+		playerId: string;
+		exerciseId: number | null;
+		stageId: number | null;
+		nickname: string;
+		servedAt: number;
+	};
+	submission: AttemptSubmission;
+	derived: Omit<DerivedScore, 'id'>;
+}
+
+async function resolveAttempt(
 	cookies: Cookies,
 	request: Request,
 	kind: AttemptKind,
 	expectedStageId?: number
-): Promise<CompletedAttempt | undefined> {
+): Promise<ResolvedAttempt | undefined> {
 	const identity = readIdentity(cookies);
 	if (!identity) return undefined;
 
@@ -223,6 +241,20 @@ export async function completeAttempt(
 	);
 	if (!derived) return undefined;
 
+	return { handshake, submission, derived };
+}
+
+export async function completeAttempt(
+	cookies: Cookies,
+	request: Request,
+	kind: AttemptKind,
+	expectedStageId?: number
+): Promise<CompletedAttempt | undefined> {
+	const resolved = await resolveAttempt(cookies, request, kind, expectedStageId);
+	if (!resolved) return undefined;
+	const { handshake, submission, derived } = resolved;
+
+	const database = getDatabase();
 	const createdAt = Date.now();
 	const observedElapsedMs = createdAt - handshake.servedAt;
 	const observedElapsedMinutes = observedElapsedMs / 60_000;
@@ -262,4 +294,29 @@ export async function completeAttempt(
 		exerciseId: handshake.exerciseId,
 		stageId: handshake.stageId
 	};
+}
+
+export interface CompletedStretch {
+	accuracy: number;
+}
+
+export async function completeStretchAttempt(
+	cookies: Cookies,
+	request: Request
+): Promise<CompletedStretch | undefined> {
+	const resolved = await resolveAttempt(cookies, request, 'stretch');
+	if (!resolved) return undefined;
+	const { handshake, submission, derived } = resolved;
+
+	const database = getDatabase();
+	const runtime = getRuntimeConfiguration();
+	database.transaction((transaction) => {
+		transaction.delete(attemptTokens).where(eq(attemptTokens.id, handshake.id)).run();
+		foldWeakKeyProfile(transaction, handshake.playerId, submission.events, {
+			decayFactor: runtime.weakKeyDecayFactor,
+			latencyClampMs: runtime.latencyClampMs
+		});
+	});
+
+	return { accuracy: derived.accuracy };
 }

@@ -116,6 +116,8 @@ describe('walking skeleton', () => {
 					weakKeyDecayFactor: 0.81,
 					speedTestFloorWpm: 17,
 					consecutiveFailureCount: 4,
+					stretchOfferCount: 2,
+					stretchLengthFactor: 0.5,
 					leaderboardDisplayThreshold: 8,
 					netWpmCeiling: 275,
 					latencyClampMs: 2450

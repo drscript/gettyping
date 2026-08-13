@@ -18,6 +18,10 @@
 		requiredAccuracy: number;
 		nextStageId: number | null;
 		adultHelpAvailable?: boolean;
+		stretchAvailable?: boolean;
+	}
+	interface StretchAttempt extends AttemptToType {
+		exercise: { content: string };
 	}
 
 	let { data } = $props();
@@ -27,7 +31,10 @@
 	let leaderboard = $state<LeaderboardView>();
 	let loading = $state(true);
 	let message = $state('');
+	let stretchAttempt = $state<StretchAttempt>();
+	let stretchAccuracy = $state<number>();
 	const endpoint = $derived(`/api/attempts/learn/${data.stageId}`);
+	const stretchEndpoint = $derived(`/api/attempts/stretch/${data.stageId}`);
 	// "Next Stage" navigates within this same route, so the component is reused and
 	// only the loaded Stage id changes. Every load is numbered so a slow response
 	// for an abandoned Stage cannot overwrite the Stage the Player is now on.
@@ -42,6 +49,8 @@
 		score = undefined;
 		result = undefined;
 		leaderboard = undefined;
+		stretchAttempt = undefined;
+		stretchAccuracy = undefined;
 		let response: Response;
 		try {
 			response = await fetch(stageEndpoint);
@@ -68,6 +77,19 @@
 		loading = false;
 	}
 
+	async function startStretch(): Promise<void> {
+		stretchAccuracy = undefined;
+		stretchAttempt = undefined;
+		let response: Response;
+		try {
+			response = await fetch(stretchEndpoint);
+		} catch {
+			return;
+		}
+		if (!response.ok) return;
+		stretchAttempt = (await response.json()) as StretchAttempt;
+	}
+
 	$effect(() => {
 		data.stageId;
 		untrack(() => void startStage());
@@ -83,6 +105,29 @@
 	<TrackFrame track="learn">
 		{#if loading}
 			<section class="card" aria-live="polite"><p class="eyebrow">Learn · Stage {data.stageId}</p><h1>Getting your Stage ready…</h1></section>
+		{:else if stretchAccuracy !== undefined}
+			<section class="card stretch-card" aria-live="polite">
+				<p class="eyebrow">Stage {data.stageId}</p>
+				<h1>Fingers stretched.</h1>
+				<div class="actions">
+					<button class="primary" type="button" onclick={startStage}>Try the Stage</button>
+					<button type="button" onclick={startStretch}>Stretch again</button>
+				</div>
+			</section>
+		{:else if stretchAttempt}
+			{#key stretchAttempt.token}
+				<TypingAttempt
+					attempt={stretchAttempt}
+					endpoint={stretchEndpoint}
+					track="learn"
+					label={`Learn · Stage ${data.stageId} · Finger stretch`}
+					heading="Stretch your fingers"
+					oncomplete={(body) => {
+						stretchAccuracy = (body as unknown as { accuracy: number }).accuracy;
+					}}
+					oninvalid={() => (message = 'That stretch could not be saved. Please start the Stage again.')}
+				/>
+			{/key}
 		{:else if score && result?.state === 'failed'}
 			<section class="card failure-card" aria-live="polite">
 				<p class="eyebrow">Stage {data.stageId}</p>
@@ -91,6 +136,9 @@
 				<p class="speed-note">You typed at {score.netWpm.toFixed(1)} net WPM. Speed never decides whether you clear.</p>
 				<div class="actions">
 					<button class="primary" type="button" onclick={startStage}>Try again</button>
+					{#if result.stretchAvailable}
+						<button type="button" onclick={startStretch}>Stretch your fingers</button>
+					{/if}
 					<a href="/">Back to home</a>
 				</div>
 				{#if result.adultHelpAvailable}
@@ -191,7 +239,8 @@
 	.error-card { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 	.actions { margin-top: 1.5rem; }
 	.actions a,
-	.error-card a { display: inline-flex; min-height: 2.75rem; align-items: center; padding: 0.5rem 0.75rem; color: var(--muted); font: 0.82rem var(--font-sans); }
+	.actions button:not(.primary),
+	.error-card a { display: inline-flex; min-height: 2.75rem; align-items: center; padding: 0.5rem 0.75rem; border: 0; background: none; color: var(--muted); font: 600 0.82rem var(--font-sans); cursor: pointer; }
 	.primary,
 	.error-card button { padding: 0.78rem 1.25rem; border: 0; border-radius: 999px; background: var(--sun); color: var(--ink); cursor: pointer; font-weight: 800; box-shadow: 0 5px 0 var(--sun-deep); }
 	.link-button { text-decoration: none; }

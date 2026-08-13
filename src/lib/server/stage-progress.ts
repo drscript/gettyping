@@ -57,6 +57,17 @@ export function consecutiveStageFailures(
 	return failures;
 }
 
+export function keysTaughtByStage(database: Database): ReadonlyMap<number, string[]> {
+	return new Map(
+		database
+			.select({ id: stages.id, keysTaught: stages.keysTaught })
+			.from(stages)
+			.orderBy(asc(stages.id))
+			.all()
+			.map((stage) => [stage.id, stage.keysTaught] as const)
+	);
+}
+
 export function readStageList(database: Database, playerId: string) {
 	return database
 		.select({ id: stages.id, name: stages.name, keysTaught: stages.keysTaught })
