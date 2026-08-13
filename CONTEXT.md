@@ -47,3 +47,7 @@ _Avoid_: Rankings, Scoreboard, High scores
 **Weak-key Profile**:
 A Player's per-key error-rate and speed statistics, derived from their Attempts. Drives which keys the Speed Test & Practice Track targets when generating new Exercises.
 _Avoid_: Weakness data, Stats, Analytics
+
+**Corpus**:
+The authored set of `letters`/`sentences` entries from which Sentence-mode Exercises are drawn. Entries are raw material, not Exercises — they carry no id and are never referenced after generation.
+_Avoid_: Drill, Word bank
