@@ -18,7 +18,11 @@ _Avoid_: Test (except when naming the Speed Test specifically), Drill, Challenge
 
 **Finger stretch**:
 Generated practice over the keys taught so far in a Stage, offered on the gate-failure screen to a stuck Player so they can warm up for another Attempt. Carries no Leaderboard and counts for nothing — it is not an Exercise and not a bypass; the gate and its retry stay untouched.
-_Avoid_: Drill, Challenge, Warm-up drill
+_Avoid_: Drill, Challenge, Warm-up drill, Lead-in
+
+**Lead-in**:
+Generated, skippable, no-Leaderboard practice offered on a Learn Stage before the gated Exercise. Draws from the Practice Corpus, folds the Weak-key Profile, and writes no Score. It is not an Exercise, not an Attempt, and not a Finger stretch. Child-facing copy never uses this name.
+_Avoid_: Exercise, Attempt, Finger stretch, Practice, Drill, Challenge, Warm-up
 
 **Speed Test**:
 The specific diagnostic Exercise in the Speed Test & Practice Track that measures a Player's current WPM and accuracy, used to seed their Weak-key Profile before any targeted practice is generated.
@@ -45,9 +49,9 @@ The top 10 best Scores for a single Exercise. Leaderboards are scoped per Exerci
 _Avoid_: Rankings, Scoreboard, High scores
 
 **Weak-key Profile**:
-A Player's per-key error-rate and speed statistics, derived from their Attempts. Drives which keys the Speed Test & Practice Track targets when generating new Exercises.
+A Player's per-key error-rate and speed statistics, derived from their Attempts and from Lead-ins. Drives which keys the Speed Test & Practice Track targets when generating new Exercises, and which keys a Lead-in favours. A Lead-in folds the Profile without being an Attempt.
 _Avoid_: Weakness data, Stats, Analytics
 
 **Corpus**:
-The authored set of `letters`/`sentences` entries from which Sentence-mode Exercises are drawn. Entries are raw material, not Exercises — they carry no id and are never referenced after generation.
+The authored set of `letters`/`sentences` entries from which Sentence-mode Exercises and Lead-ins are drawn. Entries are raw material, not Exercises — they carry no id and are never referenced after generation.
 _Avoid_: Drill, Word bank

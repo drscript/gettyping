@@ -29,7 +29,7 @@ export interface DerivedScore {
 	errorCount: number;
 }
 
-export type AttemptKind = 'speed-test' | 'practice' | 'learn' | 'stretch';
+export type AttemptKind = 'speed-test' | 'practice' | 'learn' | 'stretch' | 'lead-in';
 
 interface AttemptSubmission {
 	token: string;
@@ -159,12 +159,14 @@ function handshakeMatchesKind(
 	kind: AttemptKind,
 	handshake: { exerciseId: number | null; track: 'learn' | 'speed_test' | null }
 ): boolean {
-	// Practice and Stretch are both generated, non-exercise content and are
-	// genuinely indistinguishable at this row's shape (zero schema change,
-	// per the Finger-stretch decision) — a token served by one is technically
-	// redeemable at the other. Accepted: neither touches Stage progression or
-	// a Leaderboard, so the worst case is a scoreless/scored mismatch.
-	if (kind === 'practice' || kind === 'stretch') return handshake.exerciseId === null;
+	// Practice, Finger stretch, and Lead-in are all generated, non-exercise
+	// content and are genuinely indistinguishable at this row's shape (zero
+	// schema change) — a token served by one is technically redeemable at
+	// another. Accepted: none of them touch Stage progression or a Leaderboard,
+	// so the worst case is a scoreless/scored mismatch.
+	if (kind === 'practice' || kind === 'stretch' || kind === 'lead-in') {
+		return handshake.exerciseId === null;
+	}
 	if (kind === 'speed-test') return handshake.track === 'speed_test';
 	return handshake.track === 'learn';
 }
@@ -296,15 +298,16 @@ export async function completeAttempt(
 	};
 }
 
-export interface CompletedStretch {
+export interface ScorelessCompletion {
 	accuracy: number;
 }
 
-export async function completeStretchAttempt(
+async function completeScorelessGenerated(
 	cookies: Cookies,
-	request: Request
-): Promise<CompletedStretch | undefined> {
-	const resolved = await resolveAttempt(cookies, request, 'stretch');
+	request: Request,
+	kind: 'stretch' | 'lead-in'
+): Promise<ScorelessCompletion | undefined> {
+	const resolved = await resolveAttempt(cookies, request, kind);
 	if (!resolved) return undefined;
 	const { handshake, submission, derived } = resolved;
 
@@ -319,4 +322,18 @@ export async function completeStretchAttempt(
 	});
 
 	return { accuracy: derived.accuracy };
+}
+
+export async function completeStretchAttempt(
+	cookies: Cookies,
+	request: Request
+): Promise<ScorelessCompletion | undefined> {
+	return completeScorelessGenerated(cookies, request, 'stretch');
+}
+
+export async function completeLeadInAttempt(
+	cookies: Cookies,
+	request: Request
+): Promise<ScorelessCompletion | undefined> {
+	return completeScorelessGenerated(cookies, request, 'lead-in');
 }

@@ -24,6 +24,9 @@
 	interface StretchAttempt extends AttemptToType {
 		exercise: { content: string };
 	}
+	interface LeadInAttempt extends AttemptToType {
+		exercise: { content: string };
+	}
 
 	let { data } = $props();
 	let attempt = $state<LearnAttempt>();
@@ -35,8 +38,15 @@
 	let message = $state('');
 	let stretchAttempt = $state<StretchAttempt>();
 	let stretchAccuracy = $state<number>();
+	let leftOfferCard = $state(false);
+	let leadInAttempt = $state<LeadInAttempt>();
+	let leadInFinished = $state(false);
 	const endpoint = $derived(`/api/attempts/learn/${data.stageId}`);
 	const stretchEndpoint = $derived(`/api/attempts/stretch/${data.stageId}`);
+	const leadInEndpoint = $derived(`/api/attempts/lead-in/${data.stageId}`);
+	const stageHeading = $derived(
+		`Find ${data.keysTaught.map((key) => key.toUpperCase()).join(' and ')}`
+	);
 	// "Next Stage" navigates within this same route, so the component is reused and
 	// only the loaded Stage id changes. Every load is numbered so a slow response
 	// for an abandoned Stage cannot overwrite the Stage the Player is now on.
@@ -53,6 +63,9 @@
 		leaderboard = undefined;
 		stretchAttempt = undefined;
 		stretchAccuracy = undefined;
+		leadInAttempt = undefined;
+		leadInFinished = false;
+		leftOfferCard = true;
 		let response: Response;
 		try {
 			response = await fetch(stageEndpoint);
@@ -114,10 +127,47 @@
 		stretchAttempt = (await response.json()) as StretchAttempt;
 	}
 
+	async function startLeadIn(): Promise<void> {
+		leadInFinished = false;
+		leadInAttempt = undefined;
+		leftOfferCard = true;
+		loading = true;
+		let response: Response;
+		try {
+			response = await fetch(leadInEndpoint);
+		} catch {
+			leftOfferCard = false;
+			loading = false;
+			return;
+		}
+		if (!response.ok) {
+			leftOfferCard = false;
+			loading = false;
+			return;
+		}
+		leadInAttempt = (await response.json()) as LeadInAttempt;
+		loading = false;
+	}
+
 	$effect(() => {
 		data.stageId;
+		data.leadInOffered;
 		untrack(() => {
 			stageOneIntro = false;
+			attempt = undefined;
+			score = undefined;
+			result = undefined;
+			leaderboard = undefined;
+			stretchAttempt = undefined;
+			stretchAccuracy = undefined;
+			leadInAttempt = undefined;
+			leadInFinished = false;
+			leftOfferCard = false;
+			message = '';
+			if (data.leadInOffered) {
+				loading = false;
+				return;
+			}
 			void startStage();
 		});
 	});
@@ -130,7 +180,16 @@
 
 <main class="learn-shell">
 	<TrackFrame track="learn">
-		{#if loading}
+		{#if data.leadInOffered && !leftOfferCard && !leadInAttempt && !leadInFinished}
+			<section class="card" aria-live="polite">
+				<p class="eyebrow">Learn · Stage {data.stageId}</p>
+				<h1>{stageHeading}</h1>
+				<div class="actions">
+					<button class="primary" type="button" onclick={startStage}>{stageHeading}</button>
+					<button type="button" onclick={startLeadIn}>{data.leadInPrompt}</button>
+				</div>
+			</section>
+		{:else if loading}
 			<section class="card" aria-live="polite"><p class="eyebrow">Learn · Stage {data.stageId}</p><h1>Getting your Stage ready…</h1></section>
 		{:else if stageOneIntro}
 			<section class="card intro-card" aria-live="polite">
@@ -144,6 +203,30 @@
 				<button class="primary intro-go" type="button" onclick={acknowledgeIntro}>I found the bumps</button>
 			</section>
 			<OnScreenKeyboard nextKeys={['f', 'j']} track="learn" />
+		{:else if leadInFinished}
+			<section class="card" aria-live="polite">
+				<p class="eyebrow">Learn · Stage {data.stageId}</p>
+				<h1>Ready for the Stage.</h1>
+				<div class="actions">
+					<button class="primary" type="button" onclick={startStage}>{stageHeading}</button>
+					<button type="button" onclick={startLeadIn}>{data.leadInPrompt}</button>
+				</div>
+			</section>
+		{:else if leadInAttempt}
+			{#key leadInAttempt.token}
+				<TypingAttempt
+					attempt={leadInAttempt}
+					endpoint={leadInEndpoint}
+					track="learn"
+					label={`Learn · Stage ${data.stageId}`}
+					heading={data.leadInPrompt}
+					oncomplete={() => {
+						leadInAttempt = undefined;
+						leadInFinished = true;
+					}}
+					oninvalid={() => (message = 'Those keystrokes could not be saved. Please start the Stage again.')}
+				/>
+			{/key}
 		{:else if stretchAccuracy !== undefined}
 			<section class="card stretch-card" aria-live="polite">
 				<p class="eyebrow">Stage {data.stageId}</p>
