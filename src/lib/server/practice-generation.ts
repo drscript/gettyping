@@ -1,11 +1,12 @@
 import { error } from '@sveltejs/kit';
+import { characterKeys, qwertyNeighbours } from './keyboard-adjacency';
 import { deriveKeySet, isPlayable, type CorpusEntry } from './practice-corpus';
 import type { RandomSource } from './runtime/random';
 
 export type PracticeMode = 'sentence' | 'bigram';
 
-const alphabet = [...'abcdefghijklmnopqrstuvwxyz'];
 const sentenceDrawCount = 6;
+const bigramDrawCount = 24;
 
 function choose<T>(values: readonly T[], random: RandomSource): T {
 	return values[Math.floor(random.next() * values.length)] ?? values[0];
@@ -13,7 +14,7 @@ function choose<T>(values: readonly T[], random: RandomSource): T {
 
 function weakestKeys(weaknessByKey: ReadonlyMap<string, number>): string[] {
 	const rankedKeys = [...weaknessByKey.entries()]
-		.filter(([key]) => alphabet.includes(key))
+		.filter(([key]) => key !== 'shift')
 		.sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
 	const highestWeakness = rankedKeys[0]?.[1];
 	if (highestWeakness === undefined) return [];
@@ -33,17 +34,51 @@ function generationPool<T>(
 		: allValues;
 }
 
+function drawPairs(count: number, drawPair: () => string): string {
+	return Array.from({ length: count }, drawPair).join(' ');
+}
+
 function generateBigrams(
 	weaknessByKey: ReadonlyMap<string, number>,
 	targetingAggressiveness: number,
-	random: RandomSource
+	random: RandomSource,
+	cumulativeKeySet: ReadonlySet<string>
 ): string {
-	const targets = weakestKeys(weaknessByKey);
-	return Array.from({ length: 24 }, () => {
-		const first = choose(generationPool(alphabet, targets, targetingAggressiveness, random), random);
-		const second = choose(generationPool(alphabet, targets, targetingAggressiveness, random), random);
+	const eligibleKeys = characterKeys.filter((key) => cumulativeKeySet.has(key));
+	const targets = weakestKeys(weaknessByKey).filter((key) => eligibleKeys.includes(key));
+
+	// A key is adjacency-eligible when at least one of its physical QWERTY
+	// neighbours is also in the Player's cumulative key set.
+	const adjacencyEligible = eligibleKeys.filter((key) =>
+		(qwertyNeighbours.get(key) ?? []).some((neighbour) => eligibleKeys.includes(neighbour))
+	);
+
+	if (adjacencyEligible.length === 0) {
+		// Degraded fallback: the cumulative set (e.g. Stage 1's {f, j}) has no
+		// QWERTY-adjacent pair yet — draw uniformly in-set, same 24-pair shape.
+		return drawPairs(bigramDrawCount, () => {
+			const first = choose(
+				generationPool(eligibleKeys, targets, targetingAggressiveness, random),
+				random
+			);
+			const second = choose(
+				generationPool(eligibleKeys, targets, targetingAggressiveness, random),
+				random
+			);
+			return `${first}${second}`;
+		});
+	}
+
+	const eligibleTargets = targets.filter((key) => adjacencyEligible.includes(key));
+	return drawPairs(bigramDrawCount, () => {
+		const first = choose(
+			generationPool(adjacencyEligible, eligibleTargets, targetingAggressiveness, random),
+			random
+		);
+		const neighbours = (qwertyNeighbours.get(first) ?? []).filter((key) => eligibleKeys.includes(key));
+		const second = choose(neighbours, random);
 		return `${first}${second}`;
-	}).join(' ');
+	});
 }
 
 function drawEntries(
@@ -103,5 +138,5 @@ export function generatePracticeContent(
 ): string {
 	return mode === 'sentence'
 		? generateSentences(corpus, cumulativeKeySet, weaknessByKey, targetingAggressiveness, random)
-		: generateBigrams(weaknessByKey, targetingAggressiveness, random);
+		: generateBigrams(weaknessByKey, targetingAggressiveness, random, cumulativeKeySet);
 }

@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import { qwertyNeighbours } from '../../src/lib/server/keyboard-adjacency';
 import { startTestServer, type TestServer } from './server';
 
 interface StartedPracticeAttempt {
@@ -218,6 +219,42 @@ describe('Practice', () => {
 		clearLearnStages(server.databasePath, nickname, 21);
 
 		expect(await anyDrawMatches(server, cookie, /[0-9]/)).toBe(true);
+	});
+
+	test('bigram pairs stay within the full-alphabet fallback pool and are QWERTY-adjacent', async () => {
+		const nickname = 'AdjacentAlbatross';
+		const cookie = await createPlayer(server, nickname);
+		completeSpeedTest(server.databasePath, nickname);
+
+		const response = await fetch(`${server.baseUrl}/api/attempts/practice?mode=bigram`, {
+			headers: { cookie }
+		});
+		const started = (await response.json()) as StartedPracticeAttempt;
+
+		expect(response.status).toBe(200);
+		const pairs = started.exercise.content.split(' ');
+		expect(pairs).toHaveLength(24);
+		for (const pair of pairs) {
+			expect(pair).toMatch(/^[a-z]{2}$/);
+			const [first, second] = pair;
+			expect(qwertyNeighbours.get(first)).toContain(second);
+		}
+	});
+
+	test('a Player who started Learn but cleared nothing gets an {f, j}-only bigram pool (degraded fallback)', async () => {
+		const nickname = 'GroundedGrouse';
+		const cookie = await createPlayer(server, nickname);
+		completeSpeedTest(server.databasePath, nickname);
+		recordLearnScore(server.databasePath, nickname, 1, 0.2); // failing Stage 1 Attempt
+
+		const response = await fetch(`${server.baseUrl}/api/attempts/practice?mode=bigram`, {
+			headers: { cookie }
+		});
+		const started = (await response.json()) as StartedPracticeAttempt;
+
+		expect(response.status).toBe(200);
+		// {f, j} aren't QWERTY-adjacent, so this exercises the degraded fallback.
+		expect(started.exercise.content).toMatch(/^[fj]{2}(?: [fj]{2})*$/);
 	});
 
 	test('submits generated text through the shared Attempt path and updates the Profile', async () => {

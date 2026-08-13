@@ -1,6 +1,7 @@
 import { isHttpError } from '@sveltejs/kit';
 import { describe, expect, test } from 'vitest';
 import { generatePracticeContent } from '../../src/lib/server/practice-generation';
+import { qwertyNeighbours } from '../../src/lib/server/keyboard-adjacency';
 import { createSeededRandom, type RandomSource } from '../../src/lib/server/runtime/random';
 import type { CorpusEntry } from '../../src/lib/server/practice-corpus';
 
@@ -143,6 +144,25 @@ describe('generatePracticeContent — weak-key targeting', () => {
 		);
 		expect(content).toContain('quiet');
 	});
+
+	test('can favor a weak digit, widening targeting beyond letters', () => {
+		const corpus: CorpusEntry[] = [
+			{ text: 'we have 3 red hats', kind: 'sentences' },
+			{ text: 'a dog naps', kind: 'sentences' },
+			{ text: 'a cat sleeps', kind: 'sentences' },
+			{ text: 'a bird sings', kind: 'sentences' }
+		];
+		const weaknessByKey = new Map([['3', 1]]);
+		const content = generatePracticeContent(
+			'sentence',
+			weaknessByKey,
+			1,
+			randomFor('digit-targeting'),
+			corpus,
+			new Set([...fullAlphabet, '3'])
+		);
+		expect(content).toContain('3');
+	});
 });
 
 describe('generatePracticeContent — empty-pool guard', () => {
@@ -187,10 +207,65 @@ describe('generatePracticeContent — bigram mode is unaffected by the Corpus', 
 			0,
 			randomFor('bigram-sanity'),
 			[],
-			new Set()
+			fullAlphabet
 		);
 		const pairs = content.split(' ');
 		expect(pairs).toHaveLength(24);
 		for (const pair of pairs) expect(pair).toMatch(/^[a-z]{2}$/);
+	});
+});
+
+describe('generatePracticeContent — bigram keyboard adjacency', () => {
+	test('every pair is QWERTY-adjacent and both keys are in the cumulative key set', () => {
+		const cumulativeKeySet = new Set([...'asdfghjklqwertyuiop']);
+		const content = generatePracticeContent(
+			'bigram',
+			noWeakness,
+			0,
+			randomFor('adjacency'),
+			[],
+			cumulativeKeySet
+		);
+		const pairs = content.split(' ');
+		expect(pairs).toHaveLength(24);
+		for (const pair of pairs) {
+			const [first, second] = pair;
+			expect(cumulativeKeySet.has(first)).toBe(true);
+			expect(cumulativeKeySet.has(second)).toBe(true);
+			expect(qwertyNeighbours.get(first)).toContain(second);
+		}
+	});
+
+	test('Stage 1 ({f, j}, non-adjacent) degrades to in-set pairs, still 24 pairs', () => {
+		const content = generatePracticeContent(
+			'bigram',
+			noWeakness,
+			0,
+			randomFor('stage-1-fallback'),
+			[],
+			new Set(['f', 'j'])
+		);
+		const pairs = content.split(' ');
+		expect(pairs).toHaveLength(24);
+		for (const pair of pairs) expect(pair).toMatch(/^[fj]{2}$/);
+	});
+
+	test('weak-key targeting can favor a weak punctuation key, and shift is never targeted', () => {
+		const cumulativeKeySet = new Set([...'abcdefghijklmnopqrstuvwxyz', ...'0123456789', ';', ',', '.', "'", '?', '!']);
+		const weaknessByKey = new Map([
+			['shift', 1],
+			['3', 0.5]
+		]);
+		const content = generatePracticeContent(
+			'bigram',
+			weaknessByKey,
+			1,
+			randomFor('digit-targeting-bigram'),
+			[],
+			cumulativeKeySet
+		);
+		const pairs = content.split(' ');
+		expect(pairs).toHaveLength(24);
+		for (const pair of pairs) expect(pair[0]).toBe('3');
 	});
 });
