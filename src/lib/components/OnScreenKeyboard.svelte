@@ -1,53 +1,18 @@
 <script lang="ts">
 	import type { TypingKey } from '$lib/ui/types';
 	import { isSpaceKey } from '$lib/ui/types';
+	import { keyboardCapRows } from '$lib/ui/keyboard-caps';
 
 	let { nextKey }: { nextKey: TypingKey } = $props();
-
-	interface KeyboardKey {
-		label: string;
-		values: TypingKey[];
-		wide?: boolean;
-	}
-
-	const key = (label: string, ...values: TypingKey[]): KeyboardKey => ({ label, values });
-	const rows: KeyboardKey[][] = [
-		[
-			key('1 !', '1', '!'),
-			key('2', '2'),
-			key('3', '3'),
-			key('4', '4'),
-			key('5', '5'),
-			key('6', '6'),
-			key('7', '7'),
-			key('8', '8'),
-			key('9', '9'),
-			key('0', '0')
-		],
-		'qwertyuiop'.split('').map((letter) => key(letter, letter as TypingKey)),
-		[
-			...'asdfghjkl'.split('').map((letter) => key(letter, letter as TypingKey)),
-			key('; :', ';', ':'),
-			key("'", "'")
-		],
-		[
-			{ ...key('shift', 'shift'), wide: true },
-			...'zxcvbnm'.split('').map((letter) => key(letter, letter as TypingKey)),
-			key(',', ','),
-			key('.', '.'),
-			key('/ ?', '/', '?')
-		],
-		[{ ...key('space', ' '), wide: true }]
-	];
 </script>
 
 <div class="keyboard" role="img" aria-label={`On-screen keyboard. Next key: ${isSpaceKey(nextKey) ? 'space' : nextKey}`}>
-	{#each rows as row}
+	{#each keyboardCapRows as row}
 		<div class="keyboard-row">
-			{#each row as keyboardKey}
-				{@const isNext = keyboardKey.values.includes(nextKey)}
-				<kbd class:is-next={isNext} class:is-wide={keyboardKey.wide}>
-					{keyboardKey.label}
+			{#each row as cap}
+				{@const isNext = cap.values.includes(nextKey)}
+				<kbd class:is-next={isNext} class:is-wide={cap.wide}>
+					{cap.label}
 					{#if isNext}<span class="sr-only"> — next key</span>{/if}
 				</kbd>
 			{/each}

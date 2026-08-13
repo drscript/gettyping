@@ -1,13 +1,8 @@
 <script lang="ts">
 	import TaskMasthead from '$lib/components/TaskMasthead.svelte';
-	import VariantA from '$lib/prototype/VariantA.svelte';
-	import VariantB from '$lib/prototype/VariantB.svelte';
-	import VariantC from '$lib/prototype/VariantC.svelte';
-	import PrototypeSwitcher from '$lib/prototype/PrototypeSwitcher.svelte';
-	import { page } from '$app/stores';
+	import WeakKeyHeatMap from '$lib/components/WeakKeyHeatMap.svelte';
 
 	let { data } = $props();
-	let currentVariant = $derived($page.url.searchParams.get('variant') ?? 'A');
 	let plottedScores = $derived(data.speedTestScores.filter((score) => score.leaderboardEligible));
 	let plottedMinimum = $derived(Math.min(...plottedScores.map((score) => score.netWpm)));
 	let plottedMaximum = $derived(Math.max(...plottedScores.map((score) => score.netWpm)));
@@ -135,27 +130,13 @@
 
 			<h3>Current Weak-key Profile</h3>
 
-			<!-- PROTOTYPE: Heat map keyboard variants -->
-			{#if currentVariant === 'A'}
-				<VariantA />
-			{:else if currentVariant === 'B'}
-				<VariantB />
-			{:else if currentVariant === 'C'}
-				<VariantC />
+			{#if data.practice.weakKeyHeat.length > 0}
+				<WeakKeyHeatMap entries={data.practice.weakKeyHeat} />
 			{:else}
 				<p class="empty-profile">The Profile is still gathering enough samples to identify a weak key.</p>
 			{/if}
 		</section>
 	</div>
-
-	<PrototypeSwitcher
-		variants={['A', 'B', 'C']}
-		labels={{
-			A: 'Full QWERTY Grid',
-			B: 'Compact Heat Strip',
-			C: 'Zone-Ranked List'
-		}}
-	/>
 </main>
 
 <style>
@@ -335,34 +316,6 @@
 		font-family: var(--font-rounded);
 		font-size: 1.05rem;
 	}
-
-	/* Weak keys read as real keycaps, not chips. */
-	.weak-keys { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-
-	.weak-keys > div {
-		display: grid;
-		min-width: 4.4rem;
-		gap: 0.4rem;
-		padding: 0.7rem 0.6rem;
-		place-items: center;
-		border-radius: 1rem;
-		background: var(--incorrect-fill);
-		box-shadow: 0 5px 0 var(--coral);
-	}
-
-	.weak-keys kbd {
-		display: grid;
-		width: 2.2rem;
-		height: 2.2rem;
-		place-items: center;
-		border-radius: 0.6rem;
-		background: #fff;
-		font: 700 1.05rem var(--font-mono);
-		box-shadow: 0 3px 0 var(--pencil-line);
-		text-transform: uppercase;
-	}
-
-	.weak-keys span { color: var(--incorrect-ink); font-size: 0.66rem; font-weight: 800; }
 
 	.empty-profile { margin: 0; color: var(--muted); font-size: 0.82rem; line-height: 1.5; }
 

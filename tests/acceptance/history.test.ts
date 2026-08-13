@@ -48,7 +48,10 @@ describe('Personal history', () => {
 		const profileResponse = await fetch(`${server.baseUrl}/history`, { headers: { cookie } });
 		const profilePage = await profileResponse.text();
 		expect(profilePage).toContain('No Practice Attempts yet');
-		expect(profilePage).toContain('data-weak-key="q"');
+		expect(profilePage).toContain('data-heat-cap="q"');
+		expect(profilePage).toContain('q: 38% weak');
+		expect(profilePage).toContain('shift (no data)');
+		expect(profilePage).toContain('space (not yet measured)');
 
 		const anonymousResponse = await fetch(`${server.baseUrl}/history`, { redirect: 'manual' });
 		expect(anonymousResponse.status).toBe(303);
@@ -122,7 +125,57 @@ describe('Personal history', () => {
 
 		expect(page).toContain('data-practice-count="2"');
 		expect(page).toContain('data-practice-elapsed="2m 0s"');
-		expect(page).toContain('data-weak-key="q"');
+		expect(page).toContain('data-heat-cap="q"');
+		expect(page).toContain('q: 38% weak');
 		expect(page).not.toContain('data-practice-attempt');
+	});
+
+	test('the heat map pools dual-value caps, floors on pooled attempts, and labels hot keys', async () => {
+		const cookie = await createPlayerCookie(server, 'HeatMapHawk');
+		const identity = JSON.parse(decodeURIComponent(cookie.split('=', 2)[1])) as {
+			active: string;
+		};
+		const database = new Database(server.databasePath);
+		const insertStat = database.prepare(
+			`INSERT INTO weak_key_stats (player_id, key, attempts, errors, total_latency_ms)
+			 VALUES (?, ?, ?, ?, ?)`
+		);
+		// q alone: 0.4 × 0.7 + (1000/3000) × 0.3 = 0.38
+		insertStat.run(identity.active, 'q', 5, 2, 5000);
+		// The `1 !` cap pools its two recorded keys: 4 attempts, 0 errors, 8000ms → 0.2
+		insertStat.run(identity.active, '1', 2, 0, 6000);
+		insertStat.run(identity.active, '!', 2, 0, 2000);
+		// The `/ ?` cap pools to 3 attempts, 1 error, 9000ms → 7/15 ≈ 0.5333 (hottest)
+		insertStat.run(identity.active, '/', 2, 1, 6000);
+		insertStat.run(identity.active, '?', 1, 0, 3000);
+		// The `; :` cap pools to only 2 attempts → below the floor → neutral
+		insertStat.run(identity.active, ';', 1, 1, 3000);
+		insertStat.run(identity.active, ':', 1, 0, 3000);
+		database.close();
+
+		const response = await fetch(`${server.baseUrl}/history`, { headers: { cookie } });
+		const page = await response.text();
+		expect(response.status).toBe(200);
+
+		// One pooled cap per dual-value key pair, keyed by the canonical recorded key
+		expect(page).toContain('data-heat-cap="1"');
+		expect(page).toContain('data-heat-cap="/"');
+		expect(page).not.toContain('data-heat-cap="!"');
+		expect(page).not.toContain('data-heat-cap="?"');
+
+		// Pooled arithmetic, as absolute percentages in the accessible labels
+		expect(page).toContain('1 !: 20% weak');
+		expect(page).toContain('/ ?: 53% weak');
+
+		// Hot threshold (≥ 0.5 × the Player's own max of 53%): q and `/ ?` print, `1 !` does not
+		expect(page).toMatch(/<span class="cap-percent[^"]*">53%<\/span>/);
+		expect(page).toMatch(/<span class="cap-percent[^"]*">38%<\/span>/);
+		expect(page).not.toMatch(/<span class="cap-percent[^"]*">20%<\/span>/);
+
+		// The floor applies to pooled attempts
+		expect(page).toContain('; : (not yet measured)');
+
+		// Shift is never an expected character, so it carries no data
+		expect(page).toContain('shift (no data)');
 	});
 });
