@@ -112,7 +112,7 @@
 				{/if}
 				<div class="actions">
 					<button class="primary" type="button" onclick={async () => { startingWeakKeyProfile = await loadWeakKeyProfile(); await startPractice(); }}>Practise some more</button>
-					<a href="/speed-test">Retake the Speed Test</a>
+					<a href="/speed-test">Take the Speed Test</a>
 					<a href="/">Back to home</a>
 				</div>
 			</section>

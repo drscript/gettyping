@@ -377,3 +377,181 @@ describe('Practice targeting configuration', () => {
 		}
 	});
 });
+
+describe('Practice eligibility from Learn Scores', () => {
+	let server: TestServer;
+
+	beforeAll(async () => {
+		server = await startTestServer();
+	});
+
+	afterAll(async () => {
+		await server?.stop();
+	});
+
+	test('a Player whose only Score is a Learn Score can start Practice', async () => {
+		const nickname = 'LearnOnlyLark';
+		const cookie = await createPlayer(server, nickname);
+		recordLearnScore(server.databasePath, nickname, 1, 1);
+
+		const response = await fetch(`${server.baseUrl}/api/attempts/practice?mode=sentence`, {
+			headers: { cookie }
+		});
+		const started = (await response.json()) as StartedPracticeAttempt;
+		expect(response.status).toBe(200);
+		expect(started.token).toEqual(expect.any(String));
+		expect(started.exercise.content.length).toBeGreaterThan(0);
+
+		const database = new Database(server.databasePath, { readonly: true });
+		const speedTestCount = database
+			.prepare(
+				`SELECT COUNT(*) AS count FROM scores
+				 JOIN exercises ON exercises.id = scores.exercise_id
+				 JOIN players ON players.id = scores.player_id
+				 WHERE players.nickname = ? AND exercises.track = 'speed_test'`
+			)
+			.get(nickname) as { count: number };
+		database.close();
+		expect(speedTestCount.count).toBe(0);
+	});
+
+	test('a sub-gate Learn Score and a Leaderboard-ineligible Learn Score both unlock Practice', async () => {
+		const subGateNickname = 'SubgateStork';
+		const subGateCookie = await createPlayer(server, subGateNickname);
+		recordLearnScore(server.databasePath, subGateNickname, 1, 0.2);
+		const subGate = await fetch(`${server.baseUrl}/api/attempts/practice`, {
+			headers: { cookie: subGateCookie }
+		});
+		expect(subGate.status).toBe(200);
+
+		const unrankedNickname = 'UnrankedUria';
+		const unrankedCookie = await createPlayer(server, unrankedNickname);
+		const database = new Database(server.databasePath);
+		const player = database
+			.prepare('SELECT id FROM players WHERE nickname = ?')
+			.get(unrankedNickname) as { id: string };
+		database
+			.prepare(
+				`INSERT INTO scores
+				 (player_id, exercise_id, nickname, net_wpm, gross_wpm, accuracy, elapsed_ms,
+				  char_count, error_count, leaderboard_eligible, created_at)
+				 VALUES (?, 1, ?, 20, 20, 1, 60000, 100, 0, 0, ?)`
+			)
+			.run(player.id, unrankedNickname, Date.now());
+		database.close();
+		const unranked = await fetch(`${server.baseUrl}/api/attempts/practice`, {
+			headers: { cookie: unrankedCookie }
+		});
+		expect(unranked.status).toBe(200);
+	});
+
+	test('Nickname-only Players and adult override without a Score still 403', async () => {
+		const nicknameOnly = await createPlayer(server, 'ColdStartCoot');
+		const blocked = await fetch(`${server.baseUrl}/api/attempts/practice`, {
+			headers: { cookie: nicknameOnly }
+		});
+		expect(blocked.status).toBe(403);
+
+		const overrideNickname = 'UnlockOnlyUria';
+		const overrideCookie = await createPlayer(server, overrideNickname);
+		const database = new Database(server.databasePath);
+		const player = database
+			.prepare('SELECT id FROM players WHERE nickname = ?')
+			.get(overrideNickname) as { id: string };
+		database
+			.prepare('INSERT INTO stage_unlocks (player_id, stage_id, granted_at) VALUES (?, 1, ?)')
+			.run(player.id, Date.now());
+		database.close();
+		const override = await fetch(`${server.baseUrl}/api/attempts/practice`, {
+			headers: { cookie: overrideCookie }
+		});
+		expect(override.status).toBe(403);
+	});
+
+	test('Learn-only Stage 3 current Practice uses only taught keys', async () => {
+		const nickname = 'StageThreeTeal';
+		const cookie = await createPlayer(server, nickname);
+		clearLearnStages(server.databasePath, nickname, 2);
+
+		const response = await fetch(`${server.baseUrl}/api/attempts/practice?mode=sentence`, {
+			headers: { cookie }
+		});
+		const started = (await response.json()) as StartedPracticeAttempt;
+		expect(response.status).toBe(200);
+		expect(started.exercise.content).toMatch(/^[fjghdk ]+$/);
+
+		const database = new Database(server.databasePath, { readonly: true });
+		const speedTestCount = database
+			.prepare(
+				`SELECT COUNT(*) AS count FROM scores
+				 JOIN exercises ON exercises.id = scores.exercise_id
+				 JOIN players ON players.id = scores.player_id
+				 WHERE players.nickname = ? AND exercises.track = 'speed_test'`
+			)
+			.get(nickname) as { count: number };
+		database.close();
+		expect(speedTestCount.count).toBe(0);
+	});
+
+	test('Learn-only Practice POST writes a Score with no Exercise and folds the Profile', async () => {
+		const nickname = 'LearnLoopLark';
+		const cookie = await createPlayer(server, nickname);
+		recordLearnScore(server.databasePath, nickname, 1, 1);
+		const databaseBefore = new Database(server.databasePath, { readonly: true });
+		const exerciseCountBefore = (
+			databaseBefore.prepare('SELECT COUNT(*) AS count FROM exercises').get() as { count: number }
+		).count;
+		databaseBefore.close();
+
+		const startedResponse = await fetch(`${server.baseUrl}/api/attempts/practice?mode=sentence`, {
+			headers: { cookie }
+		});
+		const started = (await startedResponse.json()) as StartedPracticeAttempt;
+		const response = await fetch(`${server.baseUrl}/api/attempts/practice`, {
+			method: 'POST',
+			headers: { cookie, 'content-type': 'application/json' },
+			body: JSON.stringify({
+				token: started.token,
+				events: perfectEvents(started.exercise.content)
+			})
+		});
+		expect(response.status).toBe(200);
+		const body = (await response.json()) as Record<string, unknown>;
+		expect(body).toMatchObject({ score: { accuracy: 1 } });
+		expect(body).not.toHaveProperty('leaderboard');
+
+		const database = new Database(server.databasePath, { readonly: true });
+		const practiceScore = database
+			.prepare(
+				`SELECT exercise_id AS exerciseId FROM scores
+				 JOIN players ON players.id = scores.player_id
+				 WHERE players.nickname = ? AND scores.exercise_id IS NULL`
+			)
+			.get(nickname);
+		const exerciseCountAfter = (
+			database.prepare('SELECT COUNT(*) AS count FROM exercises').get() as { count: number }
+		).count;
+		const profileCount = database
+			.prepare(
+				`SELECT COUNT(*) AS count FROM weak_key_stats profile
+				 JOIN players player ON player.id = profile.player_id
+				 WHERE player.nickname = ?`
+			)
+			.get(nickname) as { count: number };
+		database.close();
+		expect(practiceScore).toEqual({ exerciseId: null });
+		expect(exerciseCountAfter).toBe(exerciseCountBefore);
+		expect(profileCount.count).toBeGreaterThan(0);
+	});
+
+	test('a Player with both Learn and Speed Test Scores can still start Practice', async () => {
+		const nickname = 'DualDoorDove';
+		const cookie = await createPlayer(server, nickname);
+		recordLearnScore(server.databasePath, nickname, 1, 1);
+		completeSpeedTest(server.databasePath, nickname);
+		const response = await fetch(`${server.baseUrl}/api/attempts/practice`, {
+			headers: { cookie }
+		});
+		expect(response.status).toBe(200);
+	});
+});

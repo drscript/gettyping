@@ -25,7 +25,7 @@ Generated, skippable, no-Leaderboard practice offered on a Learn Stage before th
 _Avoid_: Exercise, Attempt, Finger stretch, Practice, Drill, Challenge, Warm-up
 
 **Speed Test**:
-The specific diagnostic Exercise in the Speed Test & Practice Track that measures a Player's current WPM and accuracy, used to seed their Weak-key Profile before any targeted practice is generated.
+The diagnostic Exercise on the Speed Test & Practice Track that measures a Player's current WPM and accuracy. It is the door into Practice for a Player who skipped Learn. Learn Scores also unlock Practice, because Learn Attempts already fold into the same Weak-key Profile.
 _Avoid_: Placement test, Assessment
 
 **Attempt**:

@@ -1,10 +1,11 @@
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { error, json } from '@sveltejs/kit';
 import { requireActivePlayer } from '$lib/server/active-player';
 import { completeAttempt, createAttemptHandshake } from '$lib/server/attempts';
 import { cumulativeKeySet } from '$lib/server/cumulative-key-set';
 import { getDatabase } from '$lib/server/database';
-import { scores, weakKeyStats } from '$lib/server/database/schema';
+import { weakKeyStats } from '$lib/server/database/schema';
+import { playerIsEligibleForPractice } from '$lib/server/practice-eligibility';
 import { corpus } from '$lib/server/practice-corpus';
 import {
 	generatePracticeContent,
@@ -24,12 +25,9 @@ function readMode(value: string | null): PracticeMode {
 export const GET: RequestHandler = ({ cookies, url }) => {
 	const player = requireActivePlayer(cookies, 'Choose a Nickname before starting Practice');
 	const database = getDatabase();
-	const completedSpeedTest = database
-		.select({ id: scores.id })
-		.from(scores)
-		.where(and(eq(scores.playerId, player.id), eq(scores.exerciseId, 22)))
-		.get();
-	if (!completedSpeedTest) error(403, 'Complete the Speed Test before starting Practice');
+	if (!playerIsEligibleForPractice(database, player.id)) {
+		error(403, 'Complete the Speed Test before starting Practice');
+	}
 
 	const mode = readMode(url.searchParams.get('mode'));
 	const runtime = getRuntimeConfiguration();

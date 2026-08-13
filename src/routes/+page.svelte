@@ -84,6 +84,9 @@ FORM: Learning Landscape, the user-approved first composition; full-bleed illust
 			</div>
 
 			<nav class="home-secondary" aria-label="Player options">
+				{#if data.eligibleForPractice}
+					<a href="/practice">Practise weak keys</a>
+				{/if}
 				<a href="/history">Your history</a>
 				<a href="/players">Not you?</a>
 			</nav>

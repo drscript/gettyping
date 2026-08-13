@@ -2,6 +2,7 @@ import { asc, eq, inArray } from 'drizzle-orm';
 import { getDatabase } from '$lib/server/database';
 import { players, stages } from '$lib/server/database/schema';
 import { readIdentity } from '$lib/server/identity';
+import { playerIsEligibleForPractice } from '$lib/server/practice-eligibility';
 import { readStageList } from '$lib/server/stage-progress';
 import type { PageServerLoad } from './$types';
 
@@ -40,5 +41,10 @@ export const load: PageServerLoad = ({ cookies, url }) => {
 				? `/learn/stages/${nextStage.id}`
 				: '/speed-test';
 
-	return { player, continueHref, stages: stageList };
+	return {
+		player,
+		continueHref,
+		stages: stageList,
+		eligibleForPractice: playerIsEligibleForPractice(database, player.id)
+	};
 };

@@ -23,8 +23,7 @@
 			<div class="next-copy">
 				<h2 id="next-step-heading">Where to next</h2>
 				<p>
-					The Speed Test measures where your typing is now and builds the Weak-key Profile that
-					Practice draws from.
+					The Speed Test measures your speed on one shared text and is the flagship Leaderboard.
 				</p>
 				<div class="actions">
 					<a class="primary" href="/speed-test">Take the Speed Test →</a>
