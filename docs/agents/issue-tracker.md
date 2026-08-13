@@ -46,4 +46,6 @@ Used by `/wayfinder`. The **map** is a single issue with **child** issues as tic
 
 ## Existing local-markdown history
 
-Tickets 01–37 of the GetTyping build-ready spec were tracked as local markdown under `.scratch/gettyping-spec/issues/` before this switch. That history stays in place as the record of how the spec and initial build were driven — it is not migrated into GitHub Issues. New work from here on goes through GitHub Issues per the conventions above.
+Tickets 01–37 of the GetTyping build-ready spec were tracked as local markdown under `.scratch/gettyping-spec/issues/` before this switch. That history stays in place as the record of how the spec and initial build were driven — it is not migrated into GitHub Issues.
+
+Follow-on planning that must survive on a git branch (wayfinder maps, specs, and `ready-for-agent` tickets) also lives under `.scratch/<effort>/`, using the local-markdown layout: `map.md`, `spec.md`, and one file per ticket in `issues/`. See `.scratch/README.md`. Product bugs and intake that are not part of a planning branch still go through GitHub Issues per the conventions above.

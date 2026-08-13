@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>GetTyping — Learn keyboard finger zones</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /*
+    Throwaway prototype — visual spec for Learn finger-zone decoration.
+    Encoding is locked (ticket 01): hand-side chevron + 1–4 pips, hue on the
+    mark only. Caps stay white. Next key still takes Sunshine and rises.
+
+    Open this file in a browser. No build, no deps.
+  */
+  :root {
+    --night: #21185f;
+    --indigo: #362d91;
+    --indigo-active: #4b44bd;
+    --lesson-blue: #5d83dd;
+    --sky: #9ec8ff;
+    --paper: #f2f0ff;
+    --paper-deep: #e9e6fb;
+    --card: #ffffff;
+    --ink: #241b63;
+    --muted: #625c8d;
+    --on-night: #cfc9ff;
+    --line: #d9d5f2;
+    --pencil-line: #c9c3ec;
+    --key-edge: #bbb4e7;
+    --key-edge-deep: #aaa1da;
+    --sun: #ffd54a;
+    --sun-deep: #f0a91d;
+    --sun-wash: #fff1a6;
+    --coral: #ff7657;
+    --coral-deep: #d84a35;
+    --mint: #70d7a5;
+    --mint-deep: #238c65;
+    --font-rounded: "Fredoka", "Baloo 2", ui-rounded, sans-serif;
+    --font-sans: "Nunito", "Avenir Next Rounded", sans-serif;
+    --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", monospace;
+    --shadow-card: 0 8px 0 rgb(80 68 167 / 18%), 0 18px 30px rgb(25 18 88 / 12%);
+    --ease-pop: cubic-bezier(.2, .8, .2, 1);
+    --pinky: var(--sky);
+    --ring: var(--lesson-blue);
+    --middle: var(--indigo);
+    --index: var(--indigo-active);
+    --thumb: var(--mint);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+  }
+  body { min-height: 100vh; }
+
+  .dev-banner {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    padding: 0.45rem 0.8rem;
+    background: var(--night);
+    color: #fff;
+    font: 800 0.68rem/1.4 var(--font-sans);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .scene {
+    position: relative;
+    width: min(calc(100% - 2rem), 62rem);
+    margin: 0 auto;
+    padding: 4.5rem 0 7rem;
+  }
+  .scene::before {
+    position: absolute;
+    z-index: -1;
+    top: -4rem;
+    left: calc(50% - 50vw);
+    width: 100vw;
+    height: 11rem;
+    border-radius: 0 0 50% 50% / 0 0 3rem 3rem;
+    background: var(--night);
+    content: "";
+  }
+  .scene::after {
+    position: absolute;
+    z-index: -1;
+    right: -20vw;
+    bottom: 0;
+    left: -20vw;
+    height: 10rem;
+    border-radius: 50%;
+    background: var(--sun);
+    opacity: 0.34;
+    transform: rotate(-2deg);
+    content: "";
+  }
+
+  .panel {
+    position: relative;
+    max-width: 46rem;
+    margin: 0 auto 1.25rem;
+    padding: clamp(1.2rem, 4vw, 2rem);
+    border: 2px solid var(--line);
+    border-radius: 1.6rem;
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .eyebrow {
+    width: fit-content;
+    padding: 0.4rem 0.7rem;
+    margin: 0 0 0.7rem;
+    border-radius: 999px;
+    background: var(--indigo);
+    color: #fff;
+    font: 800 0.7rem var(--font-sans);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  h1 {
+    max-width: 16ch;
+    margin: 0;
+    font: 700 clamp(2rem, 6vw, 3.4rem)/0.95 var(--font-rounded);
+    letter-spacing: -0.035em;
+  }
+  .lead {
+    max-width: 42ch;
+    margin: 0.7rem 0 0;
+    font: 600 1.05rem/1.5 var(--font-sans);
+  }
+  .note {
+    max-width: 58ch;
+    margin: 0.85rem 0 0;
+    color: var(--muted);
+    font: 600 0.86rem/1.55 var(--font-sans);
+  }
+
+  .intro-copy {
+    display: grid;
+    gap: 0.45rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+    font: 600 1.05rem/1.5 var(--font-sans);
+  }
+  .intro-copy li {
+    display: grid;
+    grid-template-columns: 1.6rem 1fr;
+    gap: 0.55rem;
+    align-items: start;
+  }
+  .intro-copy .n {
+    display: grid;
+    width: 1.5rem;
+    height: 1.5rem;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--paper-deep);
+    color: var(--ink);
+    font: 800 0.72rem var(--font-sans);
+  }
+
+  .go {
+    display: inline-flex;
+    margin-top: 1.35rem;
+    padding: 0.8rem 1.3rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--sun);
+    color: var(--ink);
+    font: 800 1rem var(--font-sans);
+    box-shadow: 0 5px 0 var(--sun-deep);
+    cursor: pointer;
+  }
+  .go:focus-visible {
+    outline: 3px solid var(--indigo-active);
+    outline-offset: 3px;
+  }
+  .go:active {
+    transform: translateY(5px);
+    box-shadow: none;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem 1rem;
+    margin-top: 1rem;
+  }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--muted);
+    font: 800 0.68rem/1.3 var(--font-sans);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ---- keyboard (mirrors OnScreenKeyboard.svelte) ---- */
+  .keyboard {
+    display: grid;
+    container-type: inline-size;
+    gap: clamp(0.28rem, 1vw, 0.48rem);
+    padding: clamp(0.75rem, 2vw, 1.2rem);
+    margin-top: 1.25rem;
+    border-radius: 1.4rem;
+    background: #d9d5f2;
+    box-shadow: inset 0 4px 0 rgb(255 255 255 / 58%), 0 10px 0 var(--key-edge-deep), 0 18px 28px rgb(33 24 95 / 14%);
+  }
+  .keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: min(0.42rem, 0.85cqw);
+  }
+  kbd {
+    position: relative;
+    display: grid;
+    width: min(2.25rem, 8cqw);
+    height: min(2.25rem, 8cqw);
+    place-items: center;
+    padding-top: 0.28rem;
+    border: 0;
+    border-radius: 0.72rem;
+    background: var(--card);
+    box-shadow: 0 4px 0 var(--key-edge), 0 7px 10px rgb(33 24 95 / 13%);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: min(0.75rem, max(0.55rem, 3cqw));
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  kbd.is-wide {
+    width: min(12.5rem, 42cqw);
+    color: var(--muted);
+    font-size: min(0.6rem, max(0.55rem, 2.6cqw));
+    letter-spacing: 0.06em;
+  }
+  .keyboard-row:nth-child(4) kbd.is-wide {
+    width: min(4.75rem, 11cqw);
+  }
+  kbd.is-next {
+    background: var(--sun);
+    color: var(--ink);
+    box-shadow: 0 6px 0 var(--sun-deep), 0 10px 16px rgb(33 24 95 / 18%);
+    font-weight: 700;
+    transform: translateY(-4px) scale(1.06);
+  }
+
+  /* Physical bump under F and J — shape, not hue. */
+  kbd.is-home::after {
+    position: absolute;
+    bottom: 0.22rem;
+    left: 50%;
+    width: 38%;
+    height: 0.16rem;
+    border-radius: 999px;
+    background: var(--ink);
+    transform: translateX(-50%);
+    content: "";
+  }
+
+  .finger-badge {
+    position: absolute;
+    top: 0.18rem;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 0.08rem;
+    padding: 0.07rem 0.16rem 0.07rem 0.12rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  kbd[data-hand="right"] .finger-badge { flex-direction: row-reverse; padding: 0.07rem 0.12rem 0.07rem 0.16rem; }
+  kbd.is-wide .finger-badge { top: 0.28rem; }
+
+  .chevron {
+    width: 0;
+    height: 0;
+    border-top: 0.18rem solid transparent;
+    border-bottom: 0.18rem solid transparent;
+  }
+  kbd[data-hand="left"] .chevron { border-right: 0.28rem solid var(--ink); }
+  kbd[data-hand="right"] .chevron { border-left: 0.28rem solid var(--ink); }
+
+  .pips { display: flex; gap: 0.07rem; }
+  .pip {
+    width: 0.22rem;
+    height: 0.22rem;
+    border-radius: 50%;
+    background: var(--ink);
+  }
+  .thumb-bar {
+    width: 1.15rem;
+    height: 0.28rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    background: var(--thumb);
+  }
+
+  kbd[data-finger="pinky"] .finger-badge { background: var(--pinky); }
+  kbd[data-finger="ring"] .finger-badge { background: var(--ring); }
+  kbd[data-finger="middle"] .finger-badge { background: var(--middle); }
+  kbd[data-finger="index"] .finger-badge { background: var(--index); }
+  kbd[data-finger="ring"] .pip,
+  kbd[data-finger="middle"] .pip,
+  kbd[data-finger="index"] .pip { background: var(--card); }
+  kbd[data-finger="ring"] .chevron { border-right-color: var(--card); }
+  kbd[data-hand="right"][data-finger="ring"] .chevron { border-left-color: var(--card); border-right-color: transparent; }
+  kbd[data-finger="middle"] .chevron,
+  kbd[data-finger="index"] .chevron { border-right-color: var(--card); }
+  kbd[data-hand="right"][data-finger="middle"] .chevron,
+  kbd[data-hand="right"][data-finger="index"] .chevron { border-left-color: var(--card); border-right-color: transparent; }
+
+  /* Scene visibility */
+  [data-scene] { display: none; }
+  body[data-scene="resting"] [data-scene="resting"],
+  body[data-scene="next-f"] [data-scene="next-f"],
+  body[data-scene="intro"] [data-scene="intro"] { display: block; }
+
+  .switcher {
+    position: fixed;
+    z-index: 50;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1rem 1rem;
+    background: linear-gradient(transparent, var(--paper) 35%);
+  }
+  .switcher button {
+    min-height: 2.6rem;
+    padding: 0.45rem 0.9rem;
+    border: 2px solid var(--night);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--ink);
+    font: 800 0.78rem var(--font-sans);
+    cursor: pointer;
+    box-shadow: 0 4px 0 var(--night);
+  }
+  .switcher button[aria-pressed="true"] {
+    background: var(--sun);
+    box-shadow: 0 4px 0 var(--sun-deep);
+  }
+  .switcher button:focus-visible {
+    outline: 3px solid var(--indigo-active);
+    outline-offset: 3px;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  @media (max-width: 560px) {
+    .keyboard { padding: 0.6rem 0.45rem; border-radius: 1rem; }
+    kbd { border-radius: 0.5rem; }
+    .pip { width: 0.16rem; height: 0.16rem; }
+  }
+</style>
+</head>
+<body data-scene="intro">
+  <div class="dev-banner">Throwaway prototype · encoding locked · not the product</div>
+
+  <main class="scene">
+    <section class="panel" data-scene="resting">
+      <p class="eyebrow">Learn · resting keyboard</p>
+      <h1>Finger marks at rest</h1>
+      <p class="lead">Caps stay white. Each cap carries a persistent badge: chevron for the hand, pips for the finger, hue on the mark only.</p>
+      <p class="note">Sunshine is not used here. That fill is reserved for the next key. Speed Test &amp; Practice keeps this same keyboard with the badges off.</p>
+      <div class="legend">
+        <span>Pinky · 1 pip · sky blue</span>
+        <span>Ring · 2 · lesson blue</span>
+        <span>Middle · 3 · playground indigo</span>
+        <span>Index · 4 · active indigo</span>
+        <span>Thumbs · mint bar</span>
+      </div>
+    </section>
+
+    <section class="panel" data-scene="next-f">
+      <p class="eyebrow">Learn · Stage 1 · Attempt</p>
+      <h1>Next key still wins</h1>
+      <p class="lead">F takes Sunshine, a Sunshine Deep edge, and rises. The left-index badge stays on the cap — decoration, not a replacement.</p>
+      <p class="note">Ink on Sunshine (Tint Ink Rule). The badge keeps its Night Indigo outline so the mark still reads on the yellow fill, including without hue.</p>
+    </section>
+
+    <section class="panel" data-scene="intro">
+      <p class="eyebrow">Learn · Stage 1</p>
+      <h1>Find the bumps</h1>
+      <ol class="intro-copy">
+        <li><span class="n">1</span><span>Find the little bumps under <strong>F</strong> and <strong>J</strong>.</span></li>
+        <li><span class="n">2</span><span>Rest your index fingers there.</span></li>
+        <li><span class="n">3</span><span>Those two keys are home.</span></li>
+      </ol>
+      <button class="go" type="button">I found the bumps</button>
+      <p class="note">Shown once per Player, before the gated Exercise Attempt. Not skippable the first time. Does not write a Score. Does not count as an Attempt. No new sound.</p>
+    </section>
+
+    <div id="board"></div>
+  </main>
+
+  <nav class="switcher" aria-label="Prototype scenes">
+    <button type="button" data-go="resting">Resting marks</button>
+    <button type="button" data-go="next-f" aria-pressed="false">Next key F</button>
+    <button type="button" data-go="intro" aria-pressed="true">Stage 1 intro</button>
+  </nav>
+
+<script>
+  const ROWS = [
+    [
+      { label: "1 !", finger: "pinky", hand: "left" },
+      { label: "2", finger: "ring", hand: "left" },
+      { label: "3", finger: "middle", hand: "left" },
+      { label: "4", finger: "index", hand: "left" },
+      { label: "5", finger: "index", hand: "left" },
+      { label: "6", finger: "index", hand: "right" },
+      { label: "7", finger: "index", hand: "right" },
+      { label: "8", finger: "middle", hand: "right" },
+      { label: "9", finger: "ring", hand: "right" },
+      { label: "0", finger: "pinky", hand: "right" }
+    ],
+    [
+      { label: "q", finger: "pinky", hand: "left" },
+      { label: "w", finger: "ring", hand: "left" },
+      { label: "e", finger: "middle", hand: "left" },
+      { label: "r", finger: "index", hand: "left" },
+      { label: "t", finger: "index", hand: "left" },
+      { label: "y", finger: "index", hand: "right" },
+      { label: "u", finger: "index", hand: "right" },
+      { label: "i", finger: "middle", hand: "right" },
+      { label: "o", finger: "ring", hand: "right" },
+      { label: "p", finger: "pinky", hand: "right" }
+    ],
+    [
+      { label: "a", finger: "pinky", hand: "left" },
+      { label: "s", finger: "ring", hand: "left" },
+      { label: "d", finger: "middle", hand: "left" },
+      { label: "f", finger: "index", hand: "left", home: true },
+      { label: "g", finger: "index", hand: "left" },
+      { label: "h", finger: "index", hand: "right" },
+      { label: "j", finger: "index", hand: "right", home: true },
+      { label: "k", finger: "middle", hand: "right" },
+      { label: "l", finger: "ring", hand: "right" },
+      { label: "; :", finger: "pinky", hand: "right" },
+      { label: "'", finger: "pinky", hand: "right" }
+    ],
+    [
+      { label: "shift", finger: "pinky", hand: "left", wide: true },
+      { label: "z", finger: "pinky", hand: "left" },
+      { label: "x", finger: "ring", hand: "left" },
+      { label: "c", finger: "middle", hand: "left" },
+      { label: "v", finger: "index", hand: "left" },
+      { label: "b", finger: "index", hand: "left" },
+      { label: "n", finger: "index", hand: "right" },
+      { label: "m", finger: "index", hand: "right" },
+      { label: ",", finger: "middle", hand: "right" },
+      { label: ".", finger: "ring", hand: "right" },
+      { label: "/ ?", finger: "pinky", hand: "right" }
+    ],
+    [{ label: "space", finger: "thumb", hand: "both", wide: true }]
+  ];
+
+  const PIPS = { pinky: 1, ring: 2, middle: 3, index: 4, thumb: 0 };
+  const NAMES = {
+    "left-pinky": "left pinky",
+    "left-ring": "left ring",
+    "left-middle": "left middle",
+    "left-index": "left index",
+    "right-pinky": "right pinky",
+    "right-ring": "right ring",
+    "right-middle": "right middle",
+    "right-index": "right index",
+    "both-thumb": "thumbs"
+  };
+
+  function fingerName(cap) {
+    return NAMES[`${cap.hand}-${cap.finger}`];
+  }
+
+  function badge(cap) {
+    if (cap.finger === "thumb") return `<span class="finger-badge" style="background:transparent;border:0;padding:0"><span class="thumb-bar"></span></span>`;
+    const pips = Array.from({ length: PIPS[cap.finger] }, () => `<span class="pip"></span>`).join("");
+    return `<span class="finger-badge" aria-hidden="true"><span class="chevron"></span><span class="pips">${pips}</span></span>`;
+  }
+
+  function render(scene) {
+    const highlights = scene === "next-f" ? ["f"] : scene === "intro" ? ["f", "j"] : [];
+    const nextNames = highlights.map((label) => {
+      const cap = ROWS.flat().find((item) => item.label === label);
+      return `${label.toUpperCase()}, ${fingerName(cap)}`;
+    });
+    const aria = highlights.length
+      ? `On-screen keyboard. ${scene === "intro" ? "Home keys" : "Next key"}: ${nextNames.join(" and ")}.`
+      : "On-screen keyboard. Finger marks show which finger rests on each key.";
+
+    const rows = ROWS.map((row) => {
+      const caps = row.map((cap) => {
+        const on = highlights.includes(cap.label);
+        const classes = [
+          cap.wide ? "is-wide" : "",
+          cap.home ? "is-home" : "",
+          on ? "is-next" : ""
+        ].filter(Boolean).join(" ");
+        const nextHint = on ? `<span class="sr-only"> — ${scene === "intro" ? "home key" : "next key"}, ${fingerName(cap)}</span>` : "";
+        return `<kbd class="${classes}" data-finger="${cap.finger}" data-hand="${cap.hand}">${badge(cap)}${cap.label}${nextHint}</kbd>`;
+      }).join("");
+      return `<div class="keyboard-row">${caps}</div>`;
+    }).join("");
+
+    document.getElementById("board").innerHTML =
+      `<div class="keyboard" role="img" aria-label="${aria}">${rows}</div>`;
+  }
+
+  function setScene(scene) {
+    document.body.dataset.scene = scene;
+    document.querySelectorAll(".switcher button").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.go === scene));
+    });
+    render(scene);
+  }
+
+  document.querySelectorAll(".switcher button").forEach((button) => {
+    button.addEventListener("click", () => setScene(button.dataset.go));
+  });
+
+  setScene("intro");
+</script>
+</body>
+</html>
