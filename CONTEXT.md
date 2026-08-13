@@ -9,7 +9,7 @@ One of the two top-level modes a Player operates in: **Learn** (gated, stage-by-
 _Avoid_: Mode, Section
 
 **Stage**:
-A single gated step within the Learn Track that teaches a specific set of keys. Clearing a Stage's Exercise(s) at its unlock threshold opens the next Stage in sequence.
+A single gated step within the Learn Track that teaches a specific set of keys. Clearing a Stage's Exercise(s) at its unlock threshold opens the next Stage in sequence. Stage 1's first visit may show a short home-row intro beat before the Exercise Attempt; that beat is not an Exercise and not an Attempt.
 _Avoid_: Level, Lesson, Unit
 
 **Exercise**:

@@ -37,8 +37,11 @@
 			<FeedbackLine items={feedback} />
 		</section>
 
-		<OnScreenKeyboard nextKey={nextExpectedKey} />
-		<p class="keyboard-note">The next expected key stays highlighted on both Tracks.</p>
+		<OnScreenKeyboard nextKeys={[nextExpectedKey]} {track} />
+		<p class="keyboard-note">
+			Learn shows which finger rests on each key. Speed Test &amp; Practice keeps the same keyboard
+			without those marks. The next expected key stays highlighted on both Tracks.
+		</p>
 	</div>
 </TrackFrame>
 

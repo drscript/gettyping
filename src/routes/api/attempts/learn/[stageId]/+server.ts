@@ -1,9 +1,9 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { error, json } from '@sveltejs/kit';
 import { requireActivePlayer } from '$lib/server/active-player';
 import { completeAttempt, createAttemptHandshake } from '$lib/server/attempts';
 import { getDatabase } from '$lib/server/database';
-import { exercises, stages } from '$lib/server/database/schema';
+import { exercises, players, stages } from '$lib/server/database/schema';
 import {
 	consecutiveStageFailures,
 	learnAccuracyThreshold,
@@ -20,11 +20,28 @@ function readStageId(value: string): number {
 	return stageId;
 }
 
+function isStageOneIntroAcknowledgement(body: unknown): boolean {
+	if (!body || typeof body !== 'object') return false;
+	const value = body as { stageOneIntroSeen?: unknown; token?: unknown };
+	return value.stageOneIntroSeen === true && value.token === undefined;
+}
+
 export const GET: RequestHandler = ({ cookies, params }) => {
 	const stageId = readStageId(params.stageId);
 	const playerId = requireActivePlayer(cookies, 'Choose a Nickname before starting Learn').id;
 	const database = getDatabase();
 	if (!stageIsAvailable(database, playerId, stageId)) error(403, 'This Stage is not open yet');
+
+	if (stageId === 1) {
+		const player = database
+			.select({ stageOneIntroSeenAt: players.stageOneIntroSeenAt })
+			.from(players)
+			.where(eq(players.id, playerId))
+			.get();
+		if (player && player.stageOneIntroSeenAt == null) {
+			return json({ stageOneIntro: true });
+		}
+	}
 
 	const exercise = database
 		.select({
@@ -59,6 +76,23 @@ function invalidAttemptResponse(): Response {
 
 export const POST: RequestHandler = async ({ cookies, params, request }) => {
 	const stageId = readStageId(params.stageId);
+	let body: unknown;
+	try {
+		body = await request.clone().json();
+	} catch {
+		body = undefined;
+	}
+	if (isStageOneIntroAcknowledgement(body)) {
+		if (stageId !== 1) error(404, 'Stage not found');
+		const playerId = requireActivePlayer(cookies, 'Choose a Nickname before starting Learn').id;
+		getDatabase()
+			.update(players)
+			.set({ stageOneIntroSeenAt: Date.now() })
+			.where(and(eq(players.id, playerId), isNull(players.stageOneIntroSeenAt)))
+			.run();
+		return new Response(null, { status: 204 });
+	}
+
 	const completed = await completeAttempt(cookies, request, 'learn', stageId);
 	if (!completed) return invalidAttemptResponse();
 

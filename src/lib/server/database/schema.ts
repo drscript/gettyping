@@ -13,7 +13,8 @@ import {
 export const players = sqliteTable('players', {
 	id: text('id').primaryKey(),
 	nickname: text('nickname').notNull(),
-	createdAt: integer('created_at').notNull()
+	createdAt: integer('created_at').notNull(),
+	stageOneIntroSeenAt: integer('stage_one_intro_seen_at')
 });
 
 export const stages = sqliteTable('stages', {

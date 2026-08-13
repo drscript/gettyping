@@ -61,6 +61,14 @@ async function startStage(
 	cookie: string,
 	stageId = 1
 ): Promise<StartedLearnAttempt> {
+	if (stageId === 1) {
+		const acknowledged = await fetch(`${server.baseUrl}/api/attempts/learn/1`, {
+			method: 'POST',
+			headers: { cookie, 'content-type': 'application/json' },
+			body: JSON.stringify({ stageOneIntroSeen: true })
+		});
+		expect(acknowledged.status).toBe(204);
+	}
 	const response = await fetch(`${server.baseUrl}/api/attempts/learn/${stageId}`, {
 		headers: { cookie }
 	});
@@ -162,7 +170,9 @@ describe('Learn Stage gate', () => {
 				 WHERE nickname = ? AND exercise_id = 1`
 			)
 			.get(nickname);
-		const progressionColumns = database.prepare('PRAGMA table_info(players)').all();
+		const progressionColumns = (
+			database.prepare('PRAGMA table_info(players)').all() as Array<{ name: string }>
+		).filter((column) => column.name !== 'stage_one_intro_seen_at');
 		database.close();
 		expect(stored).toEqual({ eligible: 0 });
 		expect(progressionColumns).not.toEqual(

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import TrackFrame from '$lib/components/TrackFrame.svelte';
+	import OnScreenKeyboard from '$lib/components/OnScreenKeyboard.svelte';
 	import TypingAttempt, {
 		type AttemptToType,
 		type TypedScore
@@ -26,6 +27,7 @@
 
 	let { data } = $props();
 	let attempt = $state<LearnAttempt>();
+	let stageOneIntro = $state(false);
 	let score = $state<TypedScore>();
 	let result = $state<StageResult>();
 	let leaderboard = $state<LeaderboardView>();
@@ -43,7 +45,7 @@
 	async function startStage(): Promise<void> {
 		const load = ++currentLoad;
 		const stageEndpoint = endpoint;
-		loading = true;
+		if (!stageOneIntro) loading = true;
 		message = '';
 		attempt = undefined;
 		score = undefined;
@@ -58,6 +60,7 @@
 			// A rejected fetch must not strand the Player on the loading state forever.
 			if (load !== currentLoad) return;
 			loading = false;
+			stageOneIntro = false;
 			message = 'This Stage is not ready yet.';
 			return;
 		}
@@ -68,13 +71,34 @@
 		}
 		if (!response.ok) {
 			loading = false;
+			stageOneIntro = false;
 			message = response.status === 403 ? 'This Stage is not open yet.' : 'This Stage is not ready yet.';
 			return;
 		}
-		const loaded = (await response.json()) as LearnAttempt;
+		const loaded = (await response.json()) as LearnAttempt | { stageOneIntro: true };
 		if (load !== currentLoad) return;
-		attempt = loaded;
+		if ('stageOneIntro' in loaded && loaded.stageOneIntro) {
+			stageOneIntro = true;
+			loading = false;
+			return;
+		}
+		stageOneIntro = false;
+		attempt = loaded as LearnAttempt;
 		loading = false;
+	}
+
+	async function acknowledgeIntro(): Promise<void> {
+		try {
+			await fetch(endpoint, {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ stageOneIntroSeen: true })
+			});
+		} catch {
+			message = 'This Stage is not ready yet.';
+			return;
+		}
+		await startStage();
 	}
 
 	async function startStretch(): Promise<void> {
@@ -92,7 +116,10 @@
 
 	$effect(() => {
 		data.stageId;
-		untrack(() => void startStage());
+		untrack(() => {
+			stageOneIntro = false;
+			void startStage();
+		});
 	});
 </script>
 
@@ -105,6 +132,18 @@
 	<TrackFrame track="learn">
 		{#if loading}
 			<section class="card" aria-live="polite"><p class="eyebrow">Learn · Stage {data.stageId}</p><h1>Getting your Stage ready…</h1></section>
+		{:else if stageOneIntro}
+			<section class="card intro-card" aria-live="polite">
+				<p class="eyebrow">Learn · Stage 1</p>
+				<h1>Find the bumps</h1>
+				<ol class="intro-copy">
+					<li><span class="n">1</span><span>Find the little bumps under <strong>F</strong> and <strong>J</strong>.</span></li>
+					<li><span class="n">2</span><span>Rest your index fingers there.</span></li>
+					<li><span class="n">3</span><span>Those two keys are home.</span></li>
+				</ol>
+				<button class="primary intro-go" type="button" onclick={acknowledgeIntro}>I found the bumps</button>
+			</section>
+			<OnScreenKeyboard nextKeys={['f', 'j']} track="learn" />
 		{:else if stretchAccuracy !== undefined}
 			<section class="card stretch-card" aria-live="polite">
 				<p class="eyebrow">Stage {data.stageId}</p>
@@ -227,6 +266,32 @@
 	.cleared-card::after { background: var(--correct-fill); }
 	.eyebrow { width: fit-content; padding: 0.4rem 0.7rem; margin: 0 0 0.7rem; border-radius: 999px; background: var(--indigo); color: #fff; font: 800 0.7rem var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; }
 	h1 { max-width: 13ch; margin: 0; font: 700 clamp(2.4rem, 8vw, 5rem)/0.95 var(--font-rounded); letter-spacing: -0.035em; }
+	.intro-card h1 { max-width: 16ch; }
+	.intro-copy {
+		display: grid;
+		gap: 0.45rem;
+		margin: 1rem 0 0;
+		padding: 0;
+		list-style: none;
+		font: 600 1.05rem/1.5 var(--font-sans);
+	}
+	.intro-copy li {
+		display: grid;
+		grid-template-columns: 1.6rem 1fr;
+		gap: 0.55rem;
+		align-items: start;
+	}
+	.intro-copy .n {
+		display: grid;
+		width: 1.5rem;
+		height: 1.5rem;
+		place-items: center;
+		border-radius: 50%;
+		background: var(--paper-deep);
+		color: var(--ink);
+		font: 800 0.72rem var(--font-sans);
+	}
+	.intro-go { margin-top: 1.35rem; color: var(--night); }
 	.target { margin: 0.65rem 0 0; font-size: clamp(1.15rem, 3vw, 1.45rem); }
 	.speed-note { max-width: 58ch; color: var(--muted); font-family: var(--font-sans); font-size: 0.86rem; font-weight: 600; line-height: 1.55; }
 	.adult-help { margin: 1.6rem 0 0; color: var(--muted); font: 0.78rem/1.5 var(--font-sans); }

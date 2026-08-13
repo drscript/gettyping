@@ -43,6 +43,14 @@ async function startStage(
 	cookie: string,
 	stageId: number
 ): Promise<StartedLearnAttempt> {
+	if (stageId === 1) {
+		const acknowledged = await fetch(`${server.baseUrl}/api/attempts/learn/1`, {
+			method: 'POST',
+			headers: { cookie, 'content-type': 'application/json' },
+			body: JSON.stringify({ stageOneIntroSeen: true })
+		});
+		expect(acknowledged.status).toBe(204);
+	}
 	const response = await fetch(`${server.baseUrl}/api/attempts/learn/${stageId}`, {
 		headers: { cookie }
 	});

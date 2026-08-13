@@ -167,7 +167,7 @@
 	{#if submitting}<p class="saving">Checking your Score…</p>{/if}
 </div>
 
-{#if nextExpectedKey}<OnScreenKeyboard nextKey={nextExpectedKey} />{/if}
+{#if nextExpectedKey}<OnScreenKeyboard nextKeys={[nextExpectedKey]} {track} />{/if}
 
 <style>
 	.attempt-header {
