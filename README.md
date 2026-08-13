@@ -4,8 +4,8 @@ A web-based, SQLite-backed typing tutor. It teaches beginners — including youn
 
 ## The two Tracks
 
-- **Learn** — a gated, 21-Stage curriculum (home row → top row → bottom row → shift/punctuation → numbers). Each Stage teaches one to three new keys and gates on 90% accuracy, never speed. Cleared Stages stay open for replay.
-- **Speed Test & Practice** — an ungated diagnostic Speed Test followed by Practice Exercises generated on the fly, targeting whichever keys a Player's Weak-key Profile shows as weakest.
+- **Learn** — a gated, 21-Stage curriculum (home row → top row → bottom row → shift/punctuation → numbers). Each Stage teaches one to three new keys and gates on 90% accuracy, never speed. Cleared Stages stay open for replay. The on-screen keyboard marks which finger belongs on each key.
+- **Speed Test & Practice** — an ungated diagnostic Speed Test and Practice Exercises generated on the fly from the Player's Weak-key Profile. A Speed Test Score **or** a Learn Score unlocks Practice; a Nickname-only Player is sent to the Speed Test first. Returning home offers **Practise weak keys** as a secondary action once eligible — Continue still points at the next Stage, or the Speed Test after graduation.
 
 Every Exercise has its own per-Exercise Leaderboard (there's no single global ranking — see [ADR 0002](docs/adr/0002-per-exercise-leaderboards.md)). There are no accounts: a Player is just a chosen Nickname held in a long-lived cookie, no password or email required (see [ADR 0001](docs/adr/0001-nickname-only-identity.md)).
 
@@ -17,14 +17,22 @@ A gated `/admin` page for the site operator: aggregate, Nickname-free usage stat
 
 ## Screenshots
 
-| | |
-| --- | --- |
-| ![Track choice landing screen](docs/screenshots/landing.png) | ![Picking a curated Nickname](docs/screenshots/nickname.png) |
-| First visit — choose a Track by intent, not age | Learn's Nickname step: tap a curated card, nothing to type |
-| ![Home screen with the 21-Stage path](docs/screenshots/home-stages.png) | ![Learn Stage typing surface](docs/screenshots/learn-stage.png) |
-| Returning Player's home screen and Stage path | Mid-Stage: per-character feedback and the on-screen keyboard |
-| ![Speed Test typing surface](docs/screenshots/speed-test.png) | |
-| Speed Test — the same mechanics, a tighter type scale | |
+<p align="center">
+  <img src="docs/screenshots/landing.png" alt="Track choice landing screen" width="48%" />
+  <img src="docs/screenshots/nickname.png" alt="Picking a curated Nickname" width="48%" />
+</p>
+<p align="center">First visit — choose a Track by intent, not age. Learn's Nickname step: tap a curated card, nothing to type.</p>
+
+<p align="center">
+  <img src="docs/screenshots/home-stages.png" alt="Home screen with the 21-Stage path" width="48%" />
+  <img src="docs/screenshots/learn-stage.png" alt="Learn Stage typing surface" width="48%" />
+</p>
+<p align="center">Returning Player's home screen and Stage path. Mid-Stage: per-character feedback and the on-screen keyboard.</p>
+
+<p align="center">
+  <img src="docs/screenshots/speed-test.png" alt="Speed Test typing surface" width="72%" />
+</p>
+<p align="center">Speed Test — the same mechanics, a tighter type scale.</p>
 
 ## Stack
 
