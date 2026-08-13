@@ -82,3 +82,17 @@ Cross-referenced on [15-leaderboard-display-rules.md](./15-leaderboard-display-r
 ### Logged rather than decided
 
 **N** — how many consecutive failures before the adult line appears. A playtest-tuned number, the same shape as the targeting-aggressiveness knob and the Speed Test floor already in the map's fog.
+
+**`stretchOfferCount`** — the earlier-still count at which a Finger stretch is offered (see the addendum below). Also playtest-tuned, and enforced to sit strictly below N by the configuration loader itself.
+
+## Addendum (from [wayfinder map #29 — adaptive warm-up retry](https://github.com/drscript/gettyping/issues/29))
+
+Resolves the "Related but distinct" question above: **yes, Learn now uses the adaptive machinery — but beside the retry, not inside it.** The retry itself stays exactly as decided: byte-identical text, no escalating hints, no tiering. What changes is that the failure screen gains a second, optional path.
+
+**A Finger stretch**, offered on the failure screen once `stretchOfferCount` consecutive failures are reached — strictly earlier than the adult-override line above, so it's child-facing help offered while the child is still alone with the problem. It is a generated **mini-Exercise** over the Stage's cumulative taught keys (the authored Exercises' block grammar — runs → pairs → anchor → pairs — at roughly half length), not a re-draw of the Stage's own gate text: the "identical retry" rule for the *Stage Exercise* is untouched, this is a second, separate piece of content.
+
+**It is not an Exercise and not an Attempt.** Per the fixed-content rule this ticket established, a Finger stretch is generated content, so it carries no Leaderboard — and because an Attempt is specifically a run through an Exercise, a stretch run isn't one either. It writes no Score, ending instead on a minimal "Fingers stretched." result. Its keystrokes still fold into the Weak-key Profile.
+
+**The failure streak (`consecutiveStageFailures`) is warm-up-blind.** A Finger stretch neither resets nor extends it — banking a stretch against the streak would let a stuck child defer the adult-override route indefinitely; resetting it would retreat the adult line exactly when it's most needed. The offer persists across every subsequent failure and disappears the moment the Stage resolves by any means, exactly like the failure card itself.
+
+**No skip, still.** The Finger stretch is additional practice, not a bypass — the grown-up override remains the only path around the gate. Full detail: [Name and place the warm-up drill offer](https://github.com/drscript/gettyping/issues/31), [Generate the warm-up drill content](https://github.com/drscript/gettyping/issues/33), [Record and reveal warm-up Attempts](https://github.com/drscript/gettyping/issues/34), [Define the warm-up trigger count configuration](https://github.com/drscript/gettyping/issues/35).

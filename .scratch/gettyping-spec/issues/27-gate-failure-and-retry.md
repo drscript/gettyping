@@ -25,3 +25,7 @@ It **leads with how close they got and what they need**, so they know exactly wh
 - [x] Retrying serves byte-identical text.
 - [x] A fifth consecutive failure looks and sounds exactly like the first.
 - [x] The failed Attempt writes a Score.
+
+## Addendum (from [wayfinder map #29 — adaptive warm-up retry](https://github.com/drscript/gettyping/issues/29))
+
+The failure screen built here later gained a second, optional action — a **Finger stretch** offer — sitting beside "try again", not replacing it. Everything above is unchanged: the retry is still byte-identical, repeated failure still changes nothing about it. See [13-gate-failure-flow.md](./13-gate-failure-flow.md)'s addendum for the full design.

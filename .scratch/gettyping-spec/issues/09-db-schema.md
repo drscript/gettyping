@@ -160,3 +160,9 @@ Two pieces of this schema were provisioned for a surface no ticket had specified
 - **Speed Test trend** — this Player's Scores for the Speed Test Exercise ordered by `created_at`, excluding `leaderboard_eligible = 0` from the plotted series while still listing them.
 - **Learn bests** — this Player's best Score per Learn Exercise; the same `ROW_NUMBER()` shape as the Leaderboard query, partitioned for one Player instead of ranked across many.
 - **Practice aggregate** — count and `SUM(elapsed_ms)` over this Player's null-`exercise_id` rows, beside the existing `weak_key_stats` read that 14's session summary already performs.
+
+## Addendum (from [wayfinder map #29 — adaptive warm-up retry](https://github.com/drscript/gettyping/issues/29))
+
+**Zero schema change.** A Finger stretch (see 13's addendum) is served and validated through the existing `attempt_tokens` table's `generated` handshake kind — the same content-pinning and server-clock mechanism Practice Exercises already use — so no new token kind or column is needed.
+
+A stretch run writes **no `scores` row**: it isn't an Attempt, so there is nothing to insert. Its keystrokes still fold into `weak_key_stats` exactly like any other Attempt's would, over the Stage's cumulative taught-key pool. Because there's no Score, the plausibility tier that 10 built has nothing to flag; a rejected stream simply shows no accuracy and folds nothing, the same failure shape as any other rejected `attempt_tokens` submission.

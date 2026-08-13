@@ -24,3 +24,7 @@ Reading that record as "**this Stage counts as resolved**" rather than "the next
 - [x] A Stage resolved by override counts as resolved and opens the next, with no qualifying Score.
 - [x] The override works on Stage 21 and completes the Track.
 - [x] The accuracy threshold is unchanged for every Stage before and after an override.
+
+## Addendum (from [wayfinder map #29 — adaptive warm-up retry](https://github.com/drscript/gettyping/issues/29))
+
+The failure screen now also offers a **Finger stretch** at a separate, earlier `stretchOfferCount` threshold — strictly below the configured count here, enforced by the configuration loader itself so the two can never invert. The stretch is child-facing additional practice, not a bypass; **this ticket's invariant holds exactly as built**: there is still no child-facing skip, and the adult override remains the only way past a Stage. See [13-gate-failure-flow.md](./13-gate-failure-flow.md)'s addendum for the full design.

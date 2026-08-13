@@ -77,3 +77,7 @@ The reads are ordinary: the Speed Test trend is `scores` filtered to that Exerci
 - **11** — the home screen's secondary row gains a third route; the hub-with-routes pattern is confirmed rather than extended.
 - **15** — the "not ranked" marker gains a second context, unchanged in wording and in its refusal to explain itself.
 - **06** — a new screen for the reference render, which does not yet have it.
+
+## Addendum (from [wayfinder map #29 — adaptive warm-up retry](https://github.com/drscript/gettyping/issues/29))
+
+**A Finger stretch is invisible here, by design.** It writes no Score (13's addendum), so it contributes nothing to the Practice aggregate above — count, `elapsed_ms` sum, and the Weak-key Profile snapshot all stay exactly what they were. This was a deliberate choice at charting time, not an oversight: a stretch Score would have been indistinguishable from an ordinary Practice row and would have quietly padded this aggregate with runs the Player didn't choose to practice. The Weak-key Profile itself still moves — a stretch's keystrokes fold into it same as any Attempt's — so its effect surfaces here only indirectly, through the Profile the Practice block already shows.
